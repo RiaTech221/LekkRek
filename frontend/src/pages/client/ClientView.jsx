@@ -232,7 +232,7 @@ export default function ClientView() {
         
         {/* MOMENTS FILTER (Pills) */}
         <div className="flex gap-3 overflow-x-auto pb-4 mb-8 hide-scrollbar border-b border-gray-100">
-          {['', 'dejeuner', 'gouter', 'diner', 'Fast food'].map(moment => (
+          {['', 'dejeuner', 'gouter', 'diner', 'Fast food', 'cocktails_jus'].map(moment => (
             <button 
               key={moment}
               onClick={() => setMomentFilter(moment)}

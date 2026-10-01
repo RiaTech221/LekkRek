@@ -227,6 +227,7 @@ export default function MenuManager() {
                     <option value="diner">Dîner</option>
                     <option value="gouter">Goûter</option>
                     <option value="Fast food">Fast food</option>
+                    <option value="cocktails_jus">Cocktails & Jus</option>
                   </select>
                 </div>
               </div>
