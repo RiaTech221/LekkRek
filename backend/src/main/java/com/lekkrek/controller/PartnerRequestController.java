@@ -1,0 +1,37 @@
+package com.lekkrek.controller;
+
+import com.lekkrek.entity.PartnerRequest;
+import com.lekkrek.repository.PartnerRequestRepository;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+import java.util.List;
+
+@RestController
+@CrossOrigin(origins = "*")
+public class PartnerRequestController {
+
+    private final PartnerRequestRepository repository;
+
+    public PartnerRequestController(PartnerRequestRepository repository) {
+        this.repository = repository;
+    }
+
+    @PostMapping("/api/v1/public/partner-requests")
+    public PartnerRequest createRequest(@RequestBody PartnerRequest request) {
+        return repository.save(request);
+    }
+
+    @GetMapping("/api/v1/admin/partner-requests")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public List<PartnerRequest> getRequests() {
+        return repository.findAll();
+    }
+    
+    @PutMapping("/api/v1/admin/partner-requests/{id}/status")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public PartnerRequest updateStatus(@PathVariable Long id, @RequestParam String status) {
+        PartnerRequest req = repository.findById(id).orElseThrow(() -> new RuntimeException("Not found"));
+        req.setStatus(status);
+        return repository.save(req);
+    }
+}

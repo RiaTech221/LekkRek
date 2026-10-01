@@ -1,0 +1,77 @@
+package com.lekkrek.service.impl;
+
+import com.lekkrek.dto.PlatRequestDTO;
+import com.lekkrek.entity.Plat;
+import com.lekkrek.entity.Restaurant;
+import com.lekkrek.repository.PlatRepository;
+import com.lekkrek.repository.RestaurantRepository;
+import com.lekkrek.service.PlatService;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+public class PlatServiceImpl implements PlatService {
+
+    private final PlatRepository platRepository;
+    private final RestaurantRepository restaurantRepository;
+
+    public PlatServiceImpl(PlatRepository platRepository, RestaurantRepository restaurantRepository) {
+        this.platRepository = platRepository;
+        this.restaurantRepository = restaurantRepository;
+    }
+
+    @Override
+    public List<Plat> getAllPlats() {
+        return platRepository.findAll();
+    }
+
+    @Override
+    public Plat createPlat(PlatRequestDTO request) {
+        Restaurant restaurant = restaurantRepository.findById(request.restaurantId())
+                .orElseThrow(() -> new RuntimeException("Restaurant non trouvé"));
+
+        Plat plat = new Plat();
+        plat.setName(request.name());
+        plat.setDescription(request.description());
+        plat.setPrice(request.price());
+        plat.setImage(request.image());
+        plat.setMoment(request.moment());
+        plat.setStatus(Plat.DishStatus.valueOf(request.status()));
+        plat.setRestaurant(restaurant);
+
+        return platRepository.save(plat);
+    }
+
+    @Override
+    public Plat updatePlat(Long id, PlatRequestDTO request) {
+        Plat plat = platRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Plat non trouvé"));
+
+        Restaurant restaurant = restaurantRepository.findById(request.restaurantId())
+                .orElseThrow(() -> new RuntimeException("Restaurant non trouvé"));
+
+        plat.setName(request.name());
+        plat.setDescription(request.description());
+        plat.setPrice(request.price());
+        plat.setImage(request.image());
+        plat.setMoment(request.moment());
+        plat.setStatus(Plat.DishStatus.valueOf(request.status()));
+        plat.setRestaurant(restaurant);
+
+        return platRepository.save(plat);
+    }
+
+    @Override
+    public void deletePlat(Long id) {
+        platRepository.deleteById(id);
+    }
+
+    @Override
+    public Plat updatePlatStatus(Long id, String status) {
+        Plat plat = platRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Plat non trouvé"));
+        plat.setStatus(Plat.DishStatus.valueOf(status));
+        return platRepository.save(plat);
+    }
+}

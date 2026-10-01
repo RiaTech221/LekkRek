@@ -1,0 +1,41 @@
+package com.lekkrek.entity;
+
+import jakarta.persistence.*;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "utilisateurs")
+@Data
+@NoArgsConstructor
+public class Utilisateur {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false)
+    private String nomComplet;
+
+    @Column(nullable = false, unique = true)
+    private String email;
+
+    @Column(nullable = false)
+    private String motDePasse;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Role role; // ADMIN, OPERATEUR
+
+    @Column(nullable = false)
+    private Boolean actif = true;
+
+    @Column(name = "date_creation", updatable = false)
+    private LocalDateTime dateCreation = LocalDateTime.now();
+
+    public enum Role {
+        ADMIN,
+        OPERATEUR
+    }
+}

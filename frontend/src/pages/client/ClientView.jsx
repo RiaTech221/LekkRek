@@ -1,0 +1,514 @@
+﻿import React, { useState, useEffect } from 'react';
+import '../../index.css';
+
+export default function ClientView() {
+  const [plats, setPlats] = useState([]);
+  const [cart, setCart] = useState([]);
+  const [isCheckoutOpen, setCheckoutOpen] = useState(false);
+  const [isSuccessOpen, setSuccessOpen] = useState(false);
+  
+  // Filtres
+  const [keyword, setKeyword] = useState('');
+  const [resto, setResto] = useState('');
+  const [budgetMax, setBudgetMax] = useState('');
+  const [quartier, setQuartier] = useState('');
+  const [momentFilter, setMomentFilter] = useState('');
+  
+  // Checkout form state
+  const [formData, setFormData] = useState({ clientName: '', clientPhone: '', clientAddress: '', type: 'LIVRAISON', paymentMethod: 'WAVE' });
+  const [orderInfo, setOrderInfo] = useState(null);
+
+  // States pour le suivi
+  const [isTrackModalOpen, setTrackModalOpen] = useState(false);
+  const [trackOrderNumber, setTrackOrderNumber] = useState('');
+  const [trackResult, setTrackResult] = useState(null);
+  const [trackError, setTrackError] = useState('');
+
+  // Recharge les plats dès qu'un filtre change
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (keyword) params.append('keyword', keyword);
+    if (resto) params.append('resto', resto);
+    if (budgetMax) params.append('budgetMax', budgetMax);
+    if (quartier) params.append('quartier', quartier);
+    if (momentFilter) params.append('moment', momentFilter);
+
+    fetch(`http://localhost:8080/api/v1/public/menu?${params.toString()}`)
+      .then(res => res.json())
+      .then(data => setPlats(data))
+      .catch(err => console.error("Erreur API:", err));
+  }, [keyword, resto, budgetMax, quartier, momentFilter]);
+
+  const addToCart = (plat) => setCart([...cart, plat]);
+  const total = cart.reduce((sum, item) => sum + item.price, 0);
+
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+
+  const handleCheckout = () => {
+    if (cart.length === 0) return alert("Panier vide !");
+    
+    // Contrôles de saisie (Validation)
+    const phoneRegex = /^(77|78|76|75|70|33)\d{7}$/;
+    if (!formData.clientName || formData.clientName.trim().length < 2) {
+      return alert("Veuillez saisir un nom valide.");
+    }
+    if (!phoneRegex.test(formData.clientPhone.replace(/\s/g, ''))) {
+      return alert("Numéro de téléphone invalide. Ex: 771234567");
+    }
+    if (!formData.clientAddress || formData.clientAddress.trim().length < 5) {
+      return alert("Veuillez saisir une adresse de livraison plus précise.");
+    }
+
+    const processOrder = () => {
+      const orderRequest = {
+        ...formData,
+        clientPhone: formData.clientPhone.replace(/\s/g, ''),
+        platIds: cart.map(p => p.id)
+      };
+
+      fetch('http://localhost:8080/api/v1/public/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orderRequest)
+      })
+      .then(res => {
+        if (!res.ok) throw new Error("Erreur serveur lors de la commande.");
+        return res.json();
+      })
+      .then(data => {
+        setOrderInfo(data);
+        setCart([]);
+        setCheckoutOpen(false);
+        setIsProcessingPayment(false);
+        setSuccessOpen(true);
+      })
+      .catch(err => {
+        alert(err.message);
+        setIsProcessingPayment(false);
+      });
+    };
+
+    // Simulation de paiement fictif
+    if (formData.paymentMethod === 'WAVE' || formData.paymentMethod === 'ORANGE_MONEY') {
+      setIsProcessingPayment(true);
+      // Faux délai pour simuler l'API de paiement
+      setTimeout(() => {
+        processOrder();
+      }, 2000);
+    } else {
+      processOrder();
+    }
+  };
+
+  // PARTNER REQUEST MODAL
+  const [isPartnerModalOpen, setPartnerModalOpen] = useState(false);
+  const [partnerForm, setPartnerForm] = useState({ nomRestaurant: '', nomContact: '', telephone: '', ville: '' });
+  const [partnerStatus, setPartnerStatus] = useState('');
+
+  const handlePartnerSubmit = (e) => {
+    e.preventDefault();
+    setPartnerStatus('loading');
+    fetch('http://localhost:8080/api/v1/public/partner-requests', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(partnerForm)
+    })
+    .then(res => {
+      if (res.ok) {
+        setPartnerStatus('success');
+        setTimeout(() => {
+          setPartnerModalOpen(false);
+          setPartnerStatus('');
+          setPartnerForm({ nomRestaurant: '', nomContact: '', telephone: '', ville: '' });
+        }, 3000);
+      } else {
+        setPartnerStatus('error');
+      }
+    })
+    .catch(() => setPartnerStatus('error'));
+  };
+
+  const handleTrackOrder = (e) => {
+    e.preventDefault();
+    setTrackError('');
+    setTrackResult(null);
+
+    fetch(`http://localhost:8080/api/v1/public/orders/track/${trackOrderNumber}`)
+      .then(res => {
+        if (res.status === 404) throw new Error("Commande introuvable.");
+        if (!res.ok) throw new Error("Erreur lors de la recherche.");
+        return res.json();
+      })
+      .then(data => setTrackResult(data))
+      .catch(err => setTrackError(err.message));
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 font-sans">
+      
+      {/* NAVBAR */}
+      <nav className="fixed top-0 left-0 w-full bg-white/90 backdrop-blur-md z-50 border-b border-gray-100 shadow-sm transition-all duration-300">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between h-20 items-center">
+            <h1 className="text-3xl font-black tracking-tighter text-red-600">
+              Lekk<span className="text-gray-900">Rek</span>
+            </h1>
+            <div className="flex gap-4">
+              {localStorage.getItem('token') && (
+                <button onClick={() => window.location.href='/dashboard'} className="flex items-center gap-2 bg-red-50 text-red-600 hover:bg-red-100 px-5 py-2.5 rounded-full font-bold transition-all border border-red-100">
+                  ⚙️ Mon Dashboard
+                </button>
+              )}
+              <button onClick={() => setTrackModalOpen(true)} className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-5 py-2.5 rounded-full font-bold transition-all">
+                📍 Suivi Commande
+              </button>
+              <button onClick={() => setCheckoutOpen(true)} className="flex items-center gap-2 bg-gray-900 hover:bg-black text-white px-5 py-2.5 rounded-full font-bold transition-all shadow-md">
+                🛒 Mon Panier <span className="bg-red-600 text-white text-xs px-2 py-0.5 rounded-full ml-1">{cart.length}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* HERO SECTION */}
+      <div className="relative bg-orange-50 overflow-hidden pt-20">
+        <div className="absolute inset-0">
+          <img src="https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?q=80&w=2000&auto=format&fit=crop" alt="Food Delivery" className="w-full h-full object-cover opacity-90" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent"></div>
+        </div>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32 flex flex-col items-start text-left">
+          <span className="bg-red-600 text-white font-bold tracking-wider uppercase text-sm px-4 py-1.5 rounded-full mb-6 shadow-lg">Livraison en Casamance</span>
+          <h2 className="text-4xl md:text-6xl font-black text-white mb-6 tracking-tight leading-tight max-w-2xl">
+            Vos plats préférés,<br/>livrés très vite.
+          </h2>
+          <p className="text-xl text-gray-200 max-w-xl mb-10 font-medium">Découvrez les meilleurs restaurants de la région. Commandez en quelques clics et suivez votre livreur en temps réel.</p>
+          
+          {/* SEARCH BAR (Airbnb style - Fixed for all screens) */}
+          <div className="w-full max-w-5xl bg-white p-2 rounded-2xl md:rounded-full shadow-2xl flex flex-wrap md:flex-nowrap items-center divide-y md:divide-y-0 md:divide-x divide-gray-200">
+            
+            <div className="flex-1 w-full md:w-auto flex items-center px-4 py-3 hover:bg-gray-50 md:rounded-l-full cursor-text transition-colors">
+              <span className="text-xl mr-3">🔍</span>
+              <div className="flex flex-col w-full text-left">
+                <span className="text-[10px] uppercase tracking-wider font-bold text-gray-500 mb-0.5">Quoi ?</span>
+                <input type="text" placeholder="Plat, ingrédient..." className="bg-transparent border-none outline-none w-full text-gray-900 font-bold text-sm placeholder-gray-400" value={keyword} onChange={(e) => setKeyword(e.target.value)} />
+              </div>
+            </div>
+
+            <div className="flex-1 w-full md:w-auto flex items-center px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors">
+              <span className="text-xl mr-3">🏪</span>
+              <div className="flex flex-col w-full text-left">
+                <span className="text-[10px] uppercase tracking-wider font-bold text-gray-500 mb-0.5">Restaurant</span>
+                <select className="bg-transparent border-none outline-none w-full text-gray-900 font-bold text-sm appearance-none cursor-pointer" value={resto} onChange={(e) => setResto(e.target.value)}>
+                  <option value="">Tous les restos</option>
+                  <option value="Le Kassa">Le Kassa</option>
+                  <option value="Cap Skirring Plage">Cap Skirring Plage</option>
+                  <option value="Saveurs de Ziguinchor">Saveurs de Ziguinchor</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex-1 w-full md:w-auto flex items-center px-4 py-3 hover:bg-gray-50 cursor-text transition-colors">
+              <span className="text-xl mr-3">📍</span>
+              <div className="flex flex-col w-full text-left">
+                <span className="text-[10px] uppercase tracking-wider font-bold text-gray-500 mb-0.5">Quartier</span>
+                <input type="text" placeholder="Où livrer ?" className="bg-transparent border-none outline-none w-full text-gray-900 font-bold text-sm placeholder-gray-400" value={quartier} onChange={(e) => setQuartier(e.target.value)} />
+              </div>
+            </div>
+
+            <div className="flex-1 w-full md:w-auto flex items-center px-4 py-3 hover:bg-gray-50 md:rounded-r-full cursor-text transition-colors">
+              <span className="text-xl mr-3">💰</span>
+              <div className="flex flex-col w-full text-left">
+                <span className="text-[10px] uppercase tracking-wider font-bold text-gray-500 mb-0.5">Budget Max</span>
+                <input type="number" placeholder="ex: 2000 FCFA" className="bg-transparent border-none outline-none w-full text-gray-900 font-bold text-sm placeholder-gray-400" value={budgetMax} onChange={(e) => setBudgetMax(e.target.value)} />
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+      
+      {/* MENU GRID & FILTERS */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12">
+        
+        {/* MOMENTS FILTER (Pills) */}
+        <div className="flex gap-3 overflow-x-auto pb-4 mb-8 hide-scrollbar border-b border-gray-100">
+          {['', 'dejeuner', 'gouter', 'diner', 'Fast food'].map(moment => (
+            <button 
+              key={moment}
+              onClick={() => setMomentFilter(moment)}
+              className={`whitespace-nowrap px-6 py-2.5 mb-2 rounded-full font-bold shadow-sm border border-gray-200 transition-all transform hover:scale-105 ${momentFilter === moment ? 'bg-red-600 text-white border-red-600 shadow-md scale-105' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
+            >
+              {moment === '' ? 'Tout voir' : 
+               moment === 'dejeuner' ? '🍽️ Déjeuner' :
+               moment === 'gouter' ? '☕ Goûter' :
+               moment === 'diner' ? '🍷 Dîner' : '🍔 Fast food'}
+            </button>
+          ))}
+        </div>
+        <h3 className="text-2xl font-black text-gray-900 mb-8">Au menu aujourd'hui</h3>
+        
+        <div className="flex overflow-x-auto pb-8 -mx-4 px-4 snap-x snap-mandatory gap-6 hide-scrollbar md:grid md:grid-cols-2 xl:grid-cols-3 md:gap-8 md:overflow-visible md:pb-0 md:mx-0 md:px-0 md:snap-none">
+          {Array.isArray(plats) && plats.length > 0 ? plats.map(plat => (
+            <div key={plat.id} className="flex-none w-[85vw] sm:w-[350px] md:w-auto snap-center bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 group flex flex-col">
+              <div className="relative h-56 overflow-hidden bg-gray-100 shrink-0">
+                <img src={plat.image} alt={plat.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                <div className="absolute top-4 left-4">
+                  <span className={`px-3 py-1 text-xs font-black uppercase tracking-wider rounded-full shadow-md backdrop-blur-md ${plat.status === 'DISPO' ? 'bg-white/90 text-green-600' : 'bg-red-600/90 text-white'}`}>
+                    {plat.status === 'DISPO' ? 'Disponible' : 'Épuisé'}
+                  </span>
+                </div>
+              </div>
+              
+              <div className="p-6 flex flex-col flex-1">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-xs">🏪</span>
+                  <span className="text-sm font-bold text-gray-500">{plat.restaurant?.name || 'Restaurant Partenaire'}</span>
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2 leading-tight">{plat.name}</h3>
+                <p className="text-gray-500 text-sm mb-6 flex-1 line-clamp-2">{plat.description || 'Un délicieux plat préparé avec soin.'}</p>
+                
+                <div className="flex justify-between items-end mt-auto pt-4 border-t border-gray-50">
+                  <div>
+                    <span className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Prix</span>
+                    <span className="text-2xl font-black text-gray-900">{plat.price.toLocaleString()} <span className="text-base text-gray-500">FCFA</span></span>
+                  </div>
+                  {plat.status === 'DISPO' ? (
+                    <button onClick={() => addToCart(plat)} className="w-12 h-12 bg-gray-900 text-white rounded-full flex items-center justify-center text-2xl font-light hover:bg-red-600 hover:shadow-lg hover:shadow-red-600/30 transition-all transform hover:-translate-y-1">
+                      +
+                    </button>
+                  ) : (
+                     <button disabled className="w-12 h-12 bg-gray-100 text-gray-400 rounded-full flex items-center justify-center text-xl font-light cursor-not-allowed">
+                      —
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )) : (
+            <div className="col-span-full py-20 text-center bg-white rounded-3xl border-2 border-dashed border-gray-200">
+              <span className="text-5xl block mb-4">🍽️</span>
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">Aucun plat trouvé.</h3>
+              <p className="text-gray-500">Essayez de modifier votre recherche ou vos filtres.</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* PANIER MODAL */}
+      {isCheckoutOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex justify-end transition-opacity">
+          <div className="w-full max-w-md bg-white h-full shadow-2xl flex flex-col animate-slide-in-right">
+            <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+              <h2 className="text-xl font-black text-gray-900">Votre Panier <span className="text-red-600">({cart.length})</span></h2>
+              <button onClick={() => setCheckoutOpen(false)} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold transition-colors">✕</button>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto p-6">
+              {cart.length === 0 ? (
+                <div className="h-full flex flex-col items-center justify-center text-gray-400">
+                  <span className="text-6xl mb-4">🛒</span>
+                  <p className="font-medium text-lg">Votre panier est vide</p>
+                </div>
+              ) : (
+                <ul className="space-y-4">
+                  {cart.map((item, idx) => (
+                    <li key={idx} className="flex justify-between items-center bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
+                      <div className="flex items-center gap-4">
+                        <img src={item.image} alt={item.name} className="w-16 h-16 rounded-xl object-cover" />
+                        <div>
+                          <p className="font-bold text-gray-900 text-sm">{item.name}</p>
+                          <p className="text-red-600 font-bold text-sm">{item.price} FCFA</p>
+                        </div>
+                      </div>
+                      <button onClick={() => setCart(cart.filter((_, i) => i !== idx))} className="text-gray-400 hover:text-red-600 p-2 text-sm">✕</button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            
+            {cart.length > 0 && (
+              <div className="p-6 border-t border-gray-100 bg-gray-50/50">
+                <div className="flex justify-between items-center mb-6">
+                  <span className="text-gray-500 font-bold">Total à payer</span>
+                  <span className="text-2xl font-black text-gray-900">{total} FCFA</span>
+                </div>
+                <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); handleCheckout(); }}>
+                  <input type="text" placeholder="Votre Nom Complet" required className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-red-600" value={formData.clientName} onChange={e => setFormData({...formData, clientName: e.target.value})} />
+                  <input type="tel" placeholder="Numéro de Téléphone" required className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-red-600" value={formData.clientPhone} onChange={e => setFormData({...formData, clientPhone: e.target.value})} />
+                  <textarea placeholder="Adresse de livraison" required className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-red-600" value={formData.clientAddress} onChange={e => setFormData({...formData, clientAddress: e.target.value})} />
+                  <select className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-red-600" value={formData.paymentMethod} onChange={e => setFormData({...formData, paymentMethod: e.target.value})}>
+                    <option value="WAVE">Payer par Wave</option>
+                    <option value="ORANGE_MONEY">Orange Money</option>
+                    <option value="SUR_PLACE">Paiement à la livraison</option>
+                  </select>
+                  <button type="submit" disabled={isProcessingPayment} className={`w-full text-white font-bold py-4 rounded-xl shadow-lg transition-colors mt-4 ${isProcessingPayment ? "bg-gray-400 shadow-none cursor-not-allowed" : "bg-red-600 shadow-red-600/30 hover:bg-red-700"}`}>
+                    Confirmer la Commande
+                  </button>
+                </form>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* SUCCÈS MODAL */}
+      {isSuccessOpen && orderInfo && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+          <div className="bg-white p-8 rounded-3xl shadow-2xl max-w-md w-full text-center">
+            <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-4xl mx-auto mb-6">✓</div>
+            <h2 className="text-2xl font-black text-gray-900 mb-2">Commande Réussie !</h2>
+            <p className="text-gray-500 mb-8">Votre commande a été envoyée au restaurant. Merci pour votre confiance.</p>
+            <div className="bg-gray-50 p-6 rounded-2xl mb-8 border border-gray-100">
+                <p className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-2">Numéro de Suivi</p>
+                <p className="text-3xl font-black text-red-600 tracking-wider">{orderInfo.orderNumber}</p>
+                <p className="text-xs text-gray-500 mt-4 bg-white p-2 rounded-lg border border-gray-200">Conservez ce numéro pour suivre votre commande !</p>
+            </div>
+            <button onClick={() => setSuccessOpen(false)} className="w-full bg-gray-900 text-white font-bold py-4 rounded-xl hover:bg-black transition-colors">
+              Fermer
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* SUIVI MODAL */}
+      {isTrackModalOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+          <div className="bg-white p-8 rounded-3xl shadow-2xl max-w-md w-full relative">
+            <button onClick={() => setTrackModalOpen(false)} className="absolute top-6 right-6 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 font-bold transition-colors">✕</button>
+            <h2 className="text-2xl font-black text-gray-900 mb-6">Suivre une commande</h2>
+            <form onSubmit={handleTrackOrder} className="flex gap-2 mb-6">
+              <input type="text" placeholder="Ex: CMD-123456" required className="flex-1 bg-gray-50 border border-gray-200 rounded-xl p-4 font-bold text-gray-900 focus:outline-none focus:border-red-600" value={trackOrderNumber} onChange={(e) => setTrackOrderNumber(e.target.value)} />
+              <button type="submit" className="bg-red-600 text-white px-6 rounded-xl font-bold hover:bg-red-700 transition-colors">OK</button>
+            </form>
+            
+            {trackError && <p className="text-red-600 font-medium text-center bg-red-50 p-4 rounded-xl">{trackError}</p>}
+            
+            {trackResult && (
+              <div className="border border-gray-100 rounded-2xl p-6 bg-gray-50">
+                <div className="flex justify-between items-start mb-6">
+                    <div>
+                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Statut Actuel</p>
+                        <h3 className={`text-xl font-black ${
+                            trackResult.status === 'LIVREE' ? 'text-green-600' :
+                            trackResult.status === 'PRETE' ? 'text-blue-600' :
+                            trackResult.status === 'EN_PREPARATION' ? 'text-orange-500' :
+                            'text-gray-900'
+                        }`}>
+                          {trackResult.status === 'NOUVELLE' && 'En attente ⏳'}
+                          {trackResult.status === 'EN_PREPARATION' && 'En préparation 🍳'}
+                          {trackResult.status === 'PRETE' && 'Prête (Livreur en route) 🛵'}
+                          {trackResult.status === 'LIVREE' && 'Livrée ✅'}
+                          {trackResult.status === 'ANNULEE' && 'Annulée ❌'}
+                        </h3>
+                    </div>
+                </div>
+                <div className="pt-4 border-t border-gray-200">
+                    <p className="text-sm font-bold text-gray-900 mb-1">Détails</p>
+                    <p className="text-gray-500 text-sm">Client : {trackResult.clientName}</p>
+                    <p className="text-gray-500 text-sm">Total : <span className="font-bold text-gray-900">{trackResult.totalAmount} FCFA</span></p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* FOOTER */}
+      <footer className="bg-gray-900 text-white pt-16 pb-8 border-t border-gray-800 mt-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+            <div className="md:col-span-1">
+              <h2 className="text-3xl font-black tracking-tighter text-red-600 mb-4">
+                Lekk<span className="text-white">Rek</span>
+              </h2>
+              <p className="text-gray-400 text-sm leading-relaxed">
+                La plateforme n°1 de livraison de repas en Casamance. Vos plats préférés, livrés rapidement et encore chauds.
+              </p>
+            </div>
+            
+            <div>
+              <h4 className="text-lg font-bold mb-4">LekkRek</h4>
+              <ul className="space-y-2 text-sm text-gray-400">
+                <li><a href="#" onClick={(e) => { e.preventDefault(); alert("La page 'À propos' est en cours de création !"); }} className="hover:text-red-500 transition-colors">À propos</a></li>
+                <li><a href="#" onClick={(e) => { e.preventDefault(); alert("La page 'Notre équipe' sera bientôt disponible !"); }} className="hover:text-red-500 transition-colors">Notre équipe</a></li>
+                <li><a href="/login" className="hover:text-red-500 transition-colors font-bold text-gray-300">Connexion Équipe</a></li>
+                <li><a href="#" onClick={(e) => { e.preventDefault(); alert("Le Blog LekkRek arrive très vite !"); }} className="hover:text-red-500 transition-colors">Blog</a></li>
+              </ul>
+            </div>
+            
+            <div>
+              <h4 className="text-lg font-bold mb-4">Mentions Légales</h4>
+              <ul className="space-y-2 text-sm text-gray-400">
+                <li><a href="#" onClick={(e) => { e.preventDefault(); alert("Conditions Générales en cours de rédaction."); }} className="hover:text-red-500 transition-colors">Conditions Générales</a></li>
+                <li><a href="#" onClick={(e) => { e.preventDefault(); alert("Politique de Confidentialité en cours de rédaction."); }} className="hover:text-red-500 transition-colors">Confidentialité</a></li>
+                <li><a href="#" onClick={(e) => { e.preventDefault(); alert("Politique des Cookies en cours de rédaction."); }} className="hover:text-red-500 transition-colors">Cookies</a></li>
+              </ul>
+            </div>
+            
+            <div>
+              <h4 className="text-lg font-bold mb-4">Nous rejoindre</h4>
+              <ul className="space-y-2 text-sm text-gray-400">
+                <li><a href="#" onClick={(e) => { e.preventDefault(); setPartnerModalOpen(true); }} className="hover:text-red-500 transition-colors font-bold text-red-500">Devenir Partenaire</a></li>
+              </ul>
+            </div>
+          </div>
+          
+          <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center text-sm text-gray-500">
+            <p>&copy; {new Date().getFullYear()} LekkRek. Tous droits réservés.</p>
+            <div className="flex gap-4 mt-4 md:mt-0">
+              <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Facebook</a>
+              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Twitter</a>
+              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Instagram</a>
+            </div>
+          </div>
+        </div>
+      </footer>
+
+      {/* PARTNER MODAL */}
+      {isPartnerModalOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-[60]">
+          <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl relative animate-slide-in-right">
+            <button onClick={() => setPartnerModalOpen(false)} className="absolute top-6 right-6 text-gray-400 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-full p-2 transition-colors">
+              ✕
+            </button>
+            <h2 className="text-2xl font-black text-gray-900 mb-2">Devenir Partenaire</h2>
+            <p className="text-gray-500 text-sm mb-6">Remplissez ce formulaire. Notre équipe vous contactera rapidement pour finaliser votre inscription.</p>
+            
+            {partnerStatus === 'success' ? (
+              <div className="bg-green-50 text-green-700 p-6 rounded-2xl text-center border border-green-200">
+                <span className="text-4xl mb-2 block">✅</span>
+                <p className="font-bold">Demande envoyée !</p>
+                <p className="text-sm mt-1">Nous vous appelons très vite.</p>
+              </div>
+            ) : (
+              <form onSubmit={handlePartnerSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">Nom du Restaurant</label>
+                  <input type="text" required className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 outline-none focus:ring-2 focus:ring-red-500" value={partnerForm.nomRestaurant} onChange={(e) => setPartnerForm({...partnerForm, nomRestaurant: e.target.value})} placeholder="Ex: Chez Fatou" />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">Nom du Gérant</label>
+                  <input type="text" required className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 outline-none focus:ring-2 focus:ring-red-500" value={partnerForm.nomContact} onChange={(e) => setPartnerForm({...partnerForm, nomContact: e.target.value})} placeholder="Votre nom complet" />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">Téléphone</label>
+                  <input type="tel" required className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 outline-none focus:ring-2 focus:ring-red-500" value={partnerForm.telephone} onChange={(e) => setPartnerForm({...partnerForm, telephone: e.target.value})} placeholder="Ex: 77 123 45 67" />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-1">Ville / Quartier</label>
+                  <input type="text" required className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 outline-none focus:ring-2 focus:ring-red-500" value={partnerForm.ville} onChange={(e) => setPartnerForm({...partnerForm, ville: e.target.value})} placeholder="Ex: Ziguinchor, Escale" />
+                </div>
+                {partnerStatus === 'error' && <p className="text-red-500 text-sm">Une erreur est survenue, veuillez réessayer.</p>}
+                <button type="submit" disabled={partnerStatus === 'loading'} className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3.5 rounded-xl transition-colors shadow-lg shadow-red-200 mt-2">
+                  {partnerStatus === 'loading' ? 'Envoi...' : 'Envoyer la demande'}
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
+
+    </div>
+  );
+}
