@@ -244,9 +244,9 @@ export default function Login() {
         {/* === RIGHT SIDE (FORM) === */}
         <div className="login-right">
           
-          <a href="/" style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', padding: '0.6rem 1.25rem', background: '#f3f4f6', color: '#374151', textDecoration: 'none', borderRadius: '9999px', fontWeight: 'bold', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.5rem', transition: 'all 0.2s' }}>
+          <a href="/" style={{ position: "absolute", top: "1.5rem", right: "1.5rem", padding: "0.6rem 1.25rem", background: "#fef2f2", color: "#d33a30", border: "1px solid #fecaca", textDecoration: "none", borderRadius: "9999px", fontWeight: "bold", fontSize: "0.875rem", display: "flex", alignItems: "center", gap: "0.5rem", transition: "all 0.2s" }} onMouseEnter={(e) => { e.currentTarget.style.background = "#fee2e2"; }} onMouseLeave={(e) => { e.currentTarget.style.background = "#fef2f2"; }}>
             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
-            Retour
+            Retour au site
           </a>
 
           <div style={{ width: '100%', maxWidth: '380px' }}>
@@ -299,5 +299,6 @@ export default function Login() {
     </>
   );
 }
+
 
 
