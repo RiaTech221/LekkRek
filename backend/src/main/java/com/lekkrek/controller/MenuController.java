@@ -27,7 +27,7 @@ public class MenuController {
         this.platRepository = platRepository;
     }
 
-    @GetMapping
+        @GetMapping
     public List<Plat> searchPlats(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String resto,
@@ -35,29 +35,13 @@ public class MenuController {
             @RequestParam(required = false) String quartier,
             @RequestParam(required = false) String moment) {
         
-        keyword = (keyword != null && !keyword.isBlank()) ? normalizeKeyword(keyword) : null;
+        // Le dictionnaire en dur a été retiré. La recherche utilise désormais le champ "variantes" 
+        // de la base de données, permettant aux opérateurs de gérer les synonymes depuis l'interface (conformément au Cahier des Charges).
+        keyword = (keyword != null && !keyword.isBlank()) ? keyword.trim() : null;
         resto = (resto != null && !resto.isBlank()) ? resto : null;
         quartier = (quartier != null && !quartier.isBlank()) ? quartier : null;
         moment = (moment != null && !moment.isBlank()) ? moment : null;
 
         return platRepository.searchPlats(keyword, resto, budgetMax, quartier, moment);
-    }
-
-    private String normalizeKeyword(String keyword) {
-        String lower = keyword.toLowerCase().trim();
-        // Dictionnaire de synonymes (Recherche tolérante)
-        if (lower.contains("tiep") || lower.contains("thieb") || lower.contains("thiep") || lower.contains("ceebu")) {
-            return "thieb"; // 'thieb' matchera 'Thiéboudienne'
-        }
-        if (lower.contains("maffe") || lower.contains("mafé") || lower.contains("mafe")) {
-            return "mafé";
-        }
-        if (lower.contains("hamburger")) {
-            return "burger";
-        }
-        if (lower.contains("chawarma") || lower.contains("shawarma")) {
-            return "shawarma";
-        }
-        return keyword;
     }
 }

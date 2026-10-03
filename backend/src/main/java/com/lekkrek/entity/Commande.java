@@ -68,7 +68,8 @@ public class Commande {
 
     public enum OrderType {
         LIVRAISON,
-        EMPORTER
+        EMPORTER,
+        SUR_PLACE
     }
 
     public enum OrderStatus {
@@ -82,7 +83,8 @@ public class Commande {
     public enum PaymentMethod {
         WAVE,
         ORANGE_MONEY,
-        SUR_PLACE
+        SAMIR_PAY,
+        ESPECES
     }
 
     public enum PaymentStatus {

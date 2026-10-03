@@ -165,7 +165,7 @@ return () => {
     };
 
     // Simulation de paiement fictif
-    if (formData.paymentMethod === 'WAVE' || formData.paymentMethod === 'ORANGE_MONEY') {
+    if (formData.paymentMethod === 'WAVE' || formData.paymentMethod === 'ORANGE_MONEY' || formData.paymentMethod === 'SAMIR_PAY') {
       setIsProcessingPayment(true);
       // Faux délai pour simuler l'API de paiement
       setTimeout(() => {
@@ -419,18 +419,37 @@ return () => {
                   <span className="text-2xl font-black text-gray-900">{total} FCFA</span>
                 </div>
                 <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); handleCheckout(); }}>
-                  <input type="text" placeholder="Votre Nom Complet" required className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-red-600" value={formData.clientName} onChange={e => setFormData({...formData, clientName: e.target.value})} />
-                  <input type="tel" placeholder="Numéro de Téléphone" required className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-red-600" value={formData.clientPhone} onChange={e => setFormData({...formData, clientPhone: e.target.value})} />
-                  <textarea placeholder="Adresse de livraison" required className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-red-600" value={formData.clientAddress} onChange={e => setFormData({...formData, clientAddress: e.target.value})} />
-                  <select className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-red-600" value={formData.paymentMethod} onChange={e => setFormData({...formData, paymentMethod: e.target.value})}>
-                    <option value="WAVE">Payer par Wave</option>
-                    <option value="ORANGE_MONEY">Orange Money</option>
-                    <option value="SUR_PLACE">Paiement à la livraison</option>
-                  </select>
-                  <button type="submit" disabled={isProcessingPayment} className={`w-full text-white font-bold py-4 rounded-xl shadow-lg transition-colors mt-4 ${isProcessingPayment ? "bg-gray-400 shadow-none cursor-not-allowed" : "bg-red-600 shadow-red-600/30 hover:bg-red-700"}`}>
-                    Confirmer la Commande
-                  </button>
-                </form>
+                    <div className="flex gap-2 mb-4">
+                      {['LIVRAISON', 'EMPORTER', 'SUR_PLACE'].map(type => (
+                        <button 
+                          key={type} 
+                          type="button"
+                          onClick={() => setFormData({...formData, type})}
+                          className={`flex-1 py-2 text-xs font-bold rounded-xl border ${formData.type === type ? 'bg-red-50 border-red-200 text-red-600' : 'bg-white border-gray-200 text-gray-500'}`}
+                        >
+                          {type === 'SUR_PLACE' ? 'Sur place' : type === 'EMPORTER' ? 'À emporter' : 'Livraison'}
+                        </button>
+                      ))}
+                    </div>
+
+                    <input type="text" placeholder="Votre Nom Complet" required className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-red-600" value={formData.clientName} onChange={e => setFormData({...formData, clientName: e.target.value})} />
+                    <input type="tel" placeholder="Numéro de Téléphone" required className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-red-600" value={formData.clientPhone} onChange={e => setFormData({...formData, clientPhone: e.target.value})} />
+                    
+                    {formData.type === 'LIVRAISON' && (
+                      <textarea placeholder="Adresse de livraison complète (Quartier, Repère)" required className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-red-600" value={formData.clientAddress} onChange={e => setFormData({...formData, clientAddress: e.target.value})} />
+                    )}
+                    
+                    <select className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-red-600" value={formData.paymentMethod} onChange={e => setFormData({...formData, paymentMethod: e.target.value})}>
+                      <option value="WAVE">Payer par Wave</option>
+                      <option value="ORANGE_MONEY">Payer par Orange Money</option>
+                      <option value="SAMIR_PAY">Payer par Samir Pay</option>
+                      <option value="ESPECES">Paiement en Espèces (À la réception)</option>
+                    </select>
+                    
+                    <button type="submit" disabled={isProcessingPayment} className={`w-full text-white font-bold py-4 rounded-xl shadow-lg transition-colors mt-4 ${isProcessingPayment ? "bg-gray-400 shadow-none cursor-not-allowed" : "bg-red-600 shadow-red-600/30 hover:bg-red-700"}`}>
+                      {isProcessingPayment ? "Paiement en cours..." : "Confirmer la Commande"}
+                    </button>
+                  </form>
               </div>
             )}
           </div>
