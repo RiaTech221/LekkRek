@@ -284,12 +284,12 @@ export default function MenuManager() {
 
       {/* Modal Ajout/Modification */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white p-8 rounded-2xl w-full max-w-2xl shadow-2xl">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 sm:p-6">
+          <div className="bg-white p-6 sm:p-8 rounded-2xl w-full max-w-2xl shadow-2xl max-h-[95vh] flex flex-col">
             <h3 className="text-2xl font-black text-gray-900 mb-6 tracking-tight">{currentPlat ? 'Modifier le plat' : 'Nouveau Plat'}</h3>
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="flex flex-col h-full">
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 overflow-y-auto pr-2" style={{ maxHeight: "calc(95vh - 200px)" }}>
                 <div className="md:col-span-2">
                   <label className="block text-sm font-semibold text-gray-700 mb-1">Nom du plat</label>
                   <input required type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full border border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all shadow-sm text-gray-800" placeholder="Ex: Thiéboudienne Penda Mbaye" />
@@ -362,7 +362,7 @@ export default function MenuManager() {
                 </div>
               </div>
 
-              <div className="flex justify-end gap-3 mt-6">
+              <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-100 shrink-0">
                 <button type="button" onClick={() => setModalOpen(false)} className="px-5 py-2.5 text-gray-600 font-bold hover:bg-gray-100 rounded-xl transition-colors">Annuler</button>
                 <button type="submit" className="px-6 py-2.5 bg-red-600 text-white font-bold hover:bg-red-700 rounded-xl shadow-md shadow-red-200 transition-colors">Enregistrer</button>
               </div>
