@@ -251,7 +251,7 @@ export default function Login() {
 
           <div style={{ width: '100%', maxWidth: '380px' }}>
             <h2 style={{ fontSize: '2.5rem', fontWeight: 900, marginBottom: '2.5rem', color: '#111827', textAlign: 'center', letterSpacing: '-0.02em' }}>
-              Espace Admin
+              Espace Pro
             </h2>
             
             {error && (
@@ -299,6 +299,7 @@ export default function Login() {
     </>
   );
 }
+
 
 
 
