@@ -66,7 +66,7 @@ export default function RestaurantsManager() {
     fetchRestaurants();
   }, []);
 
-    const handleAddRestaurant = async (e) => {
+      const handleSubmit = async (e) => {
     e.preventDefault();
     const token = localStorage.getItem('token');
     
@@ -79,8 +79,8 @@ export default function RestaurantsManager() {
       
       try {
         const uploadRes = await fetch('http://localhost:8080/api/v1/upload', {
-          method: editingId ? 'PUT' : 'POST',
-          headers: { 'Authorization': `Bearer ${token}` },
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + token },
           body: formData
         });
         
@@ -97,27 +97,46 @@ export default function RestaurantsManager() {
       }
     }
 
-    const newResto = { name, location, operatorName, image: finalImageUrl, commissionRate: parseFloat(commissionRate), active: isActive, subscriptionPlan, subscriptionEndDate: subscriptionEndDate || null };
+    const payload = { 
+      name, 
+      location, 
+      operatorName, 
+      image: finalImageUrl, 
+      commissionRate: parseFloat(commissionRate), 
+      active: isActive, 
+      subscriptionPlan, 
+      subscriptionEndDate: subscriptionEndDate || null 
+    };
 
-    fetch('http://localhost:8080/api/v1/admin/restaurants', {
-      method: 'POST',
+    const url = editingId 
+      ? 'http://localhost:8080/api/v1/admin/restaurants/' + editingId
+      : 'http://localhost:8080/api/v1/admin/restaurants';
+    const method = editingId ? 'PUT' : 'POST';
+
+    fetch(url, {
+      method,
       headers: { 
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}` 
+        'Authorization': 'Bearer ' + token 
       },
-      body: JSON.stringify(newResto)
+      body: JSON.stringify(payload)
     })
       .then(res => {
-        if (!res.ok) throw new Error("Erreur lors de la création.");
+        if (!res.ok) throw new Error("Erreur lors de l'enregistrement.");
         return res.json();
       })
       .then(() => {
         setIsModalOpen(false);
+        setEditingId(null);
         setName('');
         setLocation('');
         setOperatorName('');
         setImage('');
         setImageFile(null);
+        setCommissionRate(10);
+        setSubscriptionPlan('Basic');
+        setSubscriptionEndDate('');
+        setIsActive(true);
         setUploadingImage(false);
         fetchRestaurants();
       })
@@ -155,7 +174,7 @@ export default function RestaurantsManager() {
   if (loading) return <div className="p-8">Chargement...</div>;
 
   return (
-    <div className="p-8 h-full bg-gray-50 flex flex-col">
+    <div className="p-8 w-full" style={{ background: "#f9fafb" }}>
       <header className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-3xl font-black text-gray-900 tracking-tight">Gestion des Restaurants</h1>
@@ -191,10 +210,10 @@ export default function RestaurantsManager() {
       </header>
 
       {/* Liste des restaurants (Grid full width) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 md:grid-cols-3 gap-4 items-start flex-1 overflow-y-auto pb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {restaurants.filter(r => (r.name || "").toLowerCase().includes(searchTerm.toLowerCase()) || (r.location || "").toLowerCase().includes(searchTerm.toLowerCase()) || (r.operatorName || "").toLowerCase().includes(searchTerm.toLowerCase())).map(resto => (
-          <div key={resto.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col group hover:shadow-md hover:border-red-200 transition-all">
-            <div className="h-32 bg-gray-200 relative" style={{ height: "128px" }}>
+          <div key={resto.id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-0 flex flex-col overflow-hidden">
+            <div className="h-32 bg-gray-200 relative">
               <img src={resto.image} alt={resto.name} className="w-full h-full object-cover" />
               <div className="absolute top-3 right-3 flex gap-2">
                 {resto.subscriptionEndDate ? (
@@ -213,7 +232,7 @@ export default function RestaurantsManager() {
               </div>
             </div>
             
-            <div className="p-4 flex-1 flex flex-col" style={{ padding: "1rem" }}>
+            <div className="p-4 flex-1 flex flex-col">
               <div className="flex justify-between items-start mb-2">
                 <h4 className="font-black text-gray-900 text-xl group-hover:text-red-600 transition-colors">{resto.name}</h4>
               </div>
