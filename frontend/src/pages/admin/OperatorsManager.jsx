@@ -24,6 +24,7 @@ export default function OperatorsManager() {
   const [imageFile, setImageFile] = useState(null);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [restaurantAssigne, setRestaurantAssigne] = useState('');
+  const [role, setRole] = useState('OPERATOR');
   const [restaurants, setRestaurants] = useState([]);
 
   useEffect(() => {
@@ -69,6 +70,7 @@ export default function OperatorsManager() {
     setImage('');
     setImageFile(null);
     setRestaurantAssigne('');
+    setRole('OPERATOR');
     setIsModalOpen(true);
   };
 
@@ -357,6 +359,22 @@ export default function OperatorsManager() {
                   />
                 </div>
 
+                
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Rôle</label>
+                  <select 
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm font-medium focus:bg-white focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors"
+                    value={role}
+                    onChange={(e) => setRole(e.target.value)}
+                  >
+                    <option value="OPERATOR">Opérateur LekkRek (Commandes)</option>
+                    <option value="ADMIN">Administrateur Global (Full accès)</option>
+                    <option value="ACCOUNTANT">Comptable (Statistiques & Finances)</option>
+                    <option value="DELIVERY">Livreur</option>
+                    <option value="RESTAURANT">Gérant de Restaurant Partenaire</option>
+                  </select>
+                </div>
+
                 <div>
                   <label className="block text-xs font-bold text-gray-700 mb-1">Restaurant Assigné (Optionnel)</label>
                   <select 
@@ -364,7 +382,7 @@ export default function OperatorsManager() {
                     value={restaurantAssigne}
                     onChange={(e) => setRestaurantAssigne(e.target.value)}
                   >
-                    <option value="">-- Administrateur Global --</option>
+                    <option value="">-- Aucun restaurant assign� (Staff LekkRek) --</option>
                     {restaurants.map(r => (
                       <option key={r.id} value={r.name}>{r.name}</option>
                     ))}
@@ -410,4 +428,6 @@ export default function OperatorsManager() {
     </div>
   );
 }
+
+
 

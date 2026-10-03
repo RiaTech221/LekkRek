@@ -180,7 +180,7 @@ export default function OperatorDashboard() {
               </button>
                 <button onClick={() => setActiveTab('operateurs')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'operateurs' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
                 <span className="text-xl flex-shrink-0">👥</span>
-                {isSidebarOpen && <span className="whitespace-nowrap overflow-hidden text-ellipsis">Opérateurs</span>}
+                {isSidebarOpen && <span className="whitespace-nowrap overflow-hidden text-ellipsis">Équipe & Rôles</span>}
               </button>
                 <button onClick={() => setActiveTab('partners')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'partners' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
                 <span className="text-xl flex-shrink-0">🤝</span>
