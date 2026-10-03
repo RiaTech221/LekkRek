@@ -25,7 +25,8 @@ import OrderDetailsModal from './OrderDetailsModal';
 export default function OperatorDashboard() {
   const [activeTab, setActiveTab] = useState(() => localStorage.getItem('lekkrek_admin_tab') || 'overview');
   useEffect(() => { localStorage.setItem('lekkrek_admin_tab', activeTab); }, [activeTab]);
-  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+    const [selectedOrder, setSelectedOrder] = useState(null);
   const [commandes, setCommandes] = useState({
     nouvelles: [],
     preparation: [],
@@ -136,56 +137,72 @@ export default function OperatorDashboard() {
     <div id="desktop-dashboard" className="flex bg-gray-50 font-sans" style={{ position: "fixed", top: 0, left: 0, width: "100%", height: "100vh", zIndex: 50 }}>
       
       {/* Sidebar */}
-      <div className="w-64 bg-white border-r border-gray-200 flex flex-col h-full flex-shrink-0">
+      <div className={`${isSidebarOpen ? "w-64" : "w-20"} bg-white border-r border-gray-200 flex flex-col h-full flex-shrink-0 transition-all duration-300 relative`}>
+          <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="absolute -right-3 top-9 bg-white border border-gray-200 rounded-full p-1 shadow-sm text-gray-500 hover:text-red-600 z-50 hover:shadow transition-all flex items-center justify-center">
+            {isSidebarOpen ? <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" /></svg> : <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>}
+          </button>
         <div className="p-6 shrink-0">
-          <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/')}>
-              <img src="/logo-square.png" alt="Logo LekkRek" className="h-10 w-10 rounded-xl shadow-sm border border-red-100 object-cover" />
-              <h1 className="text-2xl font-black tracking-tighter text-red-600">
-                Lekk<span className="text-gray-900">Rek</span>
-              </h1>
+          <div className="flex items-center justify-center h-8 overflow-hidden">
+              {isSidebarOpen ? (
+                <h1 className="text-2xl font-black tracking-tighter text-red-600 cursor-pointer flex items-start" onClick={() => navigate('/')}>
+                  Lekk<span className="text-gray-900">Rek</span>
+                  <img src="/logo-square.png" alt="Logo" className="w-3.5 h-3.5 ml-1.5 mt-1.5 rounded-sm shadow-sm object-cover opacity-90" />
+                </h1>
+              ) : (
+                <img src="/logo-square.png" alt="Logo" className="w-8 h-8 rounded-lg shadow-sm object-cover cursor-pointer" onClick={() => navigate('/')} />
+              )}
             </div>
         </div>
         
         <div className="flex-1 overflow-y-auto px-4 pb-4">
           <nav className="space-y-2">
             <button onClick={() => setActiveTab('overview')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'overview' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
-              <span className="text-xl">🏠</span> Vue d'ensemble
-            </button>
+                <span className="text-xl flex-shrink-0">🏠</span>
+                {isSidebarOpen && <span className="whitespace-nowrap overflow-hidden text-ellipsis">Vue d'ensemble</span>}
+              </button>
             <button onClick={() => setActiveTab('kanban')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'kanban' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
-              <span className="text-xl">📊</span> Kanban en direct
-            </button>
+                <span className="text-xl flex-shrink-0">📊</span>
+                {isSidebarOpen && <span className="whitespace-nowrap overflow-hidden text-ellipsis">Kanban en direct</span>}
+              </button>
             <button onClick={() => setActiveTab('menu')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'menu' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
-              <span className="text-xl">🍽️</span> Menu & Plats
-            </button>
+                <span className="text-xl flex-shrink-0">🍽️</span>
+                {isSidebarOpen && <span className="whitespace-nowrap overflow-hidden text-ellipsis">Menu & Plats</span>}
+              </button>
             
             {/* Vues réservées à l'ADMIN */}
             {isAdmin && (
               <>
-                <div className="pt-6 pb-2">
-                  <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Administration</p>
-                </div>
+                {isSidebarOpen && <div className="pt-6 pb-2"><p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Administration</p></div>}
+
                 <button onClick={() => setActiveTab('restaurants')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'restaurants' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
-                  <span className="text-xl">🏪</span> Restaurants
-                </button>
+                <span className="text-xl flex-shrink-0">🏪</span>
+                {isSidebarOpen && <span className="whitespace-nowrap overflow-hidden text-ellipsis">Restaurants</span>}
+              </button>
                 <button onClick={() => setActiveTab('operateurs')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'operateurs' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
-                  <span className="text-xl">👥</span> Opérateurs
-                </button>
+                <span className="text-xl flex-shrink-0">👥</span>
+                {isSidebarOpen && <span className="whitespace-nowrap overflow-hidden text-ellipsis">Opérateurs</span>}
+              </button>
                 <button onClick={() => setActiveTab('partners')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'partners' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
-                  <span className="text-xl">🤝</span> Partenariats
-                </button>
+                <span className="text-xl flex-shrink-0">🤝</span>
+                {isSidebarOpen && <span className="whitespace-nowrap overflow-hidden text-ellipsis">Partenariats</span>}
+              </button>
                 <button onClick={() => setActiveTab('comptabilite')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'comptabilite' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
-                  <span className="text-xl">📈</span> Comptabilité
-                </button>
+                <span className="text-xl flex-shrink-0">📈</span>
+                {isSidebarOpen && <span className="whitespace-nowrap overflow-hidden text-ellipsis">Comptabilité</span>}
+              </button>
                 <button onClick={() => setActiveTab('content')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'content' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
-    <span className="text-xl">📝</span> Pages & Contenu (CMS)
-  </button>
+                <span className="text-xl flex-shrink-0">📝</span>
+                {isSidebarOpen && <span className="whitespace-nowrap overflow-hidden text-ellipsis">Pages & Contenu (CMS)</span>}
+              </button>
   
   <button onClick={() => setActiveTab('audit')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'audit' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
-    <span className="text-xl">🕵️‍♂️</span> Audit & Sécurité
-  </button>
+                <span className="text-xl flex-shrink-0">🕵️‍♂️</span>
+                {isSidebarOpen && <span className="whitespace-nowrap overflow-hidden text-ellipsis">Audit & Sécurité</span>}
+              </button>
 <button onClick={() => setActiveTab('parametres')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors mt-8 ${activeTab === 'parametres' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
-    <span className="text-xl">⚙️</span> Paramètres
-  </button>
+                <span className="text-xl flex-shrink-0">⚙️</span>
+                {isSidebarOpen && <span className="whitespace-nowrap overflow-hidden text-ellipsis">Paramètres</span>}
+              </button>
               </>
             )}
           </nav>
@@ -404,4 +421,5 @@ export default function OperatorDashboard() {
     </div>
   );
 }
+
 
