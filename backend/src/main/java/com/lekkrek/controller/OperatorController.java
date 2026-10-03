@@ -43,6 +43,11 @@ public class OperatorController {
         return orderService.updateOrderStatus(id, status);
     }
 
+    @PutMapping("/orders/{id}/payment-status")
+    public Commande updateOrderPaymentStatus(@PathVariable Long id, @RequestParam String status) {
+        return orderService.updatePaymentStatus(id, status);
+    }
+
     // --- PLATS ---
     @GetMapping("/plats")
     public List<Plat> getAllPlats() {
@@ -74,3 +79,4 @@ public class OperatorController {
         platService.duplicateYesterdayPlats(restaurantId);
     }
 }
+

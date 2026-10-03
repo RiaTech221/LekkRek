@@ -20,4 +20,6 @@ public interface OrderService {
     List<Commande> getAllOrders();
     Commande updateOrderStatus(Long id, String status);
     Commande getOrderByNumber(String orderNumber);
+    Commande updatePaymentStatus(Long id, String paymentStatus);
 }
+

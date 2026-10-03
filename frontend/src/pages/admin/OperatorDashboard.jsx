@@ -10,6 +10,7 @@ import ContentManager from './ContentManager';
 import Overview from './Overview';
 import AuditLogs from './AuditLogs';
 import PartnerRequests from './PartnerRequests';
+import OrderDetailsModal from './OrderDetailsModal';
 
 /**
  * ============================================================================
@@ -24,6 +25,7 @@ import PartnerRequests from './PartnerRequests';
 export default function OperatorDashboard() {
   const [activeTab, setActiveTab] = useState(() => localStorage.getItem('lekkrek_admin_tab') || 'overview');
   useEffect(() => { localStorage.setItem('lekkrek_admin_tab', activeTab); }, [activeTab]);
+  const [selectedOrder, setSelectedOrder] = useState(null);
   const [commandes, setCommandes] = useState({
     nouvelles: [],
     preparation: [],
@@ -69,6 +71,10 @@ export default function OperatorDashboard() {
           type: cmd.type,
           paymentMethod: cmd.paymentMethod,
           paymentStatus: cmd.paymentStatus,
+          clientPhone: cmd.clientPhone,
+          clientAddress: cmd.clientAddress,
+          totalAmount: cmd.totalAmount,
+          fullStatus: cmd.status,
           temps: "A l'instant"
         });
 
@@ -96,6 +102,17 @@ export default function OperatorDashboard() {
       return <span className="flex items-center gap-1 text-amber-700 bg-amber-50 px-2 py-1 rounded border border-amber-100 text-[10px] font-black uppercase"><span className="text-[12px]">⚠️</span> À encaisser ({cmd.paymentMethod})</span>;
     }
     return <span className="flex items-center gap-1 text-red-700 bg-red-50 px-2 py-1 rounded border border-red-100 text-[10px] font-black uppercase"><span className="text-[12px]">❌</span> Échoué</span>;
+  };
+
+    const updatePaymentStatus = (id, newStatus) => {
+    const token = localStorage.getItem('token');
+    fetch(http://localhost:8080/api/v1/operator/orders/${id}/payment-status?status=`${newStatus}, { 
+      method: 'PUT',
+      headers: { 'Authorization': "Bearer `${token}" }
+    })
+      .then(res => res.json())
+      .then(() => fetchCommandes())
+      .catch(err => alert("Erreur maj paiement"));
   };
 
   const updateStatus = (id, newStatus) => {
@@ -223,7 +240,7 @@ export default function OperatorDashboard() {
                 </div>
                 <div className="space-y-4 flex-1 overflow-y-auto px-1 hide-scrollbar">
                   {commandes.nouvelles.map(cmd => (
-                    <div key={cmd.id} className="bg-white p-5 rounded-2xl shadow-sm hover:shadow-md transition-shadow border-l-4 border-l-blue-500 border-t border-r border-b border-gray-100 flex flex-col gap-3 group relative cursor-pointer">
+                    <div key={cmd.id} className="bg-white p-5 rounded-2xl shadow-sm hover:shadow-md transition-shadow border-l-4 border-l-blue-500 border-t border-r border-b border-gray-100 flex flex-col gap-3 group relative cursor-pointer" onClick={() => setSelectedOrder(cmd)}>
                       <div className="flex justify-between items-start">
                         <div>
                           <div className="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">#{cmd.id.substring(0,5)}</div>
@@ -253,7 +270,7 @@ export default function OperatorDashboard() {
                       {getPaymentBadge(cmd)}
                    </div>
                       
-                      <button onClick={() => updateStatus(cmd.realId, 'EN_PREPARATION')} className="mt-2 w-full bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white hover:shadow-lg hover:shadow-blue-500/20 transition-all font-bold py-3 rounded-xl text-sm flex items-center justify-center gap-2">
+                      <button onClick={(e) => { e.stopPropagation(); updateStatus(cmd.realId, "EN_PREPARATION"); }} className="mt-2 w-full bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white hover:shadow-lg hover:shadow-blue-500/20 transition-all font-bold py-3 rounded-xl text-sm flex items-center justify-center gap-2">
                         <span>Accepter</span>
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
                       </button>
@@ -273,7 +290,7 @@ export default function OperatorDashboard() {
                 </div>
                 <div className="space-y-4 flex-1 overflow-y-auto px-1 hide-scrollbar">
                   {commandes.preparation.map(cmd => (
-                    <div key={cmd.id} className="bg-white p-5 rounded-2xl shadow-sm hover:shadow-md transition-shadow border-l-4 border-l-orange-500 border-t border-r border-b border-gray-100 flex flex-col gap-3 group relative cursor-pointer">
+                    <div key={cmd.id} className="bg-white p-5 rounded-2xl shadow-sm hover:shadow-md transition-shadow border-l-4 border-l-orange-500 border-t border-r border-b border-gray-100 flex flex-col gap-3 group relative cursor-pointer" onClick={() => setSelectedOrder(cmd)}>
                       <div className="flex justify-between items-start">
                         <div>
                           <div className="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">#{cmd.id.substring(0,5)}</div>
@@ -303,7 +320,7 @@ export default function OperatorDashboard() {
                       {getPaymentBadge(cmd)}
                    </div>
                       
-                      <button onClick={() => updateStatus(cmd.realId, 'PRETE')} className="mt-2 w-full bg-orange-50 text-orange-700 hover:bg-orange-500 hover:text-white hover:shadow-lg hover:shadow-orange-500/20 transition-all font-bold py-3 rounded-xl text-sm flex items-center justify-center gap-2">
+                      <button onClick={(e) => { e.stopPropagation(); updateStatus(cmd.realId, "PRETE"); }} className="mt-2 w-full bg-orange-50 text-orange-700 hover:bg-orange-500 hover:text-white hover:shadow-lg hover:shadow-orange-500/20 transition-all font-bold py-3 rounded-xl text-sm flex items-center justify-center gap-2">
                         <span>Terminer</span>
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" /></svg>
                       </button>
@@ -323,7 +340,7 @@ export default function OperatorDashboard() {
                 </div>
                 <div className="space-y-4 flex-1 overflow-y-auto px-1 hide-scrollbar">
                    {commandes.pretes.map(cmd => (
-                    <div key={cmd.id} className="bg-white p-5 rounded-2xl shadow-sm opacity-80 border-l-4 border-l-green-500 border-t border-r border-b border-gray-100 flex flex-col gap-3 cursor-default">
+                    <div key={cmd.id} className="bg-white p-5 rounded-2xl shadow-sm opacity-80 border-l-4 border-l-green-500 border-t border-r border-b border-gray-100 flex flex-col gap-3 cursor-pointer hover:shadow-md transition-shadow" onClick={() => setSelectedOrder(cmd)}>
                       <div className="flex justify-between items-start">
                         <div>
                           <div className="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">#{cmd.id.substring(0,5)}</div>
@@ -376,6 +393,11 @@ export default function OperatorDashboard() {
           <MenuManager />
         )}
       </div>
+      <OrderDetailsModal 
+        order={selectedOrder} 
+        onClose={() => setSelectedOrder(null)} 
+        onUpdatePayment={updatePaymentStatus} 
+      />
     </div>
   );
 }

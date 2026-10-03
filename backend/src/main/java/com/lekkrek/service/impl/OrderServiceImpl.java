@@ -123,4 +123,35 @@ public class OrderServiceImpl implements OrderService {
         return commandeRepository.findByOrderNumber(orderNumber)
                 .orElseThrow(() -> new RuntimeException("Commande introuvable"));
     }
+    @Override
+    public Commande updatePaymentStatus(Long id, String paymentStatus) {
+        Commande commande = commandeRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Commande non trouvee"));
+        String oldStatus = commande.getPaymentStatus().name();
+        commande.setPaymentStatus(Commande.PaymentStatus.valueOf(paymentStatus));
+        Commande saved = commandeRepository.save(commande);
+        
+        String currentUser = "system@lekkrek.com";
+        String currentRole = "ROLE_SYSTEM";
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
+            currentUser = auth.getName();
+            if (!auth.getAuthorities().isEmpty()) {
+                currentRole = auth.getAuthorities().iterator().next().getAuthority();
+            }
+        }
+        
+        auditService.logAction(
+                currentUser,
+                currentRole,
+                "UPDATE_PAYMENT",
+                "Commande",
+                saved.getOrderNumber(),
+                oldStatus,
+                paymentStatus
+        );
+        
+        return saved;
+    }
 }
+
