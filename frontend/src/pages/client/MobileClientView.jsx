@@ -12,7 +12,7 @@ import { Link } from 'react-router-dom';
 
 import '../../index.css';
 
-export default function ClientView() {
+export default function MobileClientView() {
   const [platformSettings, setPlatformSettings] = useState(null);
   const [plats, setPlats] = useState([]);
   const [allCategories, setAllCategories] = useState([]); // All categories loaded once
@@ -235,11 +235,11 @@ return () => {
                   ⚙️ Mon Dashboard
                 </button>
               )}
-              <button onClick={() => setTrackModalOpen(true)} className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-5 py-2.5 rounded-full font-bold transition-all">
-                📍 Suivi Commande
+              <button onClick={() => setTrackModalOpen(true)} className="flex items-center gap-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-full font-bold transition-all text-xs">
+                📍 Suivi
               </button>
-              <button onClick={() => setCheckoutOpen(true)} className="flex items-center gap-2 bg-gray-900 hover:bg-black text-white px-5 py-2.5 rounded-full font-bold transition-all shadow-md">
-                🛒 Mon Panier <span className="bg-red-600 text-white text-xs px-2 py-0.5 rounded-full ml-1">{cart.length}</span>
+              <button onClick={() => setCheckoutOpen(true)} className="flex items-center gap-1 bg-gray-900 hover:bg-black text-white px-3 py-2 rounded-full font-bold transition-all shadow-md text-xs">
+                🛒 Panier <span className="bg-red-600 text-white text-[10px] px-1.5 py-0.5 rounded-full ml-1">{cart.length}</span>
               </button>
             </div>
           </div>
@@ -268,45 +268,40 @@ return () => {
           <p className="text-xl text-gray-200 max-w-xl mb-10 font-medium">Découvrez les meilleurs restaurants de la région. Commandez en quelques clics et suivez votre livreur en temps réel.</p>
           
           {/* SEARCH BAR (Airbnb style - Fixed for all screens) */}
-          <div className="w-full max-w-5xl bg-white p-2 rounded-2xl md:rounded-full shadow-2xl flex flex-wrap md:flex-nowrap items-center divide-y md:divide-y-0 md:divide-x divide-gray-200">
-            
-            <div className="flex-1 w-full md:w-auto flex items-center px-4 py-3 hover:bg-gray-50 md:rounded-l-full cursor-text transition-colors">
-              <span className="text-xl mr-3">🔍</span>
-              <div className="flex flex-col w-full text-left">
-                <span className="text-[10px] uppercase tracking-wider font-bold text-gray-500 mb-0.5">Quoi ?</span>
-                <input type="text" placeholder="Plat, ingrédient..." className="bg-transparent border-none outline-none w-full text-gray-900 font-bold text-sm placeholder-gray-400" value={keyword} onChange={(e) => setKeyword(e.target.value)} />
+          <div className="w-full bg-white p-2 rounded-2xl shadow-xl grid grid-cols-2 gap-2 mb-4">
+            <div className="flex items-center px-2 py-2 hover:bg-gray-50 cursor-text rounded-xl border border-gray-100">
+              <span className="text-lg mr-2">🔍</span>
+              <div className="flex flex-col w-full">
+                <span className="text-[9px] uppercase tracking-wider font-bold text-gray-500">Quoi ?</span>
+                <input type="text" placeholder="Plat..." className="bg-transparent border-none outline-none w-full text-gray-900 font-bold text-xs" value={keyword} onChange={(e) => setKeyword(e.target.value)} />
               </div>
             </div>
-
-            <div className="flex-1 w-full md:w-auto flex items-center px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors">
-              <span className="text-xl mr-3">🏪</span>
-              <div className="flex flex-col w-full text-left">
-                <span className="text-[10px] uppercase tracking-wider font-bold text-gray-500 mb-0.5">Restaurant</span>
-                <select className="bg-transparent border-none outline-none w-full text-gray-900 font-bold text-sm appearance-none cursor-pointer" value={resto} onChange={(e) => setResto(e.target.value)}>
-                  <option value="">Tous les restos</option>
+            <div className="flex items-center px-2 py-2 hover:bg-gray-50 cursor-pointer rounded-xl border border-gray-100">
+              <span className="text-lg mr-2">🏪</span>
+              <div className="flex flex-col w-full">
+                <span className="text-[9px] uppercase tracking-wider font-bold text-gray-500">Resto</span>
+                <select className="bg-transparent border-none outline-none w-full text-gray-900 font-bold text-xs" value={resto} onChange={(e) => setResto(e.target.value)}>
+                  <option value="">Tous</option>
                   {[...new Set(plats.map(p => p.restaurant?.name).filter(Boolean))].sort().map(name => (
-                    <option key={name} value={name}>{name}</option>
+                    <option key={name} value={name}>{name.substring(0,10)}</option>
                   ))}
                 </select>
               </div>
             </div>
-
-            <div className="flex-1 w-full md:w-auto flex items-center px-4 py-3 hover:bg-gray-50 cursor-text transition-colors">
-              <span className="text-xl mr-3">📍</span>
-              <div className="flex flex-col w-full text-left">
-                <span className="text-[10px] uppercase tracking-wider font-bold text-gray-500 mb-0.5">Quartier</span>
-                <input type="text" placeholder="Où livrer ?" className="bg-transparent border-none outline-none w-full text-gray-900 font-bold text-sm placeholder-gray-400" value={quartier} onChange={(e) => setQuartier(e.target.value)} />
+            <div className="flex items-center px-2 py-2 hover:bg-gray-50 cursor-text rounded-xl border border-gray-100">
+              <span className="text-lg mr-2">📍</span>
+              <div className="flex flex-col w-full">
+                <span className="text-[9px] uppercase tracking-wider font-bold text-gray-500">Quartier</span>
+                <input type="text" placeholder="Livraison" className="bg-transparent border-none outline-none w-full text-gray-900 font-bold text-xs" value={quartier} onChange={(e) => setQuartier(e.target.value)} />
               </div>
             </div>
-
-            <div className="flex-1 w-full md:w-auto flex items-center px-4 py-3 hover:bg-gray-50 md:rounded-r-full cursor-text transition-colors">
-              <span className="text-xl mr-3">💰</span>
-              <div className="flex flex-col w-full text-left">
-                <span className="text-[10px] uppercase tracking-wider font-bold text-gray-500 mb-0.5">Budget Max</span>
-                <input type="number" placeholder="ex: 2000 FCFA" className="bg-transparent border-none outline-none w-full text-gray-900 font-bold text-sm placeholder-gray-400" value={budgetMax} onChange={(e) => setBudgetMax(e.target.value)} />
+            <div className="flex items-center px-2 py-2 hover:bg-gray-50 cursor-text rounded-xl border border-gray-100">
+              <span className="text-lg mr-2">💰</span>
+              <div className="flex flex-col w-full">
+                <span className="text-[9px] uppercase tracking-wider font-bold text-gray-500">Budget</span>
+                <input type="number" placeholder="Max" className="bg-transparent border-none outline-none w-full text-gray-900 font-bold text-xs" value={budgetMax} onChange={(e) => setBudgetMax(e.target.value)} />
               </div>
             </div>
-
           </div>
         </div>
       </div>
@@ -520,65 +515,7 @@ return () => {
 
       {/* FOOTER */}
       
-      <footer className="bg-gray-900 text-white pt-16 pb-8 border-t border-gray-800 mt-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
-            <div className="md:col-span-1">
-              <h2 className="text-3xl font-black tracking-tighter text-red-600 mb-4">
-                {platformSettings?.platformName || 'LekkRek'}
-              </h2>
-              <p className="text-gray-400 text-sm leading-relaxed mb-4">
-                La plateforme n°1 de livraison de repas en Casamance. Vos plats préférés, livrés rapidement et encore chauds.
-              </p>
-              <div className="text-gray-400 text-sm">
-                <p>📞 {platformSettings?.supportPhone || '+221 77 000 00 00'}</p>
-                <p>✉️ {platformSettings?.supportEmail || 'support@lekkrek.com'}</p>
-              </div>
-            </div>
-            
-            <div>
-              <h4 className="text-lg font-bold mb-4">Entreprise</h4>
-              <ul className="space-y-2 text-sm text-gray-400">
-                <li><Link to="/pages/about" className="hover:text-red-500 transition-colors">À propos</Link></li>
-                <li><Link to="/pages/team" className="hover:text-red-500 transition-colors">Notre équipe</Link></li>
-                <li><Link to="/pages/blog" className="hover:text-red-500 transition-colors">Blog</Link></li>
-                <li><Link to="/login" className="hover:text-red-500 transition-colors font-bold text-gray-300">Connexion Équipe</Link></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="text-lg font-bold mb-4">Mentions Légales</h4>
-              <ul className="space-y-2 text-sm text-gray-400">
-                <li><Link to="/pages/terms" className="hover:text-red-500 transition-colors">Conditions Générales (CGU)</Link></li>
-                <li><Link to="/pages/privacy" className="hover:text-red-500 transition-colors">Confidentialité</Link></li>
-                <li><Link to="/pages/cookies" className="hover:text-red-500 transition-colors">Politique des Cookies</Link></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="text-lg font-bold mb-4">Nous rejoindre</h4>
-              <ul className="space-y-2 text-sm text-gray-400">
-                <li><a href="#" onClick={(e) => { e.preventDefault(); setPartnerModalOpen(true); }} className="hover:text-red-500 transition-colors font-bold text-red-500">Devenir Partenaire</a></li>
-              </ul>
-            </div>
-          </div>
-          
-          <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center text-sm text-gray-500">
-            <p>&copy; {new Date().getFullYear()} {platformSettings?.platformName || 'LekkRek'}. Tous droits réservés.</p>
-            <div className="flex gap-4 mt-4 md:mt-0">
-              {platformSettings?.facebookUrl && (
-                <a href={`https://facebook.com/${platformSettings.facebookUrl}`} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Facebook</a>
-              )}
-              {platformSettings?.instagramUrl && (
-                <a href={`https://instagram.com/${platformSettings.instagramUrl}`} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Instagram</a>
-              )}
-              {platformSettings?.tiktokUrl && (
-                <a href={`https://tiktok.com/@${platformSettings.tiktokUrl.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">TikTok</a>
-              )}
-            </div>
-          </div>
-        </div>
-      </footer>
+      
 
 
       {/* PARTNER MODAL */}
@@ -641,6 +578,15 @@ return () => {
           Besoin d'aide ?
         </span>
       </a>
+
+      {/* Bouton Remonter - Mobile Only */}
+      <button 
+        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+        className="fixed bottom-24 right-4 bg-red-600 text-white p-4 rounded-full shadow-2xl hover:bg-red-700 z-[9999] flex items-center justify-center border-4 border-white"
+        style={{ width: 60, height: 60 }}
+      >
+        <span className="text-2xl font-bold">↑</span>
+      </button>
     </div>
   );
 }

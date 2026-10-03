@@ -3,7 +3,7 @@ import { StyleSheet, SafeAreaView, Platform, StatusBar } from 'react-native';
 import { WebView } from 'react-native-webview';
 
 export default function App() {
-  const webUrl = 'http://192.168.1.6:5173';
+  const webUrl = 'http://192.168.1.6:5173/mobile';
 
   return (
     <SafeAreaView style={styles.container}>
