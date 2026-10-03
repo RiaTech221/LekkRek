@@ -138,7 +138,12 @@ export default function OperatorDashboard() {
       {/* Sidebar */}
       <div className="w-64 bg-white border-r border-gray-200 flex flex-col h-full flex-shrink-0">
         <div className="p-6 shrink-0">
-          <img src="/logo.png" alt="LEKK REK" className="h-8 w-auto cursor-pointer object-contain" onClick={() => navigate('/')} />
+          <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/')}>
+              <img src="/logo-square.png" alt="Logo LekkRek" className="h-10 w-10 rounded-xl shadow-sm border border-red-100 object-cover" />
+              <h1 className="text-2xl font-black tracking-tighter text-red-600">
+                Lekk<span className="text-gray-900">Rek</span>
+              </h1>
+            </div>
         </div>
         
         <div className="flex-1 overflow-y-auto px-4 pb-4">
