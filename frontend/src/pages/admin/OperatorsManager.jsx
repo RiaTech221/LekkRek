@@ -166,10 +166,10 @@ export default function OperatorsManager() {
   );
 
   return (
-    <div className="p-8 w-full min-h-screen" style={{ background: '#f8fafc' }}>
+    <div className="p-8 w-full min-h-screen text-left" style={{ background: '#f8fafc' }}>
       
       {/* HEADER SECTION */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+      <div className="flex items-center justify-between mb-8 gap-4">
         <div>
           <h2 className="text-3xl font-black text-gray-900 tracking-tight">Utilisateurs Internes</h2>
           <p className="text-gray-500 text-sm mt-1 font-medium">Gestion des comptes Opérateurs et Prestataires pour la saisie.</p>
@@ -410,3 +410,4 @@ export default function OperatorsManager() {
     </div>
   );
 }
+

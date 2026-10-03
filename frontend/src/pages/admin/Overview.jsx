@@ -102,7 +102,7 @@ export default function Overview() {
   const clicksPhone = getStat('click_phone');
 
   return (
-    <div className="p-8 w-full min-h-screen" style={{ background: '#f8fafc' }}>
+    <div className="p-8 w-full min-h-screen text-left" style={{ background: '#f8fafc' }}>
       <header className="mb-8">
         <h2 className="text-3xl font-black text-gray-900 tracking-tight">Bonjour, {user.email?.split('@')[0] || 'Admin'} 👋</h2>
         <p className="text-gray-500 text-sm mt-1 font-medium">Voici ce qui se passe sur LekkRek aujourd'hui.</p>
@@ -337,3 +337,4 @@ export default function Overview() {
     </div>
   );
 }
+

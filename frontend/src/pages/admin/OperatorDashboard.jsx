@@ -106,9 +106,9 @@ export default function OperatorDashboard() {
 
     const updatePaymentStatus = (id, newStatus) => {
     const token = localStorage.getItem('token');
-    fetch(http://localhost:8080/api/v1/operator/orders/${id}/payment-status?status=`${newStatus}, { 
+    fetch(`http://localhost:8080/api/v1/operator/orders/${id}/payment-status?status=${newStatus}`, { 
       method: 'PUT',
-      headers: { 'Authorization': "Bearer `${token}" }
+      headers: { 'Authorization': `Bearer ${token}` }
     })
       .then(res => res.json())
       .then(() => fetchCommandes())
@@ -401,3 +401,4 @@ export default function OperatorDashboard() {
     </div>
   );
 }
+
