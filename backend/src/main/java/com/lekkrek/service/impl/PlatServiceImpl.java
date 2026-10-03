@@ -85,6 +85,11 @@ public class PlatServiceImpl implements PlatService {
     }
 
     @Override
+    public void duplicateYesterdayPlats(Long restaurantId) {
+
+    }
+
+    @Override
     public Plat updatePlatStatus(Long id, String status) {
         Plat plat = platRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Plat non trouvé"));

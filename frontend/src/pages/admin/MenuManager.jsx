@@ -285,29 +285,33 @@ export default function MenuManager() {
       {/* Modal Ajout/Modification */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white p-8 rounded-2xl w-full max-w-lg shadow-2xl">
-            <h3 className="text-xl font-bold mb-6">{currentPlat ? 'Modifier le plat' : 'Nouveau Plat'}</h3>
-            <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="bg-white p-8 rounded-2xl w-full max-w-2xl shadow-2xl">
+            <h3 className="text-2xl font-black text-gray-900 mb-6 tracking-tight">{currentPlat ? 'Modifier le plat' : 'Nouveau Plat'}</h3>
+            <form onSubmit={handleSubmit} className="space-y-6">
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Nom du plat</label>
-                  <input required type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full border border-gray-200 p-2 rounded-lg focus:ring-red-500" />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Nom du plat</label>
+                  <input required type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full border border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all shadow-sm text-gray-800" placeholder="Ex: Thiéboudienne Penda Mbaye" />
                 </div>
                 
-                <div className="col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Variantes / Synonymes (séparés par des virgules)</label>
-                  <input type="text" placeholder="ex: tiep, thieb, tiep bou dien" value={formData.variantes || ''} onChange={e => setFormData({...formData, variantes: e.target.value})} className="w-full border border-gray-200 p-2 rounded-lg" />
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Variantes / Synonymes</label>
+                  <input type="text" placeholder="Ex: tiep, thieb, tiep bou dien (séparés par des virgules)" value={formData.variantes || ''} onChange={e => setFormData({...formData, variantes: e.target.value})} className="w-full border border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all shadow-sm text-gray-800" />
+                  <p className="text-xs text-gray-400 mt-1">Aide la recherche client à trouver ce plat avec d'autres mots.</p>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Prix (FCFA)</label>
-                  <input required type="number" value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} className="w-full border border-gray-200 p-2 rounded-lg" />
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Prix (FCFA)</label>
+                  <div className="relative">
+                    <input required type="number" value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} className="w-full border border-gray-200 p-3 pr-12 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all shadow-sm text-gray-800 font-medium" placeholder="0" />
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 font-medium">FCFA</span>
+                  </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Catégorie</label>
-                  <select value={formData.moment} onChange={e => setFormData({...formData, moment: e.target.value})} className="w-full border border-gray-200 p-2 rounded-lg bg-white">
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Catégorie</label>
+                  <select value={formData.moment} onChange={e => setFormData({...formData, moment: e.target.value})} className="w-full border border-gray-200 p-3 rounded-xl bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all shadow-sm text-gray-800 cursor-pointer">
                     <option value="dejeuner">🍽️ Déjeuner</option>
                     <option value="diner">🌙 Dîner</option>
                     <option value="gouter">🍪 Goûter</option>
@@ -318,43 +322,49 @@ export default function MenuManager() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Statut Initial</label>
-                  <select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} className="w-full border border-gray-200 p-2 rounded-lg bg-white">
-                    <option value="DISPO">Disponible</option>
-                    <option value="EPUISE">Épuisé</option>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Statut Initial</label>
+                  <select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} className="w-full border border-gray-200 p-3 rounded-xl bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all shadow-sm text-gray-800 cursor-pointer">
+                    <option value="DISPO">🟢 Disponible</option>
+                    <option value="EPUISE">🔴 Épuisé</option>
                   </select>
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Fichier Image (Optionnel)</label>
-                  <input type="file" accept="image/*" onChange={(e) => {
-                      const file = e.target.files[0];
-                      if (!file) return;
-                      const formDataUpload = new FormData();
-                      formDataUpload.append('file', file);
-                      fetch('http://localhost:8080/api/v1/upload', {
-                        method: 'POST',
-                        body: formDataUpload
-                      }).then(res => res.text()).then(url => setFormData({...formData, image: url}));
-                    }} 
-                    className="w-full border border-gray-200 p-1.5 rounded-lg text-sm bg-white" 
-                  />
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Upload Photo</label>
+                  <div className="relative border-2 border-dashed border-gray-300 rounded-xl p-3 hover:bg-gray-50 transition-colors group cursor-pointer text-center">
+                    <input type="file" accept="image/*" onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (!file) return;
+                        const formDataUpload = new FormData();
+                        formDataUpload.append('file', file);
+                        fetch('http://localhost:8080/api/v1/upload', {
+                          method: 'POST',
+                          body: formDataUpload
+                        }).then(res => res.text()).then(url => setFormData({...formData, image: url}));
+                      }} 
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
+                    />
+                    <div className="flex items-center justify-center gap-2 text-gray-500 group-hover:text-red-600 transition-colors">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                      <span className="text-sm font-medium">Choisir une image</span>
+                    </div>
+                  </div>
                 </div>
 
-                <div className="col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">URL de l'image (ou générée par l'upload)</label>
-                  <input required type="url" value={formData.image} onChange={e => setFormData({...formData, image: e.target.value})} className="w-full border border-gray-200 p-2 rounded-lg bg-gray-50 text-gray-500" />
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">URL de l'image</label>
+                  <input required type="url" value={formData.image} onChange={e => setFormData({...formData, image: e.target.value})} className="w-full border border-gray-200 p-3 rounded-xl bg-gray-50 text-gray-500 focus:outline-none focus:ring-0 text-sm" readOnly />
                 </div>
 
-                <div className="col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                  <textarea rows="2" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full border border-gray-200 p-2 rounded-lg resize-none"></textarea>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Description appétissante</label>
+                  <textarea rows="3" placeholder="Décrivez les saveurs de ce plat..." value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full border border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all shadow-sm text-gray-800 resize-none"></textarea>
                 </div>
               </div>
 
               <div className="flex justify-end gap-3 mt-6">
-                <button type="button" onClick={() => setModalOpen(false)} className="px-4 py-2 text-gray-600 font-medium hover:bg-gray-100 rounded-lg">Annuler</button>
-                <button type="submit" className="px-4 py-2 bg-red-600 text-white font-medium hover:bg-red-700 rounded-lg">Enregistrer</button>
+                <button type="button" onClick={() => setModalOpen(false)} className="px-5 py-2.5 text-gray-600 font-bold hover:bg-gray-100 rounded-xl transition-colors">Annuler</button>
+                <button type="submit" className="px-6 py-2.5 bg-red-600 text-white font-bold hover:bg-red-700 rounded-xl shadow-md shadow-red-200 transition-colors">Enregistrer</button>
               </div>
             </form>
           </div>

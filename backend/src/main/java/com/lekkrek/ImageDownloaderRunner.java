@@ -81,7 +81,9 @@ public class ImageDownloaderRunner implements CommandLineRunner {
             String uniqueName = UUID.randomUUID().toString() + extension;
             Path dest = Paths.get("uploads", uniqueName);
 
-            try (InputStream in = url.openStream()) {
+            java.net.HttpURLConnection httpcon = (java.net.HttpURLConnection) url.openConnection();
+            httpcon.addRequestProperty("User-Agent", "Mozilla/5.0");
+            try (InputStream in = httpcon.getInputStream()) {
                 Files.copy(in, dest, StandardCopyOption.REPLACE_EXISTING);
             }
             return "http://localhost:8080/uploads/" + uniqueName;
