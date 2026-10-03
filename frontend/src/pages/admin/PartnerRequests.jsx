@@ -51,19 +51,22 @@ export default function PartnerRequests() {
   if (loading) return <div className="p-8">Chargement des demandes...</div>;
 
   return (
-    <div className="p-8 h-full flex flex-col">
-      <header className="flex flex-col gap-4 mb-8">
+    <div className="p-8 h-full flex flex-col bg-gray-50">
+      <header className="flex justify-between items-center mb-8">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Demandes de Partenariat</h2>
+          <h1 className="text-3xl font-black text-gray-900 tracking-tight">Demandes de Partenariat</h1>
           <p className="text-gray-500 text-sm mt-1">Gérez les demandes entrantes des restaurants souhaitant rejoindre LekkRek.</p>
         </div>
-        <div className="w-full max-w-md">
+        
+        <div className="flex gap-4">
           <div className="relative">
-            <span className="absolute inset-y-0 left-3 flex items-center text-gray-400">🔍</span>
+            <span className="absolute inset-y-0 left-3 flex items-center text-gray-400">
+              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+            </span>
             <input 
               type="text" 
-              placeholder="Rechercher par restaurant, gérant ou ville..." 
-              className="w-full bg-white border border-gray-200 rounded-xl py-2.5 pl-10 pr-4 text-sm focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 shadow-sm" 
+              placeholder="Rechercher..." 
+              className="w-64 bg-white border border-gray-200 rounded-full py-2 pl-10 pr-4 text-sm font-medium focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 shadow-sm transition-all" 
               value={searchTerm} 
               onChange={(e) => setSearchTerm(e.target.value)} 
             />
@@ -71,17 +74,17 @@ export default function PartnerRequests() {
         </div>
       </header>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 flex-1 overflow-hidden flex flex-col">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 flex-1 overflow-hidden flex flex-col">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="bg-gray-50 border-b border-gray-100 text-gray-500 text-sm">
-              <th className="p-4 font-medium">Date</th>
-              <th className="p-4 font-medium">Restaurant</th>
-              <th className="p-4 font-medium">Gérant</th>
-              <th className="p-4 font-medium">Téléphone</th>
-              <th className="p-4 font-medium">Ville</th>
-              <th className="p-4 font-medium">Statut</th>
-              <th className="p-4 font-medium text-right">Actions</th>
+            <tr className="bg-gray-50/50 border-b border-gray-100 text-gray-400 text-xs font-black uppercase tracking-widest">
+              <th className="px-6 py-4">Date</th>
+              <th className="px-6 py-4">Restaurant</th>
+              <th className="px-6 py-4">Gérant</th>
+              <th className="px-6 py-4">Téléphone</th>
+              <th className="px-6 py-4">Ville</th>
+              <th className="px-6 py-4">Statut</th>
+              <th className="px-6 py-4 text-right">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -89,15 +92,15 @@ export default function PartnerRequests() {
               <tr><td colSpan="7" className="p-8 text-center text-gray-500">Aucune demande pour le moment.</td></tr>
             ) : (
               requests.map(req => (
-                <tr key={req.id} className="border-b border-gray-50 hover:bg-gray-50">
-                  <td className="p-4 text-sm text-gray-500">
+                <tr key={req.id} className="hover:bg-gray-50/80 transition-colors group border-b border-gray-50">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {new Date(req.createdAt).toLocaleDateString("fr-FR", {day: "2-digit", month: "short", year:"numeric"})}
                   </td>
-                  <td className="p-4 font-bold text-gray-900">{req.nomRestaurant}</td>
-                  <td className="p-4 text-gray-700">{req.nomContact}</td>
-                  <td className="p-4 font-medium text-gray-900">{req.telephone}</td>
-                  <td className="p-4 text-gray-500">{req.ville}</td>
-                  <td className="p-4">
+                  <td className="px-6 py-4 whitespace-nowrap font-bold text-gray-900">{req.nomRestaurant}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-gray-700">{req.nomContact}</td>
+                  <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">{req.telephone}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-gray-500">{req.ville}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-3 py-1 rounded-full text-xs font-bold ${
                       req.status === "PENDING" ? "bg-yellow-100 text-yellow-700" :
                       req.status === "CONTACTED" ? "bg-blue-100 text-blue-700" :
@@ -109,7 +112,7 @@ export default function PartnerRequests() {
                        req.status === "REJECTED" ? "Refusé" : "Accepté"}
                     </span>
                   </td>
-                  <td className="p-4 text-right">
+                  <td className="px-6 py-4 whitespace-nowrap text-right">
                     {req.status === "PENDING" && (
                       <button onClick={() => updateStatus(req.id, "CONTACTED")} className="bg-blue-50 text-blue-600 hover:bg-blue-100 px-3 py-1.5 rounded font-bold text-xs transition-colors">
                         Marquer Contacté
