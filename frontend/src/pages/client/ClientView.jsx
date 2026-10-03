@@ -235,11 +235,11 @@ return () => {
                   ⚙️ Mon Dashboard
                 </button>
               )}
-              <button onClick={() => setTrackModalOpen(true)} className="flex items-center gap-1 sm:gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 sm:px-5 sm:py-2.5 rounded-full font-bold transition-all text-xs sm:text-base">
-                📍 <span className="hidden sm:inline">Suivi Commande</span><span className="inline sm:hidden">Suivi</span>
+              <button onClick={() => setTrackModalOpen(true)} className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-5 py-2.5 rounded-full font-bold transition-all">
+                📍 Suivi Commande
               </button>
-              <button onClick={() => setCheckoutOpen(true)} className="flex items-center gap-1 sm:gap-2 bg-gray-900 hover:bg-black text-white px-3 py-2 sm:px-5 sm:py-2.5 rounded-full font-bold transition-all shadow-md text-xs sm:text-base">
-                🛒 <span className="hidden sm:inline">Mon Panier</span><span className="inline sm:hidden">Panier</span> <span className="bg-red-600 text-white text-xs px-2 py-0.5 rounded-full ml-1">{cart.length}</span>
+              <button onClick={() => setCheckoutOpen(true)} className="flex items-center gap-2 bg-gray-900 hover:bg-black text-white px-5 py-2.5 rounded-full font-bold transition-all shadow-md">
+                🛒 Mon Panier <span className="bg-red-600 text-white text-xs px-2 py-0.5 rounded-full ml-1">{cart.length}</span>
               </button>
             </div>
           </div>
@@ -268,9 +268,9 @@ return () => {
           <p className="text-xl text-gray-200 max-w-xl mb-10 font-medium">Découvrez les meilleurs restaurants de la région. Commandez en quelques clics et suivez votre livreur en temps réel.</p>
           
           {/* SEARCH BAR (Airbnb style - Fixed for all screens) */}
-          <div className="w-full max-w-5xl bg-white p-2 rounded-2xl md:rounded-full shadow-2xl grid grid-cols-2 gap-2 md:flex md:flex-nowrap items-center md:divide-x divide-gray-200">
+          <div className="w-full max-w-5xl bg-white p-2 rounded-2xl md:rounded-full shadow-2xl flex flex-wrap md:flex-nowrap items-center divide-y md:divide-y-0 md:divide-x divide-gray-200">
             
-            <div className="flex-1 w-full md:w-auto flex items-center px-2 sm:px-4 py-2 sm:py-3 hover:bg-gray-50 md:rounded-l-full cursor-text transition-colors">
+            <div className="flex-1 w-full md:w-auto flex items-center px-4 py-3 hover:bg-gray-50 md:rounded-l-full cursor-text transition-colors">
               <span className="text-xl mr-3">🔍</span>
               <div className="flex flex-col w-full text-left">
                 <span className="text-[10px] uppercase tracking-wider font-bold text-gray-500 mb-0.5">Quoi ?</span>
@@ -278,7 +278,7 @@ return () => {
               </div>
             </div>
 
-            <div className="flex-1 w-full md:w-auto flex items-center px-2 sm:px-4 py-2 sm:py-3 hover:bg-gray-50 cursor-pointer transition-colors">
+            <div className="flex-1 w-full md:w-auto flex items-center px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors">
               <span className="text-xl mr-3">🏪</span>
               <div className="flex flex-col w-full text-left">
                 <span className="text-[10px] uppercase tracking-wider font-bold text-gray-500 mb-0.5">Restaurant</span>
@@ -291,7 +291,7 @@ return () => {
               </div>
             </div>
 
-            <div className="flex-1 w-full md:w-auto flex items-center px-2 sm:px-4 py-2 sm:py-3 hover:bg-gray-50 cursor-text transition-colors">
+            <div className="flex-1 w-full md:w-auto flex items-center px-4 py-3 hover:bg-gray-50 cursor-text transition-colors">
               <span className="text-xl mr-3">📍</span>
               <div className="flex flex-col w-full text-left">
                 <span className="text-[10px] uppercase tracking-wider font-bold text-gray-500 mb-0.5">Quartier</span>
@@ -299,7 +299,7 @@ return () => {
               </div>
             </div>
 
-            <div className="flex-1 w-full md:w-auto flex items-center px-2 sm:px-4 py-2 sm:py-3 hover:bg-gray-50 md:rounded-r-full cursor-text transition-colors">
+            <div className="flex-1 w-full md:w-auto flex items-center px-4 py-3 hover:bg-gray-50 md:rounded-r-full cursor-text transition-colors">
               <span className="text-xl mr-3">💰</span>
               <div className="flex flex-col w-full text-left">
                 <span className="text-[10px] uppercase tracking-wider font-bold text-gray-500 mb-0.5">Budget Max</span>
@@ -520,7 +520,7 @@ return () => {
 
       {/* FOOTER */}
       
-      <footer className="bg-gray-900 text-white pt-16 pb-8 border-t border-gray-800 mt-20">
+      {!isMobileApp && (<footer className="bg-gray-900 text-white pt-16 pb-8 border-t border-gray-800 mt-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
             <div className="md:col-span-1">
@@ -579,7 +579,6 @@ return () => {
           </div>
         </div>
       </footer>
-      )}
 
 
       {/* PARTNER MODAL */}
