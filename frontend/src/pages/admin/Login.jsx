@@ -32,7 +32,7 @@ export default function Login() {
     <div className="flex min-h-screen w-full bg-white absolute top-0 left-0 overflow-hidden" style={{ zIndex: 9999 }}>
       
       {/* --- LEFT SIDE: FORM --- */}
-      <div className="w-full lg:w-1/2 flex flex-col justify-center px-8 sm:px-16 lg:px-24 bg-white relative">
+      <div className="w-full md:w-1/2 flex flex-col justify-center px-8 sm:px-16 lg:px-24 bg-white relative">
         
         {/* BOUTON RETOUR */}
         <a href="/" className="absolute top-8 left-8 flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-red-600 transition-colors group">
@@ -94,7 +94,7 @@ export default function Login() {
       </div>
 
       {/* --- RIGHT SIDE: CLEAN IMAGE SHOWCASE --- */}
-      <div className="hidden lg:block w-1/2 relative bg-gray-100">
+      <div className="hidden md:block w-1/2 relative bg-gray-100">
         <img 
           src="https://images.unsplash.com/photo-1548943487-a2e4f43b4850?q=80&w=2000&auto=format&fit=crop" 
           alt="Gastronomie" 
