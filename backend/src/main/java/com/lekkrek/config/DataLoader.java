@@ -169,7 +169,7 @@ public class DataLoader {
             c3.setClientAddress("Plateau");
             c3.setType(Commande.OrderType.EMPORTER);
             c3.setStatus(Commande.OrderStatus.LIVREE);
-            c3.setPaymentMethod(Commande.PaymentMethod.SUR_PLACE);
+            c3.setPaymentMethod(Commande.PaymentMethod.ESPECES);
             c3.setPaymentStatus(Commande.PaymentStatus.PAYE);
             c3.setRestaurant(r4);
             CommandeItem ci3 = new CommandeItem();
