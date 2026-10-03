@@ -13,6 +13,7 @@ import { Link } from 'react-router-dom';
 import '../../index.css';
 
 export default function ClientView() {
+  const isMobileApp = typeof navigator !== 'undefined' && navigator.userAgent.includes('LekkRekMobileApp');
   const [platformSettings, setPlatformSettings] = useState(null);
   const [plats, setPlats] = useState([]);
   const [allCategories, setAllCategories] = useState([]); // All categories loaded once
@@ -281,7 +282,44 @@ return () => {
           <p className="text-xl text-gray-200 max-w-xl mb-10 font-medium">Découvrez les meilleurs restaurants de la région. Commandez en quelques clics et suivez votre livreur en temps réel.</p>
           
           {/* SEARCH BAR (Airbnb style - Fixed for all screens) */}
-          <div className="w-full max-w-5xl bg-white p-2 rounded-2xl md:rounded-full shadow-2xl flex flex-wrap md:flex-nowrap items-center divide-y md:divide-y-0 md:divide-x divide-gray-200">
+          {isMobileApp ? (
+<div className="w-full bg-white p-2 rounded-2xl shadow-xl grid grid-cols-2 gap-2 mb-4">
+            <div className="flex items-center px-2 py-2 hover:bg-gray-50 cursor-text rounded-xl border border-gray-100">
+              <span className="text-lg mr-2">🔍</span>
+              <div className="flex flex-col w-full">
+                <span className="text-[9px] uppercase tracking-wider font-bold text-gray-500">Quoi ?</span>
+                <input type="text" placeholder="Plat..." className="bg-transparent border-none outline-none w-full text-gray-900 font-bold text-xs" value={keyword} onChange={(e) => setKeyword(e.target.value)} />
+              </div>
+            </div>
+            <div className="flex items-center px-2 py-2 hover:bg-gray-50 cursor-pointer rounded-xl border border-gray-100">
+              <span className="text-lg mr-2">🏪</span>
+              <div className="flex flex-col w-full">
+                <span className="text-[9px] uppercase tracking-wider font-bold text-gray-500">Resto</span>
+                <select className="bg-transparent border-none outline-none w-full text-gray-900 font-bold text-xs" value={resto} onChange={(e) => setResto(e.target.value)}>
+                  <option value="">Tous</option>
+                  {[...new Set(plats.map(p => p.restaurant?.name).filter(Boolean))].sort().map(name => (
+                    <option key={name} value={name}>{name.substring(0,10)}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div className="flex items-center px-2 py-2 hover:bg-gray-50 cursor-text rounded-xl border border-gray-100">
+              <span className="text-lg mr-2">📍</span>
+              <div className="flex flex-col w-full">
+                <span className="text-[9px] uppercase tracking-wider font-bold text-gray-500">Quartier</span>
+                <input type="text" placeholder="Livraison" className="bg-transparent border-none outline-none w-full text-gray-900 font-bold text-xs" value={quartier} onChange={(e) => setQuartier(e.target.value)} />
+              </div>
+            </div>
+            <div className="flex items-center px-2 py-2 hover:bg-gray-50 cursor-text rounded-xl border border-gray-100">
+              <span className="text-lg mr-2">💰</span>
+              <div className="flex flex-col w-full">
+                <span className="text-[9px] uppercase tracking-wider font-bold text-gray-500">Budget</span>
+                <input type="number" placeholder="Max" className="bg-transparent border-none outline-none w-full text-gray-900 font-bold text-xs" value={budgetMax} onChange={(e) => setBudgetMax(e.target.value)} />
+              </div>
+            </div>
+          </div>
+) : (
+<div className="w-full max-w-5xl bg-white p-2 rounded-2xl md:rounded-full shadow-2xl flex flex-wrap md:flex-nowrap items-center divide-y md:divide-y-0 md:divide-x divide-gray-200">
             
             <div className="flex-1 w-full md:w-auto flex items-center px-4 py-3 hover:bg-gray-50 md:rounded-l-full cursor-text transition-colors">
               <span className="text-xl mr-3">🔍</span>
@@ -321,6 +359,7 @@ return () => {
             </div>
 
           </div>
+)}
         </div>
       </div>
       
