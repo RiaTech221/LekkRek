@@ -190,6 +190,15 @@ export default function Login() {
         {/* === LEFT SIDE (COLOR BLOCK) === */}
         <div className="login-left">
           
+          {/* SEPARATEUR COURBE SINUSOÏDALE (Vague) */}
+          <svg 
+            viewBox="0 0 100 100" 
+            preserveAspectRatio="none" 
+            style={{ position: 'absolute', right: '-1px', top: 0, height: '100%', width: '12vw', zIndex: 1 }}
+          >
+            <path fill="#ffffff" d="M100,0 L100,100 L50,100 C -20,75 120,25 50,0 Z" />
+          </svg>
+
           {/* L'icône Avion/Fusée sur la frontière avec la mousse ! */}
           <div className="rocket-container">
             {/* Rocket 3D */}
@@ -206,7 +215,7 @@ export default function Login() {
             />
           </div>
 
-          <div style={{ maxWidth: '400px', width: '100%', position: 'relative', zIndex: 10, paddingRight: '40px' }}>
+          <div style={{ maxWidth: '400px', width: '100%', position: 'relative', zIndex: 10, paddingRight: '10vw' }}>
             <h1 style={{ fontSize: '3rem', fontWeight: 900, marginBottom: '1.5rem', lineHeight: 1.1, letterSpacing: '-0.02em' }}>
               Accès à <br/><span style={{ color: '#fca5a5' }}>LekkRek Pro</span>
             </h1>
