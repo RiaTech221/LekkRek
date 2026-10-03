@@ -47,7 +47,7 @@ export default function Login() {
           .login-left {
             display: none; 
             flex: 1;
-            background: linear-gradient(135deg, #d33a30, #901a1e);
+            background: linear-gradient(135deg, #0f172a, #1e293b);
             flex-direction: column;
             justify-content: center;
             align-items: center;
@@ -233,7 +233,7 @@ export default function Login() {
 
           <div style={{ maxWidth: '400px', width: '100%', position: 'relative', zIndex: 10, paddingRight: '10vw' }}>
             <h1 style={{ fontSize: '3rem', fontWeight: 900, marginBottom: '1.5rem', lineHeight: 1.1, letterSpacing: '-0.02em' }}>
-              Accès à <br/><span style={{ color: '#fca5a5' }}>LEKK REK</span>
+              Accès à <br/><span style={{ color: '#d33a30' }}>LEKK REK</span>
             </h1>
             <p style={{ fontSize: '1.15rem', opacity: 0.95, lineHeight: 1.6, fontWeight: 500 }}>
               Débloquez la gestion de vos plats, le suivi de vos commandes en temps réel et analysez vos statistiques de ventes instantanément sur notre plateforme.
@@ -299,4 +299,5 @@ export default function Login() {
     </>
   );
 }
+
 
