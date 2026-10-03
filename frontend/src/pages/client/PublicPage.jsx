@@ -18,7 +18,7 @@ export default function PublicPage() {
 
   useEffect(() => {
     setLoading(true);
-    fetch(`http://localhost:8080/api/v1/pages/${slug}`)
+    fetch(`http://192.168.1.6:8080/api/v1/pages/${slug}`)
       .then(res => {
         if (!res.ok) throw new Error('Page introuvable');
         return res.json();

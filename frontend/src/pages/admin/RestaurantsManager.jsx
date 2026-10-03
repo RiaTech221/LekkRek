@@ -48,7 +48,7 @@ export default function RestaurantsManager() {
   
   const fetchRestaurants = () => {
     const token = localStorage.getItem('token');
-    fetch('http://localhost:8080/api/v1/admin/restaurants', {
+    fetch('http://192.168.1.6:8080/api/v1/admin/restaurants', {
       headers: { 'Authorization': `Bearer ${token}` }
     })
       .then(res => res.json())
@@ -78,7 +78,7 @@ export default function RestaurantsManager() {
       formData.append('file', imageFile);
       
       try {
-        const uploadRes = await fetch('http://localhost:8080/api/v1/upload', {
+        const uploadRes = await fetch('http://192.168.1.6:8080/api/v1/upload', {
           method: 'POST',
           headers: { 'Authorization': 'Bearer ' + token },
           body: formData
@@ -109,8 +109,8 @@ export default function RestaurantsManager() {
     };
 
     const url = editingId 
-      ? 'http://localhost:8080/api/v1/admin/restaurants/' + editingId
-      : 'http://localhost:8080/api/v1/admin/restaurants';
+      ? 'http://192.168.1.6:8080/api/v1/admin/restaurants/' + editingId
+      : 'http://192.168.1.6:8080/api/v1/admin/restaurants';
     const method = editingId ? 'PUT' : 'POST';
 
     fetch(url, {
@@ -149,7 +149,7 @@ export default function RestaurantsManager() {
   const handleDelete = (id) => {
     if (!window.confirm("Êtes-vous sûr de vouloir supprimer ce restaurant et TOUS ses plats associés ?")) return;
     const token = localStorage.getItem('token');
-    fetch(`http://localhost:8080/api/v1/admin/restaurants/${id}`, {
+    fetch(`http://192.168.1.6:8080/api/v1/admin/restaurants/${id}`, {
       method: 'DELETE',
       headers: { 'Authorization': `Bearer ${token}` }
     })
@@ -159,7 +159,7 @@ export default function RestaurantsManager() {
 
   const toggleActive = (resto) => {
     const token = localStorage.getItem('token');
-    fetch(`http://localhost:8080/api/v1/admin/restaurants/${resto.id}`, {
+    fetch(`http://192.168.1.6:8080/api/v1/admin/restaurants/${resto.id}`, {
       method: 'PUT',
       headers: { 
         'Content-Type': 'application/json',

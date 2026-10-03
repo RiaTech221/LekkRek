@@ -17,7 +17,7 @@ export default function PartnerRequests() {
 
   const fetchRequests = () => {
     const token = localStorage.getItem("token");
-    fetch("http://localhost:8080/api/v1/admin/partner-requests", {
+    fetch("http://192.168.1.6:8080/api/v1/admin/partner-requests", {
       headers: { "Authorization": `Bearer ${token}` }
     })
       .then(res => res.json())
@@ -37,7 +37,7 @@ export default function PartnerRequests() {
 
   const updateStatus = (id, newStatus) => {
     const token = localStorage.getItem("token");
-    fetch(`http://localhost:8080/api/v1/admin/partner-requests/${id}/status?status=${newStatus}`, {
+    fetch(`http://192.168.1.6:8080/api/v1/admin/partner-requests/${id}/status?status=${newStatus}`, {
       method: "PUT",
       headers: { "Authorization": `Bearer ${token}` }
     })

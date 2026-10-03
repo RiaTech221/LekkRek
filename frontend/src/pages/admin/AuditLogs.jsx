@@ -16,7 +16,7 @@ export default function AuditLogs() {
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    fetch('http://localhost:8080/api/v1/admin/audit', {
+    fetch('http://192.168.1.6:8080/api/v1/admin/audit', {
       headers: { 'Authorization': `Bearer ${token}` }
     })
       .then(res => {

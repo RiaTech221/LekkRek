@@ -10,7 +10,7 @@ export default function Login() {
   const handleLogin = (e) => {
     e.preventDefault();
     setError('');
-    fetch('http://localhost:8080/api/v1/public/auth/login', {
+    fetch('http://192.168.1.6:8080/api/v1/public/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })

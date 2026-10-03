@@ -32,14 +32,14 @@ export default function Overview() {
     const headers = { 'Authorization': `Bearer ${token}` };
 
     // Commandes récentes
-    fetch('http://localhost:8080/api/v1/operator/orders', { headers })
+    fetch('http://192.168.1.6:8080/api/v1/operator/orders', { headers })
       .then(res => res.json())
       .then(data => { if (Array.isArray(data)) setOrders(data); })
       .catch(console.error);
 
     if (isAdmin) {
       // Fetch Restaurants (Actifs / Inactifs)
-      fetch('http://localhost:8080/api/v1/admin/restaurants', { headers })
+      fetch('http://192.168.1.6:8080/api/v1/admin/restaurants', { headers })
         .then(res => res.json())
         .then(data => { 
           if (Array.isArray(data)) {
@@ -50,19 +50,19 @@ export default function Overview() {
         .catch(console.error);
 
       // Fetch Analytics (Visites, Recherches, Clics)
-      fetch('http://localhost:8080/api/v1/admin/analytics/kpi', { headers })
+      fetch('http://192.168.1.6:8080/api/v1/admin/analytics/kpi', { headers })
         .then(res => res.json())
         .then(data => setAnalytics(data))
         .catch(console.error);
 
       // Fetch Opérateurs (Utilisateurs internes)
-      fetch('http://localhost:8080/api/v1/admin/operators', { headers })
+      fetch('http://192.168.1.6:8080/api/v1/admin/operators', { headers })
         .then(res => res.json())
         .then(data => { if (Array.isArray(data)) setOperatorsCount(data.length); })
         .catch(console.error);
         
       // Fetch des Menus (pour simuler Offres du Jour, dispo, épuisées)
-      fetch('http://localhost:8080/api/v1/public/menus') // Point d'entrée public pour les offres
+      fetch('http://192.168.1.6:8080/api/v1/public/menus') // Point d'entrée public pour les offres
         .then(res => res.json())
         .then(data => {
             if (Array.isArray(data)) {
@@ -75,7 +75,7 @@ export default function Overview() {
 
     } else {
       // Pour l'opérateur classique
-      fetch('http://localhost:8080/api/v1/operator/plats', { headers })
+      fetch('http://192.168.1.6:8080/api/v1/operator/plats', { headers })
         .then(res => res.json())
         .then(data => { if (Array.isArray(data)) setPlatsCount(data.length); })
         .catch(console.error);

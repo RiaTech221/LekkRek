@@ -35,7 +35,7 @@ export default function OperatorsManager() {
   const fetchOperators = () => {
     setLoading(true);
     const token = localStorage.getItem('token');
-    fetch('http://localhost:8080/api/v1/admin/operators', {
+    fetch('http://192.168.1.6:8080/api/v1/admin/operators', {
       headers: { 'Authorization': `Bearer ${token}` }
     })
       .then(res => res.json())
@@ -51,7 +51,7 @@ export default function OperatorsManager() {
 
   const fetchRestaurants = () => {
     const token = localStorage.getItem('token');
-    fetch('http://localhost:8080/api/v1/admin/restaurants', {
+    fetch('http://192.168.1.6:8080/api/v1/admin/restaurants', {
       headers: { 'Authorization': `Bearer ${token}` }
     })
       .then(res => res.json())
@@ -98,7 +98,7 @@ export default function OperatorsManager() {
       formData.append('file', imageFile);
       
       try {
-        const uploadRes = await fetch('http://localhost:8080/api/v1/upload', {
+        const uploadRes = await fetch('http://192.168.1.6:8080/api/v1/upload', {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${token}` },
           body: formData
@@ -126,7 +126,7 @@ export default function OperatorsManager() {
       restaurantAssigne: restaurantAssigne
     };
 
-    const url = editingId ? `http://localhost:8080/api/v1/admin/operators/${editingId}` : 'http://localhost:8080/api/v1/admin/operators';
+    const url = editingId ? `http://192.168.1.6:8080/api/v1/admin/operators/${editingId}` : 'http://192.168.1.6:8080/api/v1/admin/operators';
     
     fetch(url, {
       method: editingId ? 'PUT' : 'POST',
@@ -154,7 +154,7 @@ export default function OperatorsManager() {
   const handleDelete = (id) => {
     if (!window.confirm("Êtes-vous sûr de vouloir désactiver/supprimer cet opérateur ?")) return;
     const token = localStorage.getItem('token');
-    fetch(`http://localhost:8080/api/v1/admin/operators/${id}`, {
+    fetch(`http://192.168.1.6:8080/api/v1/admin/operators/${id}`, {
       method: 'DELETE',
       headers: { 'Authorization': `Bearer ${token}` }
     })

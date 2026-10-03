@@ -31,12 +31,12 @@ export default function Accounting() {
     setLoading(true);
     const token = localStorage.getItem('token');
     try {
-      const resOrders = await fetch('http://localhost:8080/api/v1/operator/orders', {
+      const resOrders = await fetch('http://192.168.1.6:8080/api/v1/operator/orders', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const dataOrders = await resOrders.json();
       
-      const resRestos = await fetch('http://localhost:8080/api/v1/admin/restaurants', {
+      const resRestos = await fetch('http://192.168.1.6:8080/api/v1/admin/restaurants', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const dataRestos = await resRestos.json();

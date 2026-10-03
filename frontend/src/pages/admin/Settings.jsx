@@ -34,7 +34,7 @@ export default function Settings() {
   });
 
   useEffect(() => {
-    fetch('http://localhost:8080/api/v1/settings')
+    fetch('http://192.168.1.6:8080/api/v1/settings')
       .then(res => res.json())
       .then(data => setSettings(data))
       .catch(err => console.error("Erreur", err));
@@ -65,7 +65,7 @@ export default function Settings() {
     setLoading(true);
     const token = localStorage.getItem('token');
     try {
-      const response = await fetch('http://localhost:8080/api/v1/settings', {
+      const response = await fetch('http://192.168.1.6:8080/api/v1/settings', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify(settings)

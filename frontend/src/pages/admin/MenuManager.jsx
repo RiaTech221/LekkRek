@@ -29,7 +29,7 @@ export default function MenuManager() {
 
   const fetchPlats = () => {
     const token = localStorage.getItem('token');
-    fetch('http://localhost:8080/api/v1/operator/plats', {
+    fetch('http://192.168.1.6:8080/api/v1/operator/plats', {
       headers: { 'Authorization': `Bearer ${token}` }
     })
       .then(res => res.json())
@@ -38,7 +38,7 @@ export default function MenuManager() {
   };
 
   const fetchRestaurants = () => {
-    fetch('http://localhost:8080/api/v1/public/menu')
+    fetch('http://192.168.1.6:8080/api/v1/public/menu')
       .then(res => res.json())
       .then(data => {
         const uniqueRestos = [];
@@ -84,8 +84,8 @@ export default function MenuManager() {
     e.preventDefault();
     const token = localStorage.getItem('token');
     const url = currentPlat 
-      ? `http://localhost:8080/api/v1/operator/plats/${currentPlat.id}`
-      : 'http://localhost:8080/api/v1/operator/plats';
+      ? `http://192.168.1.6:8080/api/v1/operator/plats/${currentPlat.id}`
+      : 'http://192.168.1.6:8080/api/v1/operator/plats';
     const method = currentPlat ? 'PUT' : 'POST';
 
     fetch(url, {
@@ -107,7 +107,7 @@ export default function MenuManager() {
   const toggleStatus = (plat) => {
     const token = localStorage.getItem('token');
     const newStatus = plat.status === 'DISPO' ? 'EPUISE' : 'DISPO';
-    fetch(`http://localhost:8080/api/v1/operator/plats/${plat.id}/status?status=${newStatus}`, {
+    fetch(`http://192.168.1.6:8080/api/v1/operator/plats/${plat.id}/status?status=${newStatus}`, {
       method: 'PUT',
       headers: { 'Authorization': `Bearer ${token}` }
     })
@@ -119,7 +119,7 @@ export default function MenuManager() {
     if (!selectedRestaurant) return;
     if (!window.confirm("Voulez-vous marquer tous les plats de ce restaurant comme disponibles (dupliquer le menu de la veille) ?")) return;
     const token = localStorage.getItem('token');
-    fetch(`http://localhost:8080/api/v1/operator/restaurants/${selectedRestaurant.id}/plats/duplicate`, {
+    fetch(`http://192.168.1.6:8080/api/v1/operator/restaurants/${selectedRestaurant.id}/plats/duplicate`, {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${token}` }
     })
@@ -130,7 +130,7 @@ export default function MenuManager() {
   const handleDelete = (id) => {
     if (!window.confirm("Supprimer ce plat ?")) return;
     const token = localStorage.getItem('token');
-    fetch(`http://localhost:8080/api/v1/operator/plats/${id}`, {
+    fetch(`http://192.168.1.6:8080/api/v1/operator/plats/${id}`, {
       method: 'DELETE',
       headers: { 'Authorization': `Bearer ${token}` }
     })
@@ -390,7 +390,7 @@ export default function MenuManager() {
                         if (!file) return;
                         const formDataUpload = new FormData();
                         formDataUpload.append('file', file);
-                        fetch('http://localhost:8080/api/v1/upload', {
+                        fetch('http://192.168.1.6:8080/api/v1/upload', {
                           method: 'POST',
                           body: formDataUpload
                         }).then(res => res.text()).then(url => setFormData({...formData, image: url}));

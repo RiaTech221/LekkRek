@@ -42,7 +42,7 @@ export default function ClientView() {
     
   const handleWhatsappClick = (e) => {
     e.preventDefault();
-    fetch('http://localhost:8080/api/v1/public/analytics', {
+    fetch('http://192.168.1.6:8080/api/v1/public/analytics', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ eventType: 'click_whatsapp', entityId: '781161910', context: 'floating_button' })
@@ -55,7 +55,7 @@ export default function ClientView() {
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     if(keyword) {
-      fetch('http://localhost:8080/api/v1/public/analytics', {
+      fetch('http://192.168.1.6:8080/api/v1/public/analytics', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ eventType: 'search', entityId: keyword, context: 'search_bar' })
@@ -77,7 +77,7 @@ return () => {
 
   // Fetch ALL plats once to build the full category list (independent of filters)
   useEffect(() => {
-    fetch('http://localhost:8080/api/v1/public/menu')
+    fetch('http://192.168.1.6:8080/api/v1/public/menu')
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data)) {
@@ -96,7 +96,7 @@ return () => {
   // Recharge les plats dès qu'un filtre change
   useEffect(() => {
     // 1. Fetch settings
-    fetch('http://localhost:8080/api/v1/settings')
+    fetch('http://192.168.1.6:8080/api/v1/settings')
       .then(res => res.json())
       .then(data => setPlatformSettings(data))
       .catch(err => console.error("Erreur Settings:", err));
@@ -109,7 +109,7 @@ return () => {
     if (quartier) params.append('quartier', quartier);
     if (momentFilter) params.append('moment', momentFilter);
 
-    fetch(`http://localhost:8080/api/v1/public/menu?${params.toString()}`)
+    fetch(`http://192.168.1.6:8080/api/v1/public/menu?${params.toString()}`)
       .then(res => res.json())
       .then(data => setPlats(data))
       .catch(err => console.error("Erreur API:", err));
@@ -142,7 +142,7 @@ return () => {
         platIds: cart.map(p => p.id)
       };
 
-      fetch('http://localhost:8080/api/v1/public/orders', {
+      fetch('http://192.168.1.6:8080/api/v1/public/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(orderRequest)
@@ -184,7 +184,7 @@ return () => {
   const handlePartnerSubmit = (e) => {
     e.preventDefault();
     setPartnerStatus('loading');
-    fetch('http://localhost:8080/api/v1/public/partner-requests', {
+    fetch('http://192.168.1.6:8080/api/v1/public/partner-requests', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(partnerForm)
@@ -209,7 +209,7 @@ return () => {
     setTrackError('');
     setTrackResult(null);
 
-    fetch(`http://localhost:8080/api/v1/public/orders/track/${trackOrderNumber}`)
+    fetch(`http://192.168.1.6:8080/api/v1/public/orders/track/${trackOrderNumber}`)
       .then(res => {
         if (res.status === 404) throw new Error("Commande introuvable.");
         if (!res.ok) throw new Error("Erreur lors de la recherche.");
