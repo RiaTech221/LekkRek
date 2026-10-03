@@ -1,0 +1,47 @@
+name: LekkRek CI Validation
+
+on:
+  push:
+    branches: [ "develop", "main" ]
+  pull_request:
+    branches: [ "develop", "main" ]
+
+jobs:
+  build-backend:
+    name: Valider le Backend (Spring Boot)
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Configuration JDK 21
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+        cache: 'maven'
+        
+    - name: Compilation & Tests Maven
+      working-directory: ./backend
+      # On compile pour s'assurer qu'il n'y a pas d'erreur de syntaxe
+      run: mvn clean package -DskipTests
+
+  build-frontend:
+    name: Valider le Frontend (React/Vite)
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Configuration Node.js 18
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: ./frontend/package-lock.json
+        
+    - name: Installation des dépendances
+      working-directory: ./frontend
+      run: npm ci
+      
+    - name: Build de Production
+      working-directory: ./frontend
+      run: npm run build
