@@ -16,6 +16,7 @@ public record PlatRequestDTO(
         Double price,
         String image,
         String moment,
+        String variantes,
         String status,
         Long restaurantId
 ) {}

@@ -41,6 +41,9 @@ public class Plat {
 
     private String moment; // e.g., dejeuner, diner, gouter
 
+    @Column(length = 255)
+    private String variantes; // Liste de synonymes séparés par des virgules
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "restaurant_id", nullable = false)
     private Restaurant restaurant;

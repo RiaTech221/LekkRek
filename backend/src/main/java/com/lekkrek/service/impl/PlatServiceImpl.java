@@ -52,6 +52,7 @@ public class PlatServiceImpl implements PlatService {
         plat.setPrice(request.price());
         plat.setImage(request.image());
         plat.setMoment(request.moment());
+        plat.setVariantes(request.variantes());
         plat.setStatus(Plat.DishStatus.valueOf(request.status()));
         plat.setRestaurant(restaurant);
 
@@ -71,6 +72,7 @@ public class PlatServiceImpl implements PlatService {
         plat.setPrice(request.price());
         plat.setImage(request.image());
         plat.setMoment(request.moment());
+        plat.setVariantes(request.variantes());
         plat.setStatus(Plat.DishStatus.valueOf(request.status()));
         plat.setRestaurant(restaurant);
 

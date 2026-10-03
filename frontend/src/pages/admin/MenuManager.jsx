@@ -306,8 +306,14 @@ export default function MenuManager() {
                   </div>
                   {/* On masque le select restaurant car il est géré par la vue en cours */}
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">URL de l'image</label>
+              
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Variantes / Synonymes (séparés par des virgules)</label>
+                  <input type="text" placeholder="ex: tiep, thieb, tiep bou dien" value={formData.variantes || ''} onChange={e => setFormData({...formData, variantes: e.target.value})} className="w-full border border-gray-200 p-2 rounded-lg" />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">URL de l'image</label>
                 <input required type="url" value={formData.image} onChange={e => setFormData({...formData, image: e.target.value})} className="w-full border border-gray-200 p-2 rounded-lg" />
               </div>
               <div>

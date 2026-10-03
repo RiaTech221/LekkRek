@@ -19,7 +19,7 @@ import java.util.List;
 public interface PlatRepository extends JpaRepository<Plat, Long> {
 
     @Query("SELECT p FROM Plat p WHERE " +
-           "(:keyword IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%'))) AND " +
+           "(:keyword IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(p.variantes) LIKE LOWER(CONCAT('%', :keyword, '%'))) AND " +
            "(:resto IS NULL OR p.restaurant.name = :resto) AND " +
            "(:budgetMax IS NULL OR p.price <= :budgetMax) AND " +
            "(:quartier IS NULL OR LOWER(p.restaurant.location) LIKE LOWER(CONCAT('%', :quartier, '%'))) AND " +
