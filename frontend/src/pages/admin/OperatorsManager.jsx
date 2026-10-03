@@ -369,9 +369,9 @@ export default function OperatorsManager() {
                   >
                     <option value="OPERATOR">Opérateur LekkRek (Commandes)</option>
                     <option value="ADMIN">Administrateur Global (Full accès)</option>
-                    <option value="ACCOUNTANT">Comptable (Statistiques & Finances)</option>
-                    <option value="DELIVERY">Livreur</option>
-                    <option value="RESTAURANT">Gérant de Restaurant Partenaire</option>
+                    
+                    
+                    
                   </select>
                 </div>
 
@@ -382,7 +382,7 @@ export default function OperatorsManager() {
                     value={restaurantAssigne}
                     onChange={(e) => setRestaurantAssigne(e.target.value)}
                   >
-                    <option value="">-- Aucun restaurant assign� (Staff LekkRek) --</option>
+                    <option value="">-- Aucun restaurant assign� (Staff LekkRek) --</option>
                     {restaurants.map(r => (
                       <option key={r.id} value={r.name}>{r.name}</option>
                     ))}
