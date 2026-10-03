@@ -29,25 +29,25 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-white flex p-4 sm:p-6 lg:p-8">
+    <div className="flex min-h-screen w-full bg-white overflow-hidden">
       
       {/* --- LEFT SIDE: FORM --- */}
-      <div className="w-full lg:w-1/2 flex flex-col justify-center items-center relative">
+      <div className="w-full md:w-1/2 flex flex-col justify-center relative px-8 sm:px-16 lg:px-24">
         
         {/* BOUTON RETOUR */}
-        <a href="/" className="absolute top-2 left-2 sm:top-6 sm:left-6 flex items-center gap-2 text-sm font-bold text-gray-400 hover:text-red-600 transition-colors">
+        <a href="/" className="absolute top-6 left-6 flex items-center gap-2 text-sm font-bold text-gray-400 hover:text-red-600 transition-colors">
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
-          Retour
+          Retour à l'accueil
         </a>
 
-        <div className="w-full max-w-sm mt-12 lg:mt-0">
-          <div className="mb-10 text-center lg:text-left">
-            <h1 className="text-4xl font-black tracking-tight text-gray-900 mb-2 flex items-center justify-center lg:justify-start gap-3">
-              <span className="text-red-600">Welcome</span> Back <span className="text-3xl animate-bounce">👋</span>
+        <div className="w-full max-w-sm mx-auto">
+          <div className="mb-10 text-center">
+            <h1 className="text-4xl font-black tracking-tight text-gray-900 mb-2">
+              Welcome <span className="text-red-600">Back</span>
             </h1>
-            <p className="text-gray-500 font-medium">Please enter your details to sign in.</p>
+            <p className="text-gray-500 font-medium">Veuillez entrer vos identifiants.</p>
           </div>
           
           {error && (
@@ -63,7 +63,7 @@ export default function Login() {
                 <input 
                   type="email" 
                   placeholder="admin@lekkrek.com" 
-                  className="w-full bg-white border-2 border-gray-200 rounded-full py-4 pl-6 pr-12 text-sm focus:outline-none focus:border-red-500 focus:ring-4 focus:ring-red-500/10 transition-all font-medium text-gray-900 placeholder-gray-400 shadow-sm"
+                  className="w-full bg-gray-50 border-2 border-transparent rounded-full py-4 pl-6 pr-12 text-sm focus:outline-none focus:border-red-500 focus:bg-white transition-all font-medium text-gray-900 placeholder-gray-400"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -82,7 +82,7 @@ export default function Login() {
                 <input 
                   type="password" 
                   placeholder="••••••••" 
-                  className="w-full bg-white border-2 border-gray-200 rounded-full py-4 pl-6 pr-12 text-sm focus:outline-none focus:border-red-500 focus:ring-4 focus:ring-red-500/10 transition-all font-medium text-gray-900 placeholder-gray-400 shadow-sm"
+                  className="w-full bg-gray-50 border-2 border-transparent rounded-full py-4 pl-6 pr-12 text-sm focus:outline-none focus:border-red-500 focus:bg-white transition-all font-medium text-gray-900 placeholder-gray-400"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -99,40 +99,36 @@ export default function Login() {
             <div className="pt-4">
               <button 
                 type="submit" 
-                className="w-full bg-[#d33a30] text-white font-bold py-4 rounded-full hover:bg-red-700 shadow-xl shadow-red-600/30 transform transition-all active:scale-[0.98] text-base"
+                className="w-full bg-red-600 text-white font-bold py-4 rounded-full hover:bg-red-700 shadow-xl shadow-red-600/30 transform transition-all active:scale-[0.98] text-base"
               >
-                Log in
+                Sign in
               </button>
-            </div>
-            
-            <div className="text-center mt-6">
-              <span className="text-sm font-medium text-gray-500">
-                Vous n'avez pas de compte ? <a href="#" className="text-[#d33a30] hover:underline font-bold">Contactez l'admin</a>
-              </span>
             </div>
           </form>
         </div>
       </div>
 
-      {/* --- RIGHT SIDE: STYLED IMAGE CORNER (Inspired by screenshot) --- */}
-      <div className="hidden lg:block lg:w-1/2 p-2 h-[calc(100vh-2rem)] sticky top-4">
-        {/* We use a gradient fallback just in case Unsplash is blocked by network */}
-        <div className="w-full h-full rounded-[2.5rem] overflow-hidden relative shadow-2xl bg-gradient-to-br from-red-500 to-orange-400">
-          <img 
-            src="https://images.unsplash.com/photo-1543362906-acfc16c67564?q=80&w=1000&auto=format&fit=crop" 
-            alt="Design Food" 
-            className="absolute inset-0 w-full h-full object-cover mix-blend-overlay opacity-90"
-            onError={(e) => {
-               // Fallback: If image fails to load (network block), just hide it and show the gradient
-               e.target.style.display = 'none';
-            }}
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
-          
-          <div className="absolute bottom-12 left-12 right-12">
-            <h2 className="text-4xl font-black text-white mb-2 tracking-tight">Lekk Rek Admin</h2>
-            <p className="text-white/90 font-medium text-lg leading-relaxed">Gérez vos commandes, mettez à jour vos menus et suivez votre activité en temps réel.</p>
+      {/* --- RIGHT SIDE: COLORED BLOCK (No external images) --- */}
+      {/* Changed lg:flex to md:flex to ensure it shows up on smaller laptops! */}
+      <div className="hidden md:flex md:w-1/2 bg-red-600 flex-col justify-center items-center p-12 relative">
+        
+        {/* Abstract background shapes for a premium look without images */}
+        <div className="absolute top-0 right-0 -mt-20 -mr-20 w-96 h-96 bg-red-500 rounded-full mix-blend-multiply opacity-50 blur-3xl"></div>
+        <div className="absolute bottom-0 left-0 -mb-20 -ml-20 w-80 h-80 bg-red-700 rounded-full mix-blend-multiply opacity-50 blur-3xl"></div>
+        
+        <div className="relative z-10 text-center max-w-md">
+          <div className="w-24 h-24 bg-white/10 backdrop-blur-md rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-xl border border-white/20">
+            <svg className="w-12 h-12 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
           </div>
+          <h2 className="text-5xl font-black text-white mb-6 tracking-tight">Nouveau ici ?</h2>
+          <p className="text-red-100 text-lg font-medium leading-relaxed mb-10">
+            LekkRek est la première plateforme de découverte de plats à Ziguinchor. Rejoignez-nous pour digitaliser vos menus.
+          </p>
+          <a href="#" className="inline-block px-10 py-4 rounded-full bg-white text-red-600 font-bold hover:bg-gray-50 transition-colors shadow-lg">
+            Créer un compte
+          </a>
         </div>
       </div>
 
