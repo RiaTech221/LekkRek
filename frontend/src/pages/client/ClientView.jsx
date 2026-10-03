@@ -336,7 +336,7 @@ return () => {
           {Array.isArray(plats) && plats.length > 0 ? plats.map(plat => (
             <div key={plat.id} className="bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 group flex flex-col">
               <div className="relative h-56 overflow-hidden bg-gray-100 shrink-0">
-                <img src={plat.image} alt={plat.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&q=80&w=800'; }} />
+                <img src={plat.image?.replace('localhost', '192.168.1.6')} alt={plat.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&q=80&w=800'; }} />
                 <div className="absolute top-4 left-4">
                   <span className={`px-3 py-1 text-xs font-black uppercase tracking-wider rounded-full shadow-md backdrop-blur-md ${plat.status === 'DISPO' ? 'bg-white/90 text-green-600' : 'bg-red-600/90 text-white'}`}>
                     {plat.status === 'DISPO' ? 'Disponible' : 'Épuisé'}
@@ -399,7 +399,7 @@ return () => {
                   {cart.map((item, idx) => (
                     <li key={idx} className="flex justify-between items-center bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
                       <div className="flex items-center gap-4">
-                        <img src={item.image} alt={item.name} className="w-16 h-16 rounded-xl object-cover" />
+                        <img src={item.image?.replace('localhost', '192.168.1.6')} alt={item.name} className="w-16 h-16 rounded-xl object-cover" />
                         <div>
                           <p className="font-bold text-gray-900 text-sm">{item.name}</p>
                           <p className="text-red-600 font-bold text-sm">{item.price} FCFA</p>
