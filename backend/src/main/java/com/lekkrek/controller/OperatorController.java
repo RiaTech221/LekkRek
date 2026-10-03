@@ -68,4 +68,9 @@ public class OperatorController {
     public Plat updatePlatStatus(@PathVariable Long id, @RequestParam String status) {
         return platService.updatePlatStatus(id, status);
     }
+
+    @PostMapping("/restaurants/{restaurantId}/plats/duplicate")
+    public void duplicateYesterdayPlats(@PathVariable Long restaurantId) {
+        platService.duplicateYesterdayPlats(restaurantId);
+    }
 }

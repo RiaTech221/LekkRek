@@ -115,6 +115,18 @@ export default function MenuManager() {
     .catch(err => alert("Erreur"));
   };
 
+    const duplicatePlats = () => {
+    if (!selectedRestaurant) return;
+    if (!window.confirm("Voulez-vous marquer tous les plats de ce restaurant comme disponibles (dupliquer le menu de la veille) ?")) return;
+    const token = localStorage.getItem('token');
+    fetch(`http://localhost:8080/api/v1/operator/restaurants/${selectedRestaurant.id}/plats/duplicate`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` }
+    })
+    .then(() => fetchPlats())
+    .catch(err => alert("Erreur lors de la duplication"));
+  };
+
   const handleDelete = (id) => {
     if (!window.confirm("Supprimer ce plat ?")) return;
     const token = localStorage.getItem('token');
@@ -184,6 +196,7 @@ export default function MenuManager() {
               <button onClick={() => setSelectedRestaurant(null)} className="text-gray-500 font-bold hover:text-gray-700">
                 &larr; Retour aux restaurants
               </button>
+              <button onClick={() => duplicatePlats()} className="bg-red-50 text-red-600 px-5 py-2.5 rounded-xl font-bold shadow-sm shadow-red-100 hover:bg-red-100 transition">🪄 Dupliquer la veille</button>
               <button onClick={() => openModal()} className="bg-red-600 text-white px-5 py-2.5 rounded-xl font-bold shadow-sm shadow-red-600/20 hover:bg-red-700 transition">
                 + Nouveau Plat
               </button>
@@ -275,51 +288,70 @@ export default function MenuManager() {
           <div className="bg-white p-8 rounded-2xl w-full max-w-lg shadow-2xl">
             <h3 className="text-xl font-bold mb-6">{currentPlat ? 'Modifier le plat' : 'Nouveau Plat'}</h3>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Nom du plat</label>
-                <input required type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full border border-gray-200 p-2 rounded-lg" />
-              </div>
+
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Prix (FCFA)</label>
-                  <input required type="number" value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} className="w-full border border-gray-200 p-2 rounded-lg" />
+                <div className="col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Nom du plat</label>
+                  <input required type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full border border-gray-200 p-2 rounded-lg focus:ring-red-500" />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Catégorie</label>
-                  <select value={formData.moment} onChange={e => setFormData({...formData, moment: e.target.value})} className="w-full border border-gray-200 shadow-sm p-2.5 rounded-xl text-sm font-medium focus:ring-2 focus:ring-red-100 focus:border-red-500 outline-none transition-all">
-                    <option value="dejeuner">🍽️ Déjeuner</option>
-                    <option value="diner">🍷 Dîner</option>
-                    <option value="gouter">☕ Goûter</option>
-                    <option value="fast food">🍔 Fast food</option>
-                    <option value="boisson">🍹 Cocktails & Jus</option>
-                    <option value="dessert">🍰 Desserts</option>
-                  </select>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                  <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Statut Initial</label>
-                      <select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} className="w-full border border-gray-200 p-2 rounded-lg">
-                        <option value="DISPO">Disponible</option>
-                        <option value="EPUISE">Épuisé</option>
-                      </select>
-                  </div>
-                  {/* On masque le select restaurant car il est géré par la vue en cours */}
-              </div>
-              
-                <div>
+                
+                <div className="col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Variantes / Synonymes (séparés par des virgules)</label>
                   <input type="text" placeholder="ex: tiep, thieb, tiep bou dien" value={formData.variantes || ''} onChange={e => setFormData({...formData, variantes: e.target.value})} className="w-full border border-gray-200 p-2 rounded-lg" />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">URL de l'image</label>
-                <input required type="url" value={formData.image} onChange={e => setFormData({...formData, image: e.target.value})} className="w-full border border-gray-200 p-2 rounded-lg" />
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Prix (FCFA)</label>
+                  <input required type="number" value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} className="w-full border border-gray-200 p-2 rounded-lg" />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Catégorie</label>
+                  <select value={formData.moment} onChange={e => setFormData({...formData, moment: e.target.value})} className="w-full border border-gray-200 p-2 rounded-lg bg-white">
+                    <option value="dejeuner">🍽️ Déjeuner</option>
+                    <option value="diner">🌙 Dîner</option>
+                    <option value="gouter">🍪 Goûter</option>
+                    <option value="fast food">🍔 Fast food</option>
+                    <option value="boisson">🍹 Cocktails & Jus</option>
+                    <option value="dessert">🍰 Desserts</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Statut Initial</label>
+                  <select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} className="w-full border border-gray-200 p-2 rounded-lg bg-white">
+                    <option value="DISPO">Disponible</option>
+                    <option value="EPUISE">Épuisé</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Fichier Image (Optionnel)</label>
+                  <input type="file" accept="image/*" onChange={(e) => {
+                      const file = e.target.files[0];
+                      if (!file) return;
+                      const formDataUpload = new FormData();
+                      formDataUpload.append('file', file);
+                      fetch('http://localhost:8080/api/v1/upload', {
+                        method: 'POST',
+                        body: formDataUpload
+                      }).then(res => res.text()).then(url => setFormData({...formData, image: url}));
+                    }} 
+                    className="w-full border border-gray-200 p-1.5 rounded-lg text-sm bg-white" 
+                  />
+                </div>
+
+                <div className="col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">URL de l'image (ou générée par l'upload)</label>
+                  <input required type="url" value={formData.image} onChange={e => setFormData({...formData, image: e.target.value})} className="w-full border border-gray-200 p-2 rounded-lg bg-gray-50 text-gray-500" />
+                </div>
+
+                <div className="col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                  <textarea rows="2" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full border border-gray-200 p-2 rounded-lg resize-none"></textarea>
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                <textarea value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full border border-gray-200 p-2 rounded-lg h-24 resize-none" />
-              </div>
+
               <div className="flex justify-end gap-3 mt-6">
                 <button type="button" onClick={() => setModalOpen(false)} className="px-4 py-2 text-gray-600 font-medium hover:bg-gray-100 rounded-lg">Annuler</button>
                 <button type="submit" className="px-4 py-2 bg-red-600 text-white font-medium hover:bg-red-700 rounded-lg">Enregistrer</button>

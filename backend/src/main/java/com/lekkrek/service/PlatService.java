@@ -20,5 +20,6 @@ public interface PlatService {
     Plat createPlat(PlatRequestDTO request);
     Plat updatePlat(Long id, PlatRequestDTO request);
     void deletePlat(Long id);
+    void duplicateYesterdayPlats(Long restaurantId);
     Plat updatePlatStatus(Long id, String status);
 }
