@@ -191,10 +191,10 @@ export default function RestaurantsManager() {
       </header>
 
       {/* Liste des restaurants (Grid full width) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start flex-1 overflow-y-auto pb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 md:grid-cols-3 gap-4 items-start flex-1 overflow-y-auto pb-8">
         {restaurants.filter(r => (r.name || "").toLowerCase().includes(searchTerm.toLowerCase()) || (r.location || "").toLowerCase().includes(searchTerm.toLowerCase()) || (r.operatorName || "").toLowerCase().includes(searchTerm.toLowerCase())).map(resto => (
-          <div key={resto.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col group hover:shadow-md hover:border-red-200 transition-all">
-            <div className="h-40 bg-gray-200 relative">
+          <div key={resto.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col group hover:shadow-md hover:border-red-200 transition-all">
+            <div className="h-32 bg-gray-200 relative" style={{ height: "128px" }}>
               <img src={resto.image} alt={resto.name} className="w-full h-full object-cover" />
               <div className="absolute top-3 right-3 flex gap-2">
                 {resto.subscriptionEndDate ? (
@@ -213,12 +213,12 @@ export default function RestaurantsManager() {
               </div>
             </div>
             
-            <div className="p-5 flex-1 flex flex-col">
+            <div className="p-4 flex-1 flex flex-col" style={{ padding: "1rem" }}>
               <div className="flex justify-between items-start mb-2">
                 <h4 className="font-black text-gray-900 text-xl group-hover:text-red-600 transition-colors">{resto.name}</h4>
               </div>
 
-              <div className="space-y-1.5 mb-5">
+              <div className="mb-4">
                 <p className="text-sm text-gray-500 flex items-center gap-2">
                   <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                   {resto.location}
@@ -252,7 +252,7 @@ export default function RestaurantsManager() {
           </div>
         ))}
         {restaurants.length === 0 && (
-          <div className="col-span-full p-12 text-center text-gray-500 bg-white rounded-2xl border border-dashed border-gray-300">
+          <div className="col-span-full p-12 text-center text-gray-500 bg-white rounded-xl border border-dashed border-gray-300">
             Aucun restaurant n'est configuré sur la plateforme.
           </div>
         )}
@@ -261,7 +261,7 @@ export default function RestaurantsManager() {
       {/* MODAL AJOUT/EDITION */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden border border-gray-100 flex flex-col max-h-[90vh]">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden border border-gray-100 flex flex-col max-h-[90vh]">
             
             <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
               <h3 className="font-black text-gray-900 text-lg">
