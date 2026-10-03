@@ -140,29 +140,82 @@ export default function MenuManager() {
 
   // VUE 1 : Sélection du restaurant
   if (!selectedRestaurant) {
+    const filteredRestaurants = restaurants.filter(r => 
+      (r.name || "").toLowerCase().includes(searchTerm.toLowerCase()) || 
+      (r.location || "").toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
     return (
-      <div className="p-8 w-full" style={{ background: '#f9fafb' }}>
-        <header className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900">Gestion des Restaurants</h2>
-          <p className="text-gray-500 text-sm mt-1">Sélectionnez un restaurant pour gérer sa carte.</p>
+      <div className="p-8 w-full flex flex-col h-full bg-gray-50">
+        <header className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-3xl font-black text-gray-900 tracking-tight">Gestion des Restaurants</h1>
+            <p className="text-gray-500 text-sm mt-1">Sélectionnez un restaurant pour gérer sa carte de plats.</p>
+          </div>
+          
+          <div className="flex gap-4">
+            <div className="relative">
+              <span className="absolute inset-y-0 left-3 flex items-center text-gray-400">
+                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+              </span>
+              <input 
+                type="text" 
+                placeholder="Rechercher..." 
+                className="w-64 bg-white border border-gray-200 rounded-full py-2 pl-10 pr-4 text-sm font-medium focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 shadow-sm transition-all"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+          </div>
         </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {restaurants.map(resto => (
-            <div 
-              key={resto.id} 
-              onClick={() => setSelectedRestaurant(resto)}
-              className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 cursor-pointer hover:shadow-md hover:border-red-200 transition-all group"
-            >
-              <div className="flex items-center gap-4">
-                <img src={resto.image || "https://placehold.co/100x100?text=Resto"} alt={resto.name} className="w-16 h-16 rounded-lg object-cover" />
-                <div>
-                  <h3 className="font-bold text-lg text-gray-900 group-hover:text-red-600 transition-colors">{resto.name}</h3>
-                  <p className="text-sm text-gray-500">{resto.location}</p>
-                </div>
-              </div>
-            </div>
-          ))}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex-1 flex flex-col">
+          <table className="w-full text-left">
+            <thead>
+              <tr className="border-b border-gray-100 bg-gray-50/50">
+                <th className="px-6 py-4 text-xs font-black text-gray-400 uppercase tracking-widest">Restaurant</th>
+                <th className="px-6 py-4 text-xs font-black text-gray-400 uppercase tracking-widest">Lieu / Ville</th>
+                <th className="px-6 py-4 text-xs font-black text-gray-400 uppercase tracking-widest text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {filteredRestaurants.map(resto => (
+                <tr key={resto.id} className="hover:bg-gray-50/80 transition-colors group">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-gray-100 border border-gray-200 overflow-hidden flex-shrink-0">
+                        <img src={resto.image || "https://placehold.co/100x100?text=R"} alt={resto.name} className="w-full h-full object-cover" />
+                      </div>
+                      <div>
+                        <p className="font-bold text-gray-900 group-hover:text-red-600 transition-colors">{resto.name}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className="text-sm font-medium text-gray-600">{resto.location || "Non spécifié"}</span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right">
+                    <button 
+                      onClick={() => {
+                        setSearchTerm('');
+                        setSelectedRestaurant(resto);
+                      }}
+                      className="px-4 py-2 bg-red-50 text-red-600 hover:bg-red-600 hover:text-white rounded-xl text-sm font-bold shadow-sm transition-colors"
+                    >
+                      Voir le Menu
+                    </button>
+                  </td>
+                </tr>
+              ))}
+              {filteredRestaurants.length === 0 && (
+                <tr>
+                  <td colSpan="3" className="p-12 text-center text-gray-500 font-medium">
+                    Aucun restaurant trouvé.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
     );
