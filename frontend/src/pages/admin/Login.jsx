@@ -77,35 +77,45 @@ export default function Login() {
           /* ROCKET ON THE BORDER */
           .rocket-container {
             position: absolute;
-            right: -130px; /* Overlaps exactly onto the white side */
+            right: -130px; 
             top: 50%;
             transform: translateY(-50%);
             z-index: 100;
-            pointer-events: none; /* Prevents rocket from blocking clicks on the form */
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 260px;
+            pointer-events: none;
+            width: 300px;
+            height: 380px;
           }
 
           .rocket-image {
-            width: 220px;
+            position: absolute;
+            top: 20px;
+            right: 0px;
+            width: 230px;
             height: auto;
-            transform: rotate(20deg);
-            filter: drop-shadow(0 25px 35px rgba(0,0,0,0.4));
-            position: relative;
-            z-index: 2;
+            transform: rotate(-35deg); /* Pointe vers le haut comme sur la capture */
+            filter: drop-shadow(10px 25px 25px rgba(0,0,0,0.4));
+            z-index: 3;
           }
 
-          /* La fameuse "mousse blanche" / nuages */
-          .rocket-foam {
-            width: 160px;
+          /* La fameuse "mousse blanche" / nuages compositée */
+          .rocket-foam-top {
+            position: absolute;
+            bottom: 90px;
+            left: 50px;
+            width: 110px;
             height: auto;
-            margin-top: -60px; /* Pull it up under the rocket engine */
-            margin-left: -40px;
-            filter: drop-shadow(0 15px 25px rgba(0,0,0,0.15));
-            position: relative;
+            z-index: 2;
+            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.15));
+          }
+          
+          .rocket-foam-bottom {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            width: 170px;
+            height: auto;
             z-index: 1;
+            filter: drop-shadow(0 15px 25px rgba(0,0,0,0.2));
           }
 
           /* CHAMPS DE SAISIE LISSES ET ARRONDIS */
@@ -207,11 +217,17 @@ export default function Login() {
               alt="Rocket" 
               className="rocket-image"
             />
-            {/* Mousse blanche (Nuage 3D) */}
+            {/* Mousse blanche (Nuage 3D - partie haute) */}
             <img 
               src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Cloud/3D/cloud_3d.png" 
-              alt="Smoke foam" 
-              className="rocket-foam"
+              alt="Smoke foam top" 
+              className="rocket-foam-top"
+            />
+            {/* Mousse blanche (Nuage 3D - base large) */}
+            <img 
+              src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Cloud/3D/cloud_3d.png" 
+              alt="Smoke foam base" 
+              className="rocket-foam-bottom"
             />
           </div>
 
