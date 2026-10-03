@@ -65,14 +65,14 @@ export default function OperatorDashboard() {
         if (!Array.isArray(data)) return;
         
         const formatCmd = (cmd) => ({
-          id: cmd.orderNumber.replace('CMD-', ''),
+          id: (cmd.orderNumber || 'CMD-XXX').replace('CMD-', ''),
           realId: cmd.id,
-          plat: cmd.items.map(i => `${i.quantity}x ${i.plat.name}`).join(', '),
-          client: cmd.clientName,
+          plat: (cmd.items || []).map(i => `${i.quantity || 1}x ${i.plat?.name || 'Plat inconnu'}`).join(', ') || 'Commande sans plat', 
+          client: cmd.clientName || 'Client inconnu',
           type: cmd.type,
           paymentMethod: cmd.paymentMethod,
           paymentStatus: cmd.paymentStatus,
-          clientPhone: cmd.clientPhone,
+          clientPhone: cmd.clientPhone || 'Non renseigné',
           clientAddress: cmd.clientAddress,
           totalAmount: cmd.totalAmount,
           fullStatus: cmd.status,
