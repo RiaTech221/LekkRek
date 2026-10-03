@@ -140,7 +140,7 @@ export default function ContentManager() {
   };
 
   return (
-    <div className="p-8 w-full h-full overflow-y-auto" style={{ background: '#f9fafb' }}>
+    <div className="p-8 w-full h-full overflow-y-auto text-left" style={{ background: '#f9fafb' }}>
       <header className="mb-8">
         <h2 className="text-3xl font-black text-gray-900 tracking-tight flex items-center gap-3">
           <span className="text-red-600">📝</span> Éditeur Visuel (CMS)
@@ -151,8 +151,8 @@ export default function ContentManager() {
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
         
         {/* Barre du haut */}
-        <div className="bg-gray-50 border-b border-gray-100 p-6 flex flex-col md:flex-row gap-6 items-start md:items-center justify-between">
-          <div className="w-full md:w-1/3">
+        <div className="bg-gray-50 border-b border-gray-100 p-6 flex flex-row gap-6 items-start items-center justify-between">
+          <div className="w-1/3 min-w-[250px]">
             <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Sélectionner la page</label>
             <select 
               value={selectedSlug} 
@@ -165,7 +165,7 @@ export default function ContentManager() {
             </select>
           </div>
           
-          <div className="flex gap-3 w-full md:w-auto">
+          <div className="flex gap-3 w-auto">
             <input 
               type="file" 
               accept=".txt,.pdf,.doc,.docx" 
@@ -176,7 +176,7 @@ export default function ContentManager() {
             <button 
               onClick={() => fileInputRef.current.click()}
               disabled={isUploading}
-              className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-white border-2 border-gray-200 text-gray-700 font-bold py-2.5 px-5 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all text-sm disabled:opacity-50"
+              className="flex-none flex items-center justify-center gap-2 bg-white border-2 border-gray-200 text-gray-700 font-bold py-2.5 px-5 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all text-sm disabled:opacity-50"
             >
               <span className="text-lg">📄</span> 
               {isUploading ? 'Extraction...' : 'Importer Word / PDF'}
@@ -184,7 +184,7 @@ export default function ContentManager() {
             <button 
               onClick={handleSave} 
               disabled={loading || isUploading}
-              className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-red-600 text-white font-bold py-2.5 px-6 rounded-xl hover:bg-red-700 hover:shadow-lg hover:shadow-red-600/20 transition-all text-sm disabled:opacity-50"
+              className="flex-none flex items-center justify-center gap-2 bg-red-600 text-white font-bold py-2.5 px-6 rounded-xl hover:bg-red-700 hover:shadow-lg hover:shadow-red-600/20 transition-all text-sm disabled:opacity-50"
             >
               {loading && !isUploading ? 'Sauvegarde...' : '💾 Enregistrer'}
             </button>
@@ -203,7 +203,7 @@ export default function ContentManager() {
 
         {/* Champs de saisie */}
         <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div className="grid grid-cols-2 gap-6 mb-6">
             <div>
               <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Titre de la page</label>
               <input 
@@ -248,3 +248,5 @@ export default function ContentManager() {
     </div>
   );
 }
+
+
