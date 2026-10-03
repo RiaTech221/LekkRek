@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 /**
  * ============================================================================
@@ -86,6 +88,74 @@ export default function Accounting() {
   };
 
   // --- EXPORT CSV ---
+  
+  // --- EXPORT PDF ---
+  const exportPDF = () => {
+    const transactions = getFilteredTransactions();
+    if (transactions.length === 0) return alert("Aucune transaction a exporter.");
+
+    const doc = new jsPDF();
+    const rate = selectedResto.commissionRate || 10;
+    
+    // Header
+    doc.setFontSize(22);
+    doc.setTextColor(211, 58, 48); // Red-600
+    doc.text("LekkRek - Rapport Comptable", 14, 20);
+    
+    doc.setFontSize(12);
+    doc.setTextColor(50, 50, 50);
+    doc.text(`Restaurant : ${selectedResto.name}`, 14, 30);
+    doc.text(`Commission LekkRek : ${rate}%`, 14, 37);
+    doc.text(`Edité le : ${new Date().toLocaleDateString('fr-FR')}`, 14, 44);
+
+    if (startDate) doc.text(`Du : ${new Date(startDate).toLocaleDateString('fr-FR')}`, 120, 30);
+    if (endDate) doc.text(`Au : ${new Date(endDate).toLocaleDateString('fr-FR')}`, 120, 37);
+
+    // Table
+    const tableColumn = ["N° Cmd", "Date", "Statut", "Total Brut", "Com. LekkRek", "A Reverser"];
+    const tableRows = [];
+    
+    transactions.forEach(c => {
+      const montant = c.status !== 'ANNULEE' ? c.totalAmount : 0;
+      const benef = montant * (rate / 100);
+      const reverser = montant - benef;
+      const date = new Date(c.createdAt).toLocaleDateString('fr-FR');
+      
+      const orderData = [
+        c.orderNumber.substring(0,8),
+        date,
+        c.status,
+        `${montant} F`,
+        `${benef} F`,
+        `${reverser} F`
+      ];
+      tableRows.push(orderData);
+    });
+
+    // Stats
+    const stats = getFilteredStats();
+
+    doc.autoTable({
+      head: [tableColumn],
+      body: tableRows,
+      startY: 55,
+      theme: 'grid',
+      headStyles: { fillColor: [211, 58, 48] },
+    });
+
+    const finalY = doc.lastAutoTable.finalY || 55;
+    doc.setFontSize(14);
+    doc.setTextColor(0, 0, 0);
+    doc.text(`Total Brut : ${stats.caTotal.toLocaleString('fr-FR')} FCFA`, 14, finalY + 15);
+    doc.setTextColor(211, 58, 48);
+    doc.text(`Part LekkRek : ${stats.beneficeLekkRek.toLocaleString('fr-FR')} FCFA`, 14, finalY + 25);
+    doc.setTextColor(22, 163, 74);
+    doc.text(`Montant à reverser au Restaurant : ${stats.aReverser.toLocaleString('fr-FR')} FCFA`, 14, finalY + 35);
+
+    doc.save(`Compta_${selectedResto.name.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`);
+  };
+
+
   const exportCSV = () => {
     const transactions = getFilteredTransactions();
     if (transactions.length === 0) return alert("Aucune transaction à exporter.");
@@ -171,9 +241,16 @@ export default function Accounting() {
               <div>
                 <input type="date" className="bg-white border border-gray-200 rounded-lg p-2 text-sm focus:outline-none focus:border-red-500" value={endDate} onChange={e => setEndDate(e.target.value)} />
               </div>
-              <button onClick={exportCSV} className="bg-gray-900 text-white font-bold text-sm px-4 py-2 rounded-lg hover:bg-black transition-colors flex items-center gap-2">
-                <span>⬇️</span> Exporter CSV
-              </button>
+              
+                <div className="flex gap-2">
+                  <button onClick={exportCSV} className="bg-gray-100 text-gray-700 border border-gray-200 font-bold text-sm px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-2">
+                    <span>📄</span> CSV
+                  </button>
+                  <button onClick={exportPDF} className="bg-gray-900 text-white font-bold text-sm px-4 py-2 rounded-lg hover:bg-black transition-colors flex items-center gap-2">
+                    <span>📑</span> Exporter PDF
+                  </button>
+                </div>
+
             </div>
           </div>
 
