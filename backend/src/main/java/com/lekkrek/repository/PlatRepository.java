@@ -1,5 +1,15 @@
 package com.lekkrek.repository;
 
+/**
+ * ============================================================================
+ * 📁 Fichier : PlatRepository.java
+ * 📝 Description : Classe métier pour la gestion de PlatRepository dans LekkRek.
+ * 🔒 Rôle : Fait partie de l'architecture Backend Spring Boot.
+ * 💡 Auteur : Documenté automatiquement (Standard Enterprise)
+ * ============================================================================
+ */
+
+
 import com.lekkrek.entity.Plat;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

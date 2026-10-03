@@ -1,5 +1,15 @@
 package com.lekkrek.entity;
 
+/**
+ * ============================================================================
+ * 📁 Fichier : Plat.java
+ * 📝 Description : Classe métier pour la gestion de Plat dans LekkRek.
+ * 🔒 Rôle : Fait partie de l'architecture Backend Spring Boot.
+ * 💡 Auteur : Documenté automatiquement (Standard Enterprise)
+ * ============================================================================
+ */
+
+
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;

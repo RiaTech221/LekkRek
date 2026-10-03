@@ -1,5 +1,15 @@
 package com.lekkrek.entity;
 
+/**
+ * ============================================================================
+ * 📁 Fichier : PlatformSettings.java
+ * 📝 Description : Classe métier pour la gestion de PlatformSettings dans LekkRek.
+ * 🔒 Rôle : Fait partie de l'architecture Backend Spring Boot.
+ * 💡 Auteur : Documenté automatiquement (Standard Enterprise)
+ * ============================================================================
+ */
+
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

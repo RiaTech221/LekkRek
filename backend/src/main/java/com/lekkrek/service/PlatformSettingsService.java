@@ -1,5 +1,15 @@
 package com.lekkrek.service;
 
+/**
+ * ============================================================================
+ * 📁 Fichier : PlatformSettingsService.java
+ * 📝 Description : Classe métier pour la gestion de PlatformSettingsService dans LekkRek.
+ * 🔒 Rôle : Fait partie de l'architecture Backend Spring Boot.
+ * 💡 Auteur : Documenté automatiquement (Standard Enterprise)
+ * ============================================================================
+ */
+
+
 import com.lekkrek.entity.PlatformSettings;
 import com.lekkrek.repository.PlatformSettingsRepository;
 import lombok.RequiredArgsConstructor;

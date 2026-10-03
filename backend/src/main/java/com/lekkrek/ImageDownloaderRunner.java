@@ -1,5 +1,15 @@
 package com.lekkrek;
 
+/**
+ * ============================================================================
+ * 📁 Fichier : ImageDownloaderRunner.java
+ * 📝 Description : Classe métier pour la gestion de ImageDownloaderRunner dans LekkRek.
+ * 🔒 Rôle : Fait partie de l'architecture Backend Spring Boot.
+ * 💡 Auteur : Documenté automatiquement (Standard Enterprise)
+ * ============================================================================
+ */
+
+
 import com.lekkrek.entity.Plat;
 import com.lekkrek.entity.Restaurant;
 import com.lekkrek.repository.PlatRepository;

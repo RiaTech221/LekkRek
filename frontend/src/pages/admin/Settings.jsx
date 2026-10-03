@@ -1,5 +1,15 @@
 import React, { useState, useEffect } from 'react';
 
+/**
+ * ============================================================================
+ * 📁 Fichier : Settings.jsx
+ * 📝 Description : Composant React gérant l'interface utilisateur pour Settings.
+ * 🎨 Rôle : Vue Frontend (Vite/Tailwind) pour l'expérience client/admin LekkRek.
+ * 💡 Auteur : Documenté automatiquement (Standard Enterprise)
+ * ============================================================================
+ */
+
+
 export default function Settings() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(
     localStorage.getItem('lekkrek_notifs') === 'true'

@@ -1,5 +1,15 @@
 package com.lekkrek.config;
 
+/**
+ * ============================================================================
+ * 📁 Fichier : WebConfig.java
+ * 📝 Description : Classe métier pour la gestion de WebConfig dans LekkRek.
+ * 🔒 Rôle : Fait partie de l'architecture Backend Spring Boot.
+ * 💡 Auteur : Documenté automatiquement (Standard Enterprise)
+ * ============================================================================
+ */
+
+
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;

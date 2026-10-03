@@ -1,5 +1,15 @@
 package com.lekkrek.controller;
 
+/**
+ * ============================================================================
+ * 📁 Fichier : AdminController.java
+ * 📝 Description : Classe métier pour la gestion de AdminController dans LekkRek.
+ * 🔒 Rôle : Fait partie de l'architecture Backend Spring Boot.
+ * 💡 Auteur : Documenté automatiquement (Standard Enterprise)
+ * ============================================================================
+ */
+
+
 import com.lekkrek.entity.Utilisateur;
 import com.lekkrek.entity.Restaurant;
 import com.lekkrek.repository.UtilisateurRepository;

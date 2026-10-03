@@ -1,5 +1,15 @@
 package com.lekkrek.controller;
 
+/**
+ * ============================================================================
+ * 📁 Fichier : PartnerRequestController.java
+ * 📝 Description : Classe métier pour la gestion de PartnerRequestController dans LekkRek.
+ * 🔒 Rôle : Fait partie de l'architecture Backend Spring Boot.
+ * 💡 Auteur : Documenté automatiquement (Standard Enterprise)
+ * ============================================================================
+ */
+
+
 import com.lekkrek.entity.PartnerRequest;
 import com.lekkrek.repository.PartnerRequestRepository;
 import org.springframework.security.access.prepost.PreAuthorize;

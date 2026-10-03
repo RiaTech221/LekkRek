@@ -1,5 +1,15 @@
 package com.lekkrek.security;
 
+/**
+ * ============================================================================
+ * 📁 Fichier : CustomUserDetailsService.java
+ * 📝 Description : Classe métier pour la gestion de CustomUserDetailsService dans LekkRek.
+ * 🔒 Rôle : Fait partie de l'architecture Backend Spring Boot.
+ * 💡 Auteur : Documenté automatiquement (Standard Enterprise)
+ * ============================================================================
+ */
+
+
 import com.lekkrek.entity.Utilisateur;
 import com.lekkrek.repository.UtilisateurRepository;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

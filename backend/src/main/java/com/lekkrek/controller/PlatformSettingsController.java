@@ -1,5 +1,15 @@
 package com.lekkrek.controller;
 
+/**
+ * ============================================================================
+ * 📁 Fichier : PlatformSettingsController.java
+ * 📝 Description : Classe métier pour la gestion de PlatformSettingsController dans LekkRek.
+ * 🔒 Rôle : Fait partie de l'architecture Backend Spring Boot.
+ * 💡 Auteur : Documenté automatiquement (Standard Enterprise)
+ * ============================================================================
+ */
+
+
 import com.lekkrek.entity.PlatformSettings;
 import com.lekkrek.service.PlatformSettingsService;
 import lombok.RequiredArgsConstructor;

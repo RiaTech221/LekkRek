@@ -1,5 +1,15 @@
 package com.lekkrek.security;
 
+/**
+ * ============================================================================
+ * 📁 Fichier : SecurityConfig.java
+ * 📝 Description : Classe métier pour la gestion de SecurityConfig dans LekkRek.
+ * 🔒 Rôle : Fait partie de l'architecture Backend Spring Boot.
+ * 💡 Auteur : Documenté automatiquement (Standard Enterprise)
+ * ============================================================================
+ */
+
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;

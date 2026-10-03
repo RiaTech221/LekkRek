@@ -1,5 +1,15 @@
 import React, { useState, useEffect } from 'react';
 
+/**
+ * ============================================================================
+ * 📁 Fichier : Overview.jsx
+ * 📝 Description : Composant React gérant l'interface utilisateur pour Overview.
+ * 🎨 Rôle : Vue Frontend (Vite/Tailwind) pour l'expérience client/admin LekkRek.
+ * 💡 Auteur : Documenté automatiquement (Standard Enterprise)
+ * ============================================================================
+ */
+
+
 export default function Overview() {
   const [orders, setOrders] = useState([]);
   const [restaurantsCount, setRestaurantsCount] = useState(0);

@@ -1,5 +1,15 @@
 package com.lekkrek.controller;
 
+/**
+ * ============================================================================
+ * 📁 Fichier : AuthController.java
+ * 📝 Description : Classe métier pour la gestion de AuthController dans LekkRek.
+ * 🔒 Rôle : Fait partie de l'architecture Backend Spring Boot.
+ * 💡 Auteur : Documenté automatiquement (Standard Enterprise)
+ * ============================================================================
+ */
+
+
 import com.lekkrek.dto.JwtResponseDTO;
 import com.lekkrek.dto.LoginRequestDTO;
 import com.lekkrek.security.JwtUtils;

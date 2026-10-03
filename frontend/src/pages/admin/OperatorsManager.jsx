@@ -1,5 +1,15 @@
 import React, { useState, useEffect } from 'react';
 
+/**
+ * ============================================================================
+ * 📁 Fichier : OperatorsManager.jsx
+ * 📝 Description : Composant React gérant l'interface utilisateur pour OperatorsManager.
+ * 🎨 Rôle : Vue Frontend (Vite/Tailwind) pour l'expérience client/admin LekkRek.
+ * 💡 Auteur : Documenté automatiquement (Standard Enterprise)
+ * ============================================================================
+ */
+
+
 export default function OperatorsManager() {
   const [operators, setOperators] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");

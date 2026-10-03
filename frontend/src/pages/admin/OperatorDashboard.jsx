@@ -11,6 +11,16 @@ import Overview from './Overview';
 import AuditLogs from './AuditLogs';
 import PartnerRequests from './PartnerRequests';
 
+/**
+ * ============================================================================
+ * 📁 Fichier : OperatorDashboard.jsx
+ * 📝 Description : Composant React gérant l'interface utilisateur pour OperatorDashboard.
+ * 🎨 Rôle : Vue Frontend (Vite/Tailwind) pour l'expérience client/admin LekkRek.
+ * 💡 Auteur : Documenté automatiquement (Standard Enterprise)
+ * ============================================================================
+ */
+
+
 export default function OperatorDashboard() {
   const [activeTab, setActiveTab] = useState(() => localStorage.getItem('lekkrek_admin_tab') || 'overview');
   useEffect(() => { localStorage.setItem('lekkrek_admin_tab', activeTab); }, [activeTab]);

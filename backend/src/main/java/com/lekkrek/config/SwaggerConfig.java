@@ -1,5 +1,15 @@
 package com.lekkrek.config;
 
+/**
+ * ============================================================================
+ * 📁 Fichier : SwaggerConfig.java
+ * 📝 Description : Classe métier pour la gestion de SwaggerConfig dans LekkRek.
+ * 🔒 Rôle : Fait partie de l'architecture Backend Spring Boot.
+ * 💡 Auteur : Documenté automatiquement (Standard Enterprise)
+ * ============================================================================
+ */
+
+
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
 import org.springframework.context.annotation.Bean;

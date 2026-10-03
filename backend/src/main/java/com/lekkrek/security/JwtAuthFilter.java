@@ -1,5 +1,15 @@
 package com.lekkrek.security;
 
+/**
+ * ============================================================================
+ * 📁 Fichier : JwtAuthFilter.java
+ * 📝 Description : Classe métier pour la gestion de JwtAuthFilter dans LekkRek.
+ * 🔒 Rôle : Fait partie de l'architecture Backend Spring Boot.
+ * 💡 Auteur : Documenté automatiquement (Standard Enterprise)
+ * ============================================================================
+ */
+
+
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

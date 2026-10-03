@@ -1,5 +1,15 @@
 package com.lekkrek.controller;
 
+/**
+ * ============================================================================
+ * 📁 Fichier : OrderController.java
+ * 📝 Description : Classe métier pour la gestion de OrderController dans LekkRek.
+ * 🔒 Rôle : Fait partie de l'architecture Backend Spring Boot.
+ * 💡 Auteur : Documenté automatiquement (Standard Enterprise)
+ * ============================================================================
+ */
+
+
 import com.lekkrek.entity.Commande;
 import com.lekkrek.dto.OrderRequestDTO;
 import com.lekkrek.service.OrderService;

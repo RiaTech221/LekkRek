@@ -1,5 +1,15 @@
 package com.lekkrek.config;
 
+/**
+ * ============================================================================
+ * 📁 Fichier : DataLoader.java
+ * 📝 Description : Classe métier pour la gestion de DataLoader dans LekkRek.
+ * 🔒 Rôle : Fait partie de l'architecture Backend Spring Boot.
+ * 💡 Auteur : Documenté automatiquement (Standard Enterprise)
+ * ============================================================================
+ */
+
+
 import com.lekkrek.entity.*;
 import com.lekkrek.repository.CommandeRepository;
 import com.lekkrek.repository.PartnerRequestRepository;

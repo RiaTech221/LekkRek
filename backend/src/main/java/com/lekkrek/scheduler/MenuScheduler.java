@@ -1,5 +1,15 @@
 package com.lekkrek.scheduler;
 
+/**
+ * ============================================================================
+ * 📁 Fichier : MenuScheduler.java
+ * 📝 Description : Classe métier pour la gestion de MenuScheduler dans LekkRek.
+ * 🔒 Rôle : Fait partie de l'architecture Backend Spring Boot.
+ * 💡 Auteur : Documenté automatiquement (Standard Enterprise)
+ * ============================================================================
+ */
+
+
 import com.lekkrek.entity.Plat;
 import com.lekkrek.repository.PlatRepository;
 import com.lekkrek.service.AuditService;

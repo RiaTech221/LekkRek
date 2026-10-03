@@ -1,5 +1,15 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+
+/**
+ * ============================================================================
+ * 📁 Fichier : Login.jsx
+ * 📝 Description : Composant React gérant l'interface utilisateur pour Login.
+ * 🎨 Rôle : Vue Frontend (Vite/Tailwind) pour l'expérience client/admin LekkRek.
+ * 💡 Auteur : Documenté automatiquement (Standard Enterprise)
+ * ============================================================================
+ */
+
 import '../../index.css';
 
 export default function Login() {

@@ -1,5 +1,15 @@
 package com.lekkrek.controller;
 
+/**
+ * ============================================================================
+ * 📁 Fichier : OperatorController.java
+ * 📝 Description : Classe métier pour la gestion de OperatorController dans LekkRek.
+ * 🔒 Rôle : Fait partie de l'architecture Backend Spring Boot.
+ * 💡 Auteur : Documenté automatiquement (Standard Enterprise)
+ * ============================================================================
+ */
+
+
 import com.lekkrek.entity.Commande;
 import com.lekkrek.entity.Plat;
 import com.lekkrek.dto.PlatRequestDTO;

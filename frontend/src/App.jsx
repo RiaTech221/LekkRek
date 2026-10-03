@@ -7,6 +7,16 @@ import PublicPage from './pages/client/PublicPage';
 import OperatorDashboard from './pages/admin/OperatorDashboard';
 import Login from './pages/admin/Login';
 
+/**
+ * ============================================================================
+ * 📁 Fichier : App.jsx
+ * 📝 Description : Composant React gérant l'interface utilisateur pour App.
+ * 🎨 Rôle : Vue Frontend (Vite/Tailwind) pour l'expérience client/admin LekkRek.
+ * 💡 Auteur : Documenté automatiquement (Standard Enterprise)
+ * ============================================================================
+ */
+
+
 // Style global
 import './index.css';
 

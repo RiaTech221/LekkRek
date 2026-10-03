@@ -1,5 +1,15 @@
 import React, { useState, useEffect } from 'react';
 
+/**
+ * ============================================================================
+ * 📁 Fichier : MenuManager.jsx
+ * 📝 Description : Composant React gérant l'interface utilisateur pour MenuManager.
+ * 🎨 Rôle : Vue Frontend (Vite/Tailwind) pour l'expérience client/admin LekkRek.
+ * 💡 Auteur : Documenté automatiquement (Standard Enterprise)
+ * ============================================================================
+ */
+
+
 export default function MenuManager() {
   const [plats, setPlats] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");

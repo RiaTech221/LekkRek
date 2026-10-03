@@ -1,5 +1,15 @@
 package com.lekkrek.controller;
 
+/**
+ * ============================================================================
+ * 📁 Fichier : MenuController.java
+ * 📝 Description : Classe métier pour la gestion de MenuController dans LekkRek.
+ * 🔒 Rôle : Fait partie de l'architecture Backend Spring Boot.
+ * 💡 Auteur : Documenté automatiquement (Standard Enterprise)
+ * ============================================================================
+ */
+
+
 import com.lekkrek.entity.Plat;
 import com.lekkrek.repository.PlatRepository;
 import org.springframework.web.bind.annotation.*;

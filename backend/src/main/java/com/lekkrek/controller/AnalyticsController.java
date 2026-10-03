@@ -1,5 +1,15 @@
 package com.lekkrek.controller;
 
+/**
+ * ============================================================================
+ * 📁 Fichier : AnalyticsController.java
+ * 📝 Description : Classe métier pour la gestion de AnalyticsController dans LekkRek.
+ * 🔒 Rôle : Fait partie de l'architecture Backend Spring Boot.
+ * 💡 Auteur : Documenté automatiquement (Standard Enterprise)
+ * ============================================================================
+ */
+
+
 import com.lekkrek.dto.AnalyticsRequestDTO;
 import com.lekkrek.entity.AnalyticsEvent;
 import com.lekkrek.repository.AnalyticsEventRepository;

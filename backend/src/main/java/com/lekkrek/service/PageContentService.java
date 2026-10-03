@@ -1,5 +1,15 @@
 package com.lekkrek.service;
 
+/**
+ * ============================================================================
+ * 📁 Fichier : PageContentService.java
+ * 📝 Description : Classe métier pour la gestion de PageContentService dans LekkRek.
+ * 🔒 Rôle : Fait partie de l'architecture Backend Spring Boot.
+ * 💡 Auteur : Documenté automatiquement (Standard Enterprise)
+ * ============================================================================
+ */
+
+
 import com.lekkrek.dto.PageContentRequestDTO;
 import com.lekkrek.entity.PageContent;
 import com.lekkrek.repository.PageContentRepository;

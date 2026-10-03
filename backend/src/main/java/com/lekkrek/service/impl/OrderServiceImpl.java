@@ -1,5 +1,15 @@
 package com.lekkrek.service.impl;
 
+/**
+ * ============================================================================
+ * 📁 Fichier : OrderServiceImpl.java
+ * 📝 Description : Classe métier pour la gestion de OrderServiceImpl dans LekkRek.
+ * 🔒 Rôle : Fait partie de l'architecture Backend Spring Boot.
+ * 💡 Auteur : Documenté automatiquement (Standard Enterprise)
+ * ============================================================================
+ */
+
+
 import com.lekkrek.entity.Commande;
 import com.lekkrek.entity.CommandeItem;
 import com.lekkrek.entity.Plat;

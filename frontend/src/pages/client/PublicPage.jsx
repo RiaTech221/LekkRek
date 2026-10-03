@@ -1,6 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 
+/**
+ * ============================================================================
+ * 📁 Fichier : PublicPage.jsx
+ * 📝 Description : Composant React gérant l'interface utilisateur pour PublicPage.
+ * 🎨 Rôle : Vue Frontend (Vite/Tailwind) pour l'expérience client/admin LekkRek.
+ * 💡 Auteur : Documenté automatiquement (Standard Enterprise)
+ * ============================================================================
+ */
+
+
 export default function PublicPage() {
   const { slug } = useParams();
   const [page, setPage] = useState(null);

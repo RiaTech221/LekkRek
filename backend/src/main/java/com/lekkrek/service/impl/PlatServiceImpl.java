@@ -1,5 +1,15 @@
 package com.lekkrek.service.impl;
 
+/**
+ * ============================================================================
+ * 📁 Fichier : PlatServiceImpl.java
+ * 📝 Description : Classe métier pour la gestion de PlatServiceImpl dans LekkRek.
+ * 🔒 Rôle : Fait partie de l'architecture Backend Spring Boot.
+ * 💡 Auteur : Documenté automatiquement (Standard Enterprise)
+ * ============================================================================
+ */
+
+
 import com.lekkrek.dto.PlatRequestDTO;
 import com.lekkrek.entity.Plat;
 import com.lekkrek.entity.Restaurant;

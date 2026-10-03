@@ -1,5 +1,15 @@
 import React, { useState, useEffect } from 'react';
 
+/**
+ * ============================================================================
+ * 📁 Fichier : Accounting.jsx
+ * 📝 Description : Composant React gérant l'interface utilisateur pour Accounting.
+ * 🎨 Rôle : Vue Frontend (Vite/Tailwind) pour l'expérience client/admin LekkRek.
+ * 💡 Auteur : Documenté automatiquement (Standard Enterprise)
+ * ============================================================================
+ */
+
+
 export default function Accounting() {
   const [commandes, setCommandes] = useState([]);
   const [restaurants, setRestaurants] = useState([]);

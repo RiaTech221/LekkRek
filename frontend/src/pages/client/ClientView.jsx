@@ -1,5 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+
+/**
+ * ============================================================================
+ * 📁 Fichier : ClientView.jsx
+ * 📝 Description : Composant React gérant l'interface utilisateur pour ClientView.
+ * 🎨 Rôle : Vue Frontend (Vite/Tailwind) pour l'expérience client/admin LekkRek.
+ * 💡 Auteur : Documenté automatiquement (Standard Enterprise)
+ * ============================================================================
+ */
+
 import '../../index.css';
 
 export default function ClientView() {

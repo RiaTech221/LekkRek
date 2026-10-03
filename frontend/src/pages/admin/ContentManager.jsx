@@ -1,5 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ReactQuill from 'react-quill';
+
+/**
+ * ============================================================================
+ * 📁 Fichier : ContentManager.jsx
+ * 📝 Description : Composant React gérant l'interface utilisateur pour ContentManager.
+ * 🎨 Rôle : Vue Frontend (Vite/Tailwind) pour l'expérience client/admin LekkRek.
+ * 💡 Auteur : Documenté automatiquement (Standard Enterprise)
+ * ============================================================================
+ */
+
 import 'react-quill/dist/quill.snow.css';
 
 export default function ContentManager() {

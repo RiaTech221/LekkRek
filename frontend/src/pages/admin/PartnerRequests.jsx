@@ -1,5 +1,15 @@
 import React, { useState, useEffect } from "react";
 
+/**
+ * ============================================================================
+ * 📁 Fichier : PartnerRequests.jsx
+ * 📝 Description : Composant React gérant l'interface utilisateur pour PartnerRequests.
+ * 🎨 Rôle : Vue Frontend (Vite/Tailwind) pour l'expérience client/admin LekkRek.
+ * 💡 Auteur : Documenté automatiquement (Standard Enterprise)
+ * ============================================================================
+ */
+
+
 export default function PartnerRequests() {
   const [requests, setRequests] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");

@@ -1,5 +1,15 @@
 package com.lekkrek.security;
 
+/**
+ * ============================================================================
+ * 📁 Fichier : JwtUtils.java
+ * 📝 Description : Classe métier pour la gestion de JwtUtils dans LekkRek.
+ * 🔒 Rôle : Fait partie de l'architecture Backend Spring Boot.
+ * 💡 Auteur : Documenté automatiquement (Standard Enterprise)
+ * ============================================================================
+ */
+
+
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.security.core.Authentication;

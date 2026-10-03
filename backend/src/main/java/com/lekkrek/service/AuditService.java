@@ -1,5 +1,15 @@
 package com.lekkrek.service;
 
+/**
+ * ============================================================================
+ * 📁 Fichier : AuditService.java
+ * 📝 Description : Classe métier pour la gestion de AuditService dans LekkRek.
+ * 🔒 Rôle : Fait partie de l'architecture Backend Spring Boot.
+ * 💡 Auteur : Documenté automatiquement (Standard Enterprise)
+ * ============================================================================
+ */
+
+
 import com.lekkrek.entity.AuditLog;
 import com.lekkrek.repository.AuditLogRepository;
 import org.springframework.stereotype.Service;
