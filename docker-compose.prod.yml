@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: lekkrek_prod_db
+    environment:
+      MYSQL_DATABASE: lekkrek_db
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-LekkRekSecurePwd2026!}
+    volumes:
+      - db_data:/var/lib/mysql
+    restart: always
+
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: lekkrek_prod_backend
+    depends_on:
+      - db
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/lekkrek_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD:-LekkRekSecurePwd2026!}
+    restart: always
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    container_name: lekkrek_prod_frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: always
+
+volumes:
+  db_data:
