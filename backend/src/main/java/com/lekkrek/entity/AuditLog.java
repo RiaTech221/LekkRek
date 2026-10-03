@@ -1,26 +1,59 @@
 package com.lekkrek.entity;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "audit_logs")
-@Data
-@NoArgsConstructor
 public class AuditLog {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private String action; // ex: COMMANDE_CREEE, PAIEMENT_WAVE_RECU
+    @Column(name = "actor_email")
+    private String actorEmail;
 
-    @Column(length = 1000)
-    private String details;
+    private String role;
+    private String action; // CREATE, UPDATE, DEACTIVATE, PUBLISH
+    
+    @Column(name = "entity_type")
+    private String entityType; // Restaurant, Plat, Offre, Commande
 
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime timestamp = LocalDateTime.now();
+    @Column(name = "entity_id")
+    private String entityId;
+
+    @Column(name = "old_value", columnDefinition = "TEXT")
+    private String oldValue;
+
+    @Column(name = "new_value", columnDefinition = "TEXT")
+    private String newValue;
+
+    private LocalDateTime timestamp;
+
+    public AuditLog() {
+        this.timestamp = LocalDateTime.now();
+    }
+
+    public AuditLog(String actorEmail, String role, String action, String entityType, String entityId, String oldValue, String newValue) {
+        this.actorEmail = actorEmail;
+        this.role = role;
+        this.action = action;
+        this.entityType = entityType;
+        this.entityId = entityId;
+        this.oldValue = oldValue;
+        this.newValue = newValue;
+        this.timestamp = LocalDateTime.now();
+    }
+
+    // Getters and Setters
+    public Long getId() { return id; }
+    public String getActorEmail() { return actorEmail; }
+    public String getRole() { return role; }
+    public String getAction() { return action; }
+    public String getEntityType() { return entityType; }
+    public String getEntityId() { return entityId; }
+    public String getOldValue() { return oldValue; }
+    public String getNewValue() { return newValue; }
+    public LocalDateTime getTimestamp() { return timestamp; }
 }

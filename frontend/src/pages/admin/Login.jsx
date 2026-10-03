@@ -123,7 +123,7 @@ export default function Login() {
         
         {/* Background Image of Personnel / Operator */}
         <img 
-          src="https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?q=80&w=2000&auto=format&fit=crop" 
+          src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=2000&auto=format&fit=crop" 
           alt="Opérateur LekkRek" 
           className="absolute inset-0 w-full h-full object-cover"
         />

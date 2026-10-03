@@ -6,7 +6,10 @@ import com.lekkrek.entity.Restaurant;
 import com.lekkrek.repository.PlatRepository;
 import com.lekkrek.repository.RestaurantRepository;
 import com.lekkrek.service.PlatService;
+import com.lekkrek.service.AuditService;
 import org.springframework.stereotype.Service;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.Authentication;
 
 import java.util.List;
 
@@ -15,10 +18,12 @@ public class PlatServiceImpl implements PlatService {
 
     private final PlatRepository platRepository;
     private final RestaurantRepository restaurantRepository;
+    private final AuditService auditService;
 
-    public PlatServiceImpl(PlatRepository platRepository, RestaurantRepository restaurantRepository) {
+    public PlatServiceImpl(PlatRepository platRepository, RestaurantRepository restaurantRepository, AuditService auditService) {
         this.platRepository = platRepository;
         this.restaurantRepository = restaurantRepository;
+        this.auditService = auditService;
     }
 
     @Override

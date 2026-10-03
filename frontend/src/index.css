@@ -95,3 +95,19 @@ body { background-color: var(--bg-gray); color: var(--text-dark); overflow-x: hi
   animation: slide-in-right 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+
+
+/* Fix admin scrollbar */
+body.admin-mode { padding: 0 !important; overflow: hidden !important; }
+
+
+/* Custom modern scrollbars */
+::-webkit-scrollbar { 
+  display: none; 
+  width: 0; 
+  height: 0; 
+}
+* { 
+  scrollbar-width: none; 
+  -ms-overflow-style: none; 
+}

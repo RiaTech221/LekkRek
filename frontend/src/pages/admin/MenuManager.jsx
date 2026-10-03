@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 
 export default function MenuManager() {
   const [plats, setPlats] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const [restaurants, setRestaurants] = useState([]);
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
   
@@ -9,6 +10,9 @@ export default function MenuManager() {
   const [currentPlat, setCurrentPlat] = useState(null);
 
   // Formulaire
+  const [imageFile, setImageFile] = useState(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
+
   const [formData, setFormData] = useState({
     name: '', description: '', price: '', image: '', moment: 'dejeuner', status: 'DISPO', restaurantId: ''
   });
@@ -148,60 +152,110 @@ export default function MenuManager() {
   return (
     <div className="p-8 w-full" style={{ background: '#f9fafb' }}>
       <header className="flex justify-between items-center mb-8">
-        <div>
-          <button onClick={() => setSelectedRestaurant(null)} className="text-sm text-gray-500 hover:text-gray-900 mb-2 flex items-center gap-1">
-            ← Retour aux restaurants
-          </button>
-          <h2 className="text-2xl font-bold text-gray-900">Menu : {selectedRestaurant.name}</h2>
-          <p className="text-gray-500 text-sm mt-1">Gérez les plats pour ce restaurant spécifique.</p>
-        </div>
-        <button onClick={() => openModal()} className="bg-red-600 text-white px-5 py-2.5 rounded-lg font-semibold flex items-center gap-2 shadow-sm hover:bg-red-700 transition">
-          <span>+</span> Nouveau plat
-        </button>
-      </header>
+            <div className="flex flex-col gap-4">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">Menu - {selectedRestaurant.name}</h2>
+                <p className="text-gray-500 text-sm mt-1">Gérez les plats de ce restaurant.</p>
+              </div>
+              <div className="w-full max-w-md">
+                <div className="relative">
+                  <span className="absolute inset-y-0 left-3 flex items-center text-gray-400">🔍</span>
+                  <input 
+                    type="text" 
+                    placeholder="Rechercher un plat..." 
+                    className="w-full bg-white border border-gray-200 rounded-xl py-2 pl-10 pr-4 text-sm focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 shadow-sm" 
+                    value={searchTerm} 
+                    onChange={(e) => setSearchTerm(e.target.value)} 
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-4">
+              <button onClick={() => setSelectedRestaurant(null)} className="text-gray-500 font-bold hover:text-gray-700">
+                &larr; Retour aux restaurants
+              </button>
+              <button onClick={() => openModal()} className="bg-red-600 text-white px-5 py-2.5 rounded-xl font-bold shadow-sm shadow-red-600/20 hover:bg-red-700 transition">
+                + Nouveau Plat
+              </button>
+            </div>
+          </header>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         {platsDuResto.length === 0 ? (
-          <div className="p-8 text-center text-gray-500">
-            Aucun plat dans ce restaurant pour le moment.
+          <div className="p-16 flex flex-col items-center justify-center text-center">
+            <span className="text-6xl mb-4">🍽️</span>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">Aucun plat au menu</h3>
+            <p className="text-gray-500 mb-6">Ce restaurant n'a pas encore de plats enregistrés.</p>
+            <button onClick={() => openModal()} className="bg-red-50 text-red-600 font-bold px-6 py-2 rounded-full hover:bg-red-100 transition-colors">
+              + Ajouter un premier plat
+            </button>
           </div>
         ) : (
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-gray-50 border-b border-gray-100 text-gray-500 text-sm">
-                <th className="p-4 font-semibold">Image</th>
-                <th className="p-4 font-semibold">Nom du Plat</th>
-                <th className="p-4 font-semibold">Prix</th>
-                <th className="p-4 font-semibold">Catégorie</th>
-                <th className="p-4 font-semibold">Statut</th>
-                <th className="p-4 font-semibold text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {platsDuResto.map(plat => (
-                <tr key={plat.id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
-                  <td className="p-4">
-                    <img src={plat.image} alt={plat.name} className="w-12 h-12 rounded-lg object-cover" />
-                  </td>
-                  <td className="p-4 font-bold text-gray-900">{plat.name}</td>
-                  <td className="p-4 text-gray-600 font-medium">{plat.price} F</td>
-                  <td className="p-4 text-sm text-gray-500 capitalize">{plat.moment}</td>
-                  <td className="p-4">
-                    <button 
-                      onClick={() => toggleStatus(plat)}
-                      className={`px-3 py-1 rounded-full text-xs font-bold ${plat.status === 'DISPO' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}
-                    >
-                      {plat.status === 'DISPO' ? 'Disponible' : 'Épuisé'}
-                    </button>
-                  </td>
-                  <td className="p-4 text-right space-x-2">
-                    <button onClick={() => openModal(plat)} className="text-blue-600 hover:underline text-sm font-medium">Modifier</button>
-                    <button onClick={() => handleDelete(plat.id)} className="text-red-600 hover:underline text-sm font-medium">Supprimer</button>
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-gray-100">
+                  <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider w-16">Image</th>
+                  <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Plat & Description</th>
+                  <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Prix</th>
+                  <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Catégorie</th>
+                  <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-center">Disponibilité</th>
+                  <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-right">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {platsDuResto.map(plat => (
+                  <tr key={plat.id} className="hover:bg-gray-50/80 transition-colors group">
+                    <td className="p-4">
+                      <div className="w-14 h-14 rounded-xl overflow-hidden shadow-sm border border-gray-100 shrink-0 relative">
+                        <img src={plat.image} alt={plat.name} className="w-full h-full object-cover" onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/150x150?text=Plat'; }} />
+                        {plat.status !== 'DISPO' && (
+                          <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px]"></div>
+                        )}
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <div className={`font-black text-base mb-0.5 ${plat.status === 'DISPO' ? 'text-gray-900' : 'text-gray-500'}`}>{plat.name}</div>
+                      <div className="text-xs font-medium text-gray-500 line-clamp-1 max-w-xs" title={plat.description}>{plat.description || 'Aucune description fournie.'}</div>
+                    </td>
+                    <td className="p-4">
+                      <div className="font-black text-gray-900 text-base whitespace-nowrap">
+                        {Number(plat.price).toLocaleString('fr-FR')} <span className="text-xs text-gray-500 font-bold ml-0.5">FCFA</span>
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <span className="inline-flex px-2.5 py-1 rounded-md bg-gray-100 text-gray-600 text-xs font-bold capitalize whitespace-nowrap border border-gray-200">
+                        {plat.moment === 'fast food' ? '🍔 Fast food' : 
+                         plat.moment === 'boisson' ? '🍹 Boisson' : 
+                         plat.moment === 'dessert' ? '🍰 Dessert' : 
+                         plat.moment}
+                      </span>
+                    </td>
+                    <td className="p-4 text-center">
+                      <button 
+                        onClick={() => toggleStatus(plat)}
+                        title="Cliquer pour changer le statut"
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold shadow-sm transition-all border ${plat.status === 'DISPO' ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100' : 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'}`}
+                      >
+                        <span className={`w-1.5 h-1.5 rounded-full ${plat.status === 'DISPO' ? 'bg-green-500' : 'bg-red-500'}`}></span>
+                        {plat.status === 'DISPO' ? 'En ligne' : 'Épuisé'}
+                      </button>
+                    </td>
+                    <td className="p-4 text-right whitespace-nowrap">
+                      <div className="flex items-center justify-end gap-2 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
+                        <button onClick={() => openModal(plat)} className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Modifier">
+                          ✏️
+                        </button>
+                        <button onClick={() => handleDelete(plat.id)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Supprimer">
+                          🗑️
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 
@@ -222,12 +276,13 @@ export default function MenuManager() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Catégorie</label>
-                  <select value={formData.moment} onChange={e => setFormData({...formData, moment: e.target.value})} className="w-full border border-gray-200 p-2 rounded-lg">
-                    <option value="dejeuner">Déjeuner</option>
-                    <option value="diner">Dîner</option>
-                    <option value="gouter">Goûter</option>
-                    <option value="Fast food">Fast food</option>
-                    <option value="cocktails_jus">Cocktails & Jus</option>
+                  <select value={formData.moment} onChange={e => setFormData({...formData, moment: e.target.value})} className="w-full border border-gray-200 shadow-sm p-2.5 rounded-xl text-sm font-medium focus:ring-2 focus:ring-red-100 focus:border-red-500 outline-none transition-all">
+                    <option value="dejeuner">🍽️ Déjeuner</option>
+                    <option value="diner">🍷 Dîner</option>
+                    <option value="gouter">☕ Goûter</option>
+                    <option value="fast food">🍔 Fast food</option>
+                    <option value="boisson">🍹 Cocktails & Jus</option>
+                    <option value="dessert">🍰 Desserts</option>
                   </select>
                 </div>
               </div>

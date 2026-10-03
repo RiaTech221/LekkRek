@@ -49,7 +49,27 @@ public class AdminController {
     }
 
     @DeleteMapping("/operators/{id}")
-    public ResponseEntity<?> deleteOperator(@PathVariable Long id) {
+    
+    @PutMapping("/operators/{id}")
+    public ResponseEntity<Utilisateur> updateOperator(@PathVariable Long id, @RequestBody Utilisateur operatorDetails) {
+        return utilisateurRepository.findById(id).map(op -> {
+            op.setNomComplet(operatorDetails.getNomComplet());
+            op.setEmail(operatorDetails.getEmail());
+            if (operatorDetails.getMotDePasse() != null && !operatorDetails.getMotDePasse().isEmpty()) {
+                op.setMotDePasse(passwordEncoder.encode(operatorDetails.getMotDePasse()));
+            }
+            op.setActif(operatorDetails.getActif());
+            if (operatorDetails.getPhotoUrl() != null) {
+                op.setPhotoUrl(operatorDetails.getPhotoUrl());
+            }
+            if (operatorDetails.getRestaurantAssigne() != null) {
+                op.setRestaurantAssigne(operatorDetails.getRestaurantAssigne());
+            }
+            return ResponseEntity.ok(utilisateurRepository.save(op));
+        }).orElse(ResponseEntity.notFound().build());
+    }
+
+public ResponseEntity<?> deleteOperator(@PathVariable Long id) {
         return utilisateurRepository.findById(id).map(op -> {
             utilisateurRepository.delete(op);
             return ResponseEntity.ok().build();
@@ -78,6 +98,9 @@ public class AdminController {
             resto.setLocation(restaurantDetails.getLocation());
             resto.setOperatorName(restaurantDetails.getOperatorName());
             resto.setImage(restaurantDetails.getImage());
+            if (restaurantDetails.getCommissionRate() != null) {
+                resto.setCommissionRate(restaurantDetails.getCommissionRate());
+            }
             resto.setActive(restaurantDetails.isActive());
             return ResponseEntity.ok(restaurantRepository.save(resto));
         }).orElse(ResponseEntity.notFound().build());

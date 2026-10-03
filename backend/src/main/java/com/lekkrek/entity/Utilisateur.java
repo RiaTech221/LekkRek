@@ -31,6 +31,10 @@ public class Utilisateur {
     @Column(nullable = false)
     private Boolean actif = true;
 
+    private String photoUrl;
+
+    private String restaurantAssigne;
+
     @Column(name = "date_creation", updatable = false)
     private LocalDateTime dateCreation = LocalDateTime.now();
 

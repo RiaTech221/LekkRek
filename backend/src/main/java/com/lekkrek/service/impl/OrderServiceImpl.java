@@ -8,7 +8,10 @@ import com.lekkrek.dto.OrderRequestDTO;
 import com.lekkrek.repository.CommandeRepository;
 import com.lekkrek.repository.PlatRepository;
 import com.lekkrek.service.OrderService;
+import com.lekkrek.service.AuditService;
 import org.springframework.stereotype.Service;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.Authentication;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -20,10 +23,12 @@ public class OrderServiceImpl implements OrderService {
 
     private final CommandeRepository commandeRepository;
     private final PlatRepository platRepository;
+    private final AuditService auditService;
 
-    public OrderServiceImpl(CommandeRepository commandeRepository, PlatRepository platRepository) {
+    public OrderServiceImpl(CommandeRepository commandeRepository, PlatRepository platRepository, AuditService auditService) {
         this.commandeRepository = commandeRepository;
         this.platRepository = platRepository;
+        this.auditService = auditService;
     }
 
     @Override
@@ -75,8 +80,32 @@ public class OrderServiceImpl implements OrderService {
     public Commande updateOrderStatus(Long id, String status) {
         Commande commande = commandeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Commande non trouvee"));
+        String oldStatus = commande.getStatus().name();
         commande.setStatus(Commande.OrderStatus.valueOf(status));
-        return commandeRepository.save(commande);
+        Commande saved = commandeRepository.save(commande);
+        
+        
+        String currentUser = "system@lekkrek.com";
+        String currentRole = "ROLE_SYSTEM";
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
+            currentUser = auth.getName();
+            if (!auth.getAuthorities().isEmpty()) {
+                currentRole = auth.getAuthorities().iterator().next().getAuthority();
+            }
+        }
+        
+        auditService.logAction(
+                currentUser,
+                currentRole,
+                "UPDATE_STATUS",
+                "Commande",
+                saved.getOrderNumber(),
+                oldStatus,
+                status
+        );
+        
+        return saved;
     }
 
     @Override

@@ -1,7 +1,12 @@
 package com.lekkrek.config;
 
 import com.lekkrek.entity.*;
-import com.lekkrek.repository.*;
+import com.lekkrek.repository.CommandeRepository;
+import com.lekkrek.repository.PartnerRequestRepository;
+import com.lekkrek.repository.PlatRepository;
+import com.lekkrek.repository.RestaurantRepository;
+import com.lekkrek.repository.UtilisateurRepository;
+import com.lekkrek.repository.PartnerRequestRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -9,6 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
+import java.util.List;
 
 @Configuration
 public class DataLoader {
@@ -23,8 +29,15 @@ public class DataLoader {
                                    PasswordEncoder passwordEncoder) {
         return args -> {
             
+            if (userRepo.count() > 0 && restoRepo.count() >= 19) {
+                System.out.println("Base de données déjà complète.");
+                return;
+            }
+
+            // If users exist but not enough restaurants, add extras
             if (userRepo.count() > 0) {
-                System.out.println("Base de données déjà initialisée.");
+                System.out.println("Ajout de données supplémentaires...");
+                addExtraData(restoRepo, platRepo);
                 return;
             }
 
@@ -66,10 +79,10 @@ public class DataLoader {
             userRepo.saveAll(Arrays.asList(admin, op1, op2, op3));
 
             // 3. Restaurants
-            Restaurant r1 = new Restaurant(null, "La Fourchette", "Dakar - Almadies", "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&q=80&w=800", op1.getNomComplet(), true, null);
-            Restaurant r2 = new Restaurant(null, "Saveurs de Ziguinchor", "Ziguinchor - Escale", "https://images.unsplash.com/photo-1552566626-52f8b828add9?auto=format&fit=crop&q=80&w=800", op2.getNomComplet(), true, null);
-            Restaurant r3 = new Restaurant(null, "Le Kassa Plage", "Cap Skirring", "https://images.unsplash.com/photo-1537047902294-62a40c20a6ae?auto=format&fit=crop&q=80&w=800", op3.getNomComplet(), true, null);
-            Restaurant r4 = new Restaurant(null, "Chez Loutcha", "Dakar - Plateau", "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&q=80&w=800", op1.getNomComplet(), true, null);
+            Restaurant r1 = new Restaurant(null, "La Fourchette", "Dakar - Almadies", "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&q=80&w=800", op1.getNomComplet(), true, 10.0, "Basic", null, null);
+            Restaurant r2 = new Restaurant(null, "Saveurs de Ziguinchor", "Ziguinchor - Escale", "https://images.unsplash.com/photo-1552566626-52f8b828add9?auto=format&fit=crop&q=80&w=800", op2.getNomComplet(), true, 10.0, "Basic", null, null);
+            Restaurant r3 = new Restaurant(null, "Le Kassa Plage", "Cap Skirring", "https://images.unsplash.com/photo-1537047902294-62a40c20a6ae?auto=format&fit=crop&q=80&w=800", op3.getNomComplet(), true, 10.0, "Basic", null, null);
+            Restaurant r4 = new Restaurant(null, "Chez Loutcha", "Dakar - Plateau", "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&q=80&w=800", op1.getNomComplet(), true, 10.0, "Basic", null, null);
             
             r1 = restoRepo.save(r1);
             r2 = restoRepo.save(r2);
@@ -187,5 +200,47 @@ public class DataLoader {
         p.setStatus(Plat.DishStatus.DISPO);
         p.setRestaurant(r);
         return p;
+    }
+
+    private void addExtraData(com.lekkrek.repository.RestaurantRepository restoRepo, com.lekkrek.repository.PlatRepository platRepo) {
+        // 5 nouveaux restaurants
+        Restaurant r5 = restoRepo.save(new Restaurant(null, "Teranga Palace", "Dakar - Mermoz", "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&q=80&w=800", "Ibrahima Seck", true, 12.0, "Premium", null, null));
+        Restaurant r6 = restoRepo.save(new Restaurant(null, "Le Baobab d'Or", "Thiès - Centre", "https://images.unsplash.com/photo-1466978913421-dad2ebd01d17?auto=format&fit=crop&q=80&w=800", "Rokhaya Gueye", true, 8.0, "Basic", null, null));
+        Restaurant r7 = restoRepo.save(new Restaurant(null, "Savana Lounge", "Saint-Louis - Nord", "https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&q=80&w=800", "Omar Sarr", true, 10.0, "Basic", null, null));
+        Restaurant r8 = restoRepo.save(new Restaurant(null, "Océan Bleu", "Mbour - Plage", "https://images.unsplash.com/photo-1610641818989-c2051b5e2cfd?auto=format&fit=crop&q=80&w=800", "Ndéye Mbaye", true, 15.0, "Premium", null, null));
+        Restaurant r9 = restoRepo.save(new Restaurant(null, "Keur Mame", "Kaolack - Médina", "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&q=80&w=800", "Pape Diallo", true, 10.0, "Basic", null, null));
+
+        // 10 nouveaux plats répartis dans les nouveaux restaurants
+        platRepo.saveAll(java.util.Arrays.asList(
+            createPlat("Poulet DG", "Poulet sauté avec plantains frits, carottes et champignons.", 4500.0, "https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?auto=format&fit=crop&q=80&w=800", "dejeuner", r5),
+            createPlat("Ceebu Yapp", "Riz à la viande façon sénégalaise avec légumes frais.", 3200.0, "https://images.unsplash.com/photo-1512058564366-18510be2db19?auto=format&fit=crop&q=80&w=800", "dejeuner", r5),
+            createPlat("Thiébou Guinar", "Riz au poulet savamment épicé, servi avec des légumes.", 3000.0, "https://images.unsplash.com/photo-1587765387771-e0f6b14a3b81?auto=format&fit=crop&q=80&w=800", "dejeuner", r6),
+            createPlat("Domoda Arachide", "Riz gras accompagné d'une riche sauce à l'arachide.", 2800.0, "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&q=80&w=800", "diner", r6),
+            createPlat("Attiéké Poisson Braisé", "Semoule de manioc avec poisson braisé et sauce tomate.", 2500.0, "https://images.unsplash.com/photo-1580476262798-bddd9f4b7369?auto=format&fit=crop&q=80&w=800", "dejeuner", r7),
+            createPlat("Salade de Fruits Tropicaux", "Mangue, ananas, papaye et goyave fraîchement coupés.", 1200.0, "https://images.unsplash.com/photo-1567306301408-9b74779a11af?auto=format&fit=crop&q=80&w=800", "dessert", r7),
+            createPlat("Pizza Africaine", "Base tomate, poulet grillé, poivrons et fromage fondu.", 5000.0, "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&q=80&w=800", "diner", r8),
+            createPlat("Bissap Glacé Spécial", "Infusion d'hibiscus fraîche avec menthe et gingembre.", 600.0, "https://images.unsplash.com/photo-1600271886742-f049cd451bba?auto=format&fit=crop&q=80&w=800", "boisson", r8),
+            createPlat("Ndolé Crevettes", "Feuilles de ndolé mijotées avec crevettes et bœuf grillé.", 3800.0, "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&q=80&w=800", "diner", r9),
+            createPlat("Tarte Caramel Beurre Salé", "Tarte maison au caramel salé avec noix de cajou.", 1500.0, "https://images.unsplash.com/photo-1559620192-032c4bc4674e?auto=format&fit=crop&q=80&w=800", "dessert", r9)
+        ));
+
+        System.out.println("✅ 5 restaurants et 10 plats supplémentaires ajoutés !");
+
+        // Ajout de 10 restaurants supplémentaires
+        if (restoRepo.count() < 19) {
+            restoRepo.saveAll(java.util.Arrays.asList(
+                new Restaurant(null, "Le Djoloff", "Dakar - Fann", "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&q=80&w=800", "Amadou Sy", true, 10.0, "Basic", null, null),
+                new Restaurant(null, "Escale Gourmande", "Saly Portudal", "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&q=80&w=800", "Fatou Ndiaye", true, 15.0, "Premium", null, null),
+                new Restaurant(null, "La Kora", "Ziguinchor - Centre", "https://images.unsplash.com/photo-1537047902294-62a40c20a6ae?auto=format&fit=crop&q=80&w=800", "Moussa Sane", true, 8.0, "Basic", null, null),
+                new Restaurant(null, "Au Fil de l'Eau", "Saint-Louis - Île", "https://images.unsplash.com/photo-1525610553991-2bede1a236e2?auto=format&fit=crop&q=80&w=800", "Ousmane Fall", true, 12.0, "Premium", null, null),
+                new Restaurant(null, "Le Ngor Diarama", "Dakar - Ngor", "https://images.unsplash.com/photo-1578474846511-04ba529f0b88?auto=format&fit=crop&q=80&w=800", "Alioune Diop", true, 10.0, "Basic", null, null),
+                new Restaurant(null, "Bistrot Casamançais", "Cap Skirring", "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&q=80&w=800", "Aïssatou Ba", true, 15.0, "Premium", null, null),
+                new Restaurant(null, "Chez Binta", "Touba - Mosquée", "https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?auto=format&fit=crop&q=80&w=800", "Binta Diagne", true, 8.0, "Basic", null, null),
+                new Restaurant(null, "Le Phare des Mamelles", "Dakar - Ouakam", "https://images.unsplash.com/photo-1544148103-0773bf10d330?auto=format&fit=crop&q=80&w=800", "Cheikh Lo", true, 12.0, "Premium", null, null),
+                new Restaurant(null, "Oasis de Lompoul", "Désert de Lompoul", "https://images.unsplash.com/photo-1520209268518-aec60b8bb5ca?auto=format&fit=crop&q=80&w=800", "Mamadou Thiam", true, 10.0, "Basic", null, null),
+                new Restaurant(null, "La Calebasse", "Tambacounda - Escale", "https://images.unsplash.com/photo-1424847651672-bf20a4b0982b?auto=format&fit=crop&q=80&w=800", "Sokhna Faye", true, 15.0, "Premium", null, null)
+            ));
+            System.out.println("✅ 10 restaurants additionnels ajoutés !");
+        }
     }
 }

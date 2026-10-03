@@ -1,8 +1,11 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import '../../index.css';
 
 export default function ClientView() {
+  const [platformSettings, setPlatformSettings] = useState(null);
   const [plats, setPlats] = useState([]);
+  const [allCategories, setAllCategories] = useState([]); // All categories loaded once
   const [cart, setCart] = useState([]);
   const [isCheckoutOpen, setCheckoutOpen] = useState(false);
   const [isSuccessOpen, setSuccessOpen] = useState(false);
@@ -23,9 +26,72 @@ export default function ClientView() {
   const [trackOrderNumber, setTrackOrderNumber] = useState('');
   const [trackResult, setTrackResult] = useState(null);
   const [trackError, setTrackError] = useState('');
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+
+  
+    
+  const handleWhatsappClick = (e) => {
+    e.preventDefault();
+    fetch('http://localhost:8080/api/v1/public/analytics', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ eventType: 'click_whatsapp', entityId: '781161910', context: 'floating_button' })
+    }).catch(err => console.error(err)).finally(() => {
+      window.open('https://wa.me/221781161910', '_blank');
+    });
+  };
+
+  
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    if(keyword) {
+      fetch('http://localhost:8080/api/v1/public/analytics', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ eventType: 'search', entityId: keyword, context: 'search_bar' })
+      }).catch(console.error);
+    }
+  };
+
+  
+  useEffect(() => {
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  // Fetch ALL plats once to build the full category list (independent of filters)
+  useEffect(() => {
+    fetch('http://localhost:8080/api/v1/public/menu')
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          const cats = [...new Set(data.map(p => p.moment).filter(Boolean))].sort();
+          setAllCategories(cats);
+          localStorage.setItem('lekkrek_cache_cats', JSON.stringify(cats));
+        }
+      })
+      .catch(err => {
+        console.error('Erreur categories:', err);
+        const cachedCats = localStorage.getItem('lekkrek_cache_cats');
+        if (cachedCats) setAllCategories(JSON.parse(cachedCats));
+      });
+  }, []);
 
   // Recharge les plats dès qu'un filtre change
   useEffect(() => {
+    // 1. Fetch settings
+    fetch('http://localhost:8080/api/v1/settings')
+      .then(res => res.json())
+      .then(data => setPlatformSettings(data))
+      .catch(err => console.error("Erreur Settings:", err));
+
+    // 2. Fetch plats
     const params = new URLSearchParams();
     if (keyword) params.append('keyword', keyword);
     if (resto) params.append('resto', resto);
@@ -170,6 +236,14 @@ export default function ClientView() {
         </div>
       </nav>
 
+      
+      {/* OFFLINE BANNER */}
+      {isOffline && (
+        <div className="fixed top-20 left-0 w-full bg-red-600 text-white text-center py-2 text-sm font-bold z-40 shadow-md">
+          ⚠️ Mode hors ligne : Vous consultez les données en cache. Ces offres peuvent être obsolètes.
+        </div>
+      )}
+
       {/* HERO SECTION */}
       <div className="relative bg-orange-50 overflow-hidden pt-20">
         <div className="absolute inset-0">
@@ -200,9 +274,9 @@ export default function ClientView() {
                 <span className="text-[10px] uppercase tracking-wider font-bold text-gray-500 mb-0.5">Restaurant</span>
                 <select className="bg-transparent border-none outline-none w-full text-gray-900 font-bold text-sm appearance-none cursor-pointer" value={resto} onChange={(e) => setResto(e.target.value)}>
                   <option value="">Tous les restos</option>
-                  <option value="Le Kassa">Le Kassa</option>
-                  <option value="Cap Skirring Plage">Cap Skirring Plage</option>
-                  <option value="Saveurs de Ziguinchor">Saveurs de Ziguinchor</option>
+                  {[...new Set(plats.map(p => p.restaurant?.name).filter(Boolean))].sort().map(name => (
+                    <option key={name} value={name}>{name}</option>
+                  ))}
                 </select>
               </div>
             </div>
@@ -232,26 +306,27 @@ export default function ClientView() {
         
         {/* MOMENTS FILTER (Pills) */}
         <div className="flex gap-3 overflow-x-auto pb-4 mb-8 hide-scrollbar border-b border-gray-100">
-          {['', 'dejeuner', 'gouter', 'diner', 'Fast food', 'cocktails_jus'].map(moment => (
+          {/* Dynamic categories from ALL plats - never disappear when filtering */
+          [{value:'', label:'🍴 Tout voir'}, ...(allCategories.map(cat => {
+            const labels = { dejeuner: '🍽️ Déjeuner', gouter: '☕ Goûter', diner: '🍷 Dîner', 'fast food': '🍔 Fast food', boisson: '🍹 Cocktails & Jus', dessert: '🍰 Desserts' };
+            return { value: cat, label: labels[cat] || cat.charAt(0).toUpperCase() + cat.slice(1) };
+          }))].map(({ value, label }) => (
             <button 
-              key={moment}
-              onClick={() => setMomentFilter(moment)}
-              className={`whitespace-nowrap px-6 py-2.5 mb-2 rounded-full font-bold shadow-sm border border-gray-200 transition-all transform hover:scale-105 ${momentFilter === moment ? 'bg-red-600 text-white border-red-600 shadow-md scale-105' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
+              key={value}
+              onClick={() => setMomentFilter(value)}
+              className={`whitespace-nowrap px-6 py-2.5 mb-2 rounded-full font-bold shadow-sm border border-gray-200 transition-all transform hover:scale-105 ${momentFilter === value ? 'bg-red-600 text-white border-red-600 shadow-md scale-105' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
             >
-              {moment === '' ? 'Tout voir' : 
-               moment === 'dejeuner' ? '🍽️ Déjeuner' :
-               moment === 'gouter' ? '☕ Goûter' :
-               moment === 'diner' ? '🍷 Dîner' : '🍔 Fast food'}
+              {label}
             </button>
           ))}
         </div>
         <h3 className="text-2xl font-black text-gray-900 mb-8">Au menu aujourd'hui</h3>
         
-        <div className="flex overflow-x-auto pb-8 -mx-4 px-4 snap-x snap-mandatory gap-6 hide-scrollbar md:grid md:grid-cols-2 xl:grid-cols-3 md:gap-8 md:overflow-visible md:pb-0 md:mx-0 md:px-0 md:snap-none">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8 pb-12">
           {Array.isArray(plats) && plats.length > 0 ? plats.map(plat => (
-            <div key={plat.id} className="flex-none w-[85vw] sm:w-[350px] md:w-auto snap-center bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 group flex flex-col">
+            <div key={plat.id} className="bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 group flex flex-col">
               <div className="relative h-56 overflow-hidden bg-gray-100 shrink-0">
-                <img src={plat.image} alt={plat.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                <img src={plat.image} alt={plat.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&q=80&w=800'; }} />
                 <div className="absolute top-4 left-4">
                   <span className={`px-3 py-1 text-xs font-black uppercase tracking-wider rounded-full shadow-md backdrop-blur-md ${plat.status === 'DISPO' ? 'bg-white/90 text-green-600' : 'bg-red-600/90 text-white'}`}>
                     {plat.status === 'DISPO' ? 'Disponible' : 'Épuisé'}
@@ -415,34 +490,39 @@ export default function ClientView() {
       )}
 
       {/* FOOTER */}
+      
       <footer className="bg-gray-900 text-white pt-16 pb-8 border-t border-gray-800 mt-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
             <div className="md:col-span-1">
               <h2 className="text-3xl font-black tracking-tighter text-red-600 mb-4">
-                Lekk<span className="text-white">Rek</span>
+                {platformSettings?.platformName || 'LekkRek'}
               </h2>
-              <p className="text-gray-400 text-sm leading-relaxed">
+              <p className="text-gray-400 text-sm leading-relaxed mb-4">
                 La plateforme n°1 de livraison de repas en Casamance. Vos plats préférés, livrés rapidement et encore chauds.
               </p>
+              <div className="text-gray-400 text-sm">
+                <p>📞 {platformSettings?.supportPhone || '+221 77 000 00 00'}</p>
+                <p>✉️ {platformSettings?.supportEmail || 'support@lekkrek.com'}</p>
+              </div>
             </div>
             
             <div>
-              <h4 className="text-lg font-bold mb-4">LekkRek</h4>
+              <h4 className="text-lg font-bold mb-4">Entreprise</h4>
               <ul className="space-y-2 text-sm text-gray-400">
-                <li><a href="#" onClick={(e) => { e.preventDefault(); alert("La page 'À propos' est en cours de création !"); }} className="hover:text-red-500 transition-colors">À propos</a></li>
-                <li><a href="#" onClick={(e) => { e.preventDefault(); alert("La page 'Notre équipe' sera bientôt disponible !"); }} className="hover:text-red-500 transition-colors">Notre équipe</a></li>
-                <li><a href="/login" className="hover:text-red-500 transition-colors font-bold text-gray-300">Connexion Équipe</a></li>
-                <li><a href="#" onClick={(e) => { e.preventDefault(); alert("Le Blog LekkRek arrive très vite !"); }} className="hover:text-red-500 transition-colors">Blog</a></li>
+                <li><Link to="/pages/about" className="hover:text-red-500 transition-colors">À propos</Link></li>
+                <li><Link to="/pages/team" className="hover:text-red-500 transition-colors">Notre équipe</Link></li>
+                <li><Link to="/pages/blog" className="hover:text-red-500 transition-colors">Blog</Link></li>
+                <li><Link to="/login" className="hover:text-red-500 transition-colors font-bold text-gray-300">Connexion Équipe</Link></li>
               </ul>
             </div>
             
             <div>
               <h4 className="text-lg font-bold mb-4">Mentions Légales</h4>
               <ul className="space-y-2 text-sm text-gray-400">
-                <li><a href="#" onClick={(e) => { e.preventDefault(); alert("Conditions Générales en cours de rédaction."); }} className="hover:text-red-500 transition-colors">Conditions Générales</a></li>
-                <li><a href="#" onClick={(e) => { e.preventDefault(); alert("Politique de Confidentialité en cours de rédaction."); }} className="hover:text-red-500 transition-colors">Confidentialité</a></li>
-                <li><a href="#" onClick={(e) => { e.preventDefault(); alert("Politique des Cookies en cours de rédaction."); }} className="hover:text-red-500 transition-colors">Cookies</a></li>
+                <li><Link to="/pages/terms" className="hover:text-red-500 transition-colors">Conditions Générales (CGU)</Link></li>
+                <li><Link to="/pages/privacy" className="hover:text-red-500 transition-colors">Confidentialité</Link></li>
+                <li><Link to="/pages/cookies" className="hover:text-red-500 transition-colors">Politique des Cookies</Link></li>
               </ul>
             </div>
             
@@ -455,15 +535,22 @@ export default function ClientView() {
           </div>
           
           <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center text-sm text-gray-500">
-            <p>&copy; {new Date().getFullYear()} LekkRek. Tous droits réservés.</p>
+            <p>&copy; {new Date().getFullYear()} {platformSettings?.platformName || 'LekkRek'}. Tous droits réservés.</p>
             <div className="flex gap-4 mt-4 md:mt-0">
-              <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Facebook</a>
-              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Twitter</a>
-              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Instagram</a>
+              {platformSettings?.facebookUrl && (
+                <a href={`https://facebook.com/${platformSettings.facebookUrl}`} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Facebook</a>
+              )}
+              {platformSettings?.instagramUrl && (
+                <a href={`https://instagram.com/${platformSettings.instagramUrl}`} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Instagram</a>
+              )}
+              {platformSettings?.tiktokUrl && (
+                <a href={`https://tiktok.com/@${platformSettings.tiktokUrl.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">TikTok</a>
+              )}
             </div>
           </div>
         </div>
       </footer>
+
 
       {/* PARTNER MODAL */}
       {isPartnerModalOpen && (
@@ -509,6 +596,22 @@ export default function ClientView() {
         </div>
       )}
 
+    
+      {/* BOUTON WHATSAPP FLOTTANT */}
+      <a 
+        onClick={handleWhatsappClick} href="#" 
+        target="_blank" 
+        rel="noopener noreferrer"
+        className="fixed bottom-6 right-6 bg-green-500 text-white p-4 rounded-full shadow-2xl hover:bg-green-600 hover:scale-110 transition-all z-50 flex items-center justify-center group"
+        title="Nous contacter sur WhatsApp"
+      >
+        <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/>
+        </svg>
+        <span className="absolute right-16 bg-gray-900 text-white text-xs font-bold px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+          Besoin d'aide ?
+        </span>
+      </a>
     </div>
   );
 }

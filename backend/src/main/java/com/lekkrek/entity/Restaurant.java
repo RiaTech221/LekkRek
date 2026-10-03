@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -28,6 +30,13 @@ public class Restaurant {
     private String operatorName; // The person managing it
 
     private boolean active = true;
+
+    @Column(nullable = false, columnDefinition = "double default 10.0")
+    private Double commissionRate = 10.0;
+
+    private String subscriptionPlan = "Basic";
+
+    private LocalDate subscriptionEndDate;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();

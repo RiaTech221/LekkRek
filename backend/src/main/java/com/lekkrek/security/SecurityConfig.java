@@ -69,6 +69,9 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> 
                 auth.requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll() // IMPORTANT POUR LES PREFLIGHT
                     .requestMatchers("/api/v1/public/**").permitAll()
+                    .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/pages/**").permitAll()
+                    .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/settings").permitAll()
+                    .requestMatchers("/uploads/**").permitAll()
                     .requestMatchers("/api/v1/auth/**").permitAll()
                     .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                     .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")

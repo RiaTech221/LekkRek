@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 
 // Import des pages (Views)
 import ClientView from './pages/client/ClientView';
+import PublicPage from './pages/client/PublicPage';
 import OperatorDashboard from './pages/admin/OperatorDashboard';
 import Login from './pages/admin/Login';
 
@@ -21,6 +22,7 @@ function App() {
       <Routes>
         {/* Espace Client (Public) */}
         <Route path="/" element={<ClientView />} />
+        <Route path="/pages/:slug" element={<PublicPage />} />
         
         {/* Connexion Opérateur */}
         <Route path="/login" element={<Login />} />

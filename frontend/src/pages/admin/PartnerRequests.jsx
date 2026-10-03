@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 
 export default function PartnerRequests() {
   const [requests, setRequests] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
 
   const fetchRequests = () => {
@@ -41,9 +42,23 @@ export default function PartnerRequests() {
 
   return (
     <div className="p-8 h-full flex flex-col">
-      <header className="mb-8">
-        <h2 className="text-2xl font-bold text-gray-900">Demandes de Partenariat</h2>
-        <p className="text-gray-500 mt-1">Gérez les demandes entrantes des restaurants souhaitant rejoindre LekkRek.</p>
+      <header className="flex flex-col gap-4 mb-8">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">Demandes de Partenariat</h2>
+          <p className="text-gray-500 text-sm mt-1">Gérez les demandes entrantes des restaurants souhaitant rejoindre LekkRek.</p>
+        </div>
+        <div className="w-full max-w-md">
+          <div className="relative">
+            <span className="absolute inset-y-0 left-3 flex items-center text-gray-400">🔍</span>
+            <input 
+              type="text" 
+              placeholder="Rechercher par restaurant, gérant ou ville..." 
+              className="w-full bg-white border border-gray-200 rounded-xl py-2.5 pl-10 pr-4 text-sm focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 shadow-sm" 
+              value={searchTerm} 
+              onChange={(e) => setSearchTerm(e.target.value)} 
+            />
+          </div>
+        </div>
       </header>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 flex-1 overflow-hidden flex flex-col">
