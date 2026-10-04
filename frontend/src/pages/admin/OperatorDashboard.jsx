@@ -202,7 +202,7 @@ export default function OperatorDashboard() {
           </nav>
         </div>
 
-                        <div className={mt-auto p-4 border-t border-gray-100 shrink-0 bg-white z-10 overflow-hidden transition-all duration-300}>
+                        <div className="mt-auto p-4 border-t border-gray-100 shrink-0 bg-white z-10 overflow-hidden transition-all duration-300">
           <div className="flex items-center w-full">
             <div className="w-10 h-10 shrink-0 bg-red-100 rounded-full flex items-center justify-center text-red-600 font-bold" title={user.email}>
               {user.email ? user.email.charAt(0).toUpperCase() : 'U'}
@@ -415,6 +415,7 @@ export default function OperatorDashboard() {
     </div>
   );
 }
+
 
 
 
