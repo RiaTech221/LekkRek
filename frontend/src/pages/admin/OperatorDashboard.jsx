@@ -138,7 +138,7 @@ export default function OperatorDashboard() {
     <div id="desktop-dashboard" className="flex bg-gray-50 font-sans" style={{ position: "fixed", top: 0, left: 0, width: "100%", height: "100vh", zIndex: 50 }}>
       
       {/* Sidebar */}
-      <div className={`bg-white border-r border-gray-200 flex flex-col h-full flex-shrink-0 transition-all duration-300 relative`} style={{ width: isSidebarOpen ? "256px" : "80px", minWidth: isSidebarOpen ? "256px" : "80px", maxWidth: isSidebarOpen ? "256px" : "80px" }}>
+      <div className={`bg-white border-r border-gray-200 flex flex-col h-full flex-shrink-0 transition-all duration-300 relative overflow-x-hidden`} style={{ width: isSidebarOpen ? "256px" : "80px" }}>
           <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="absolute -right-3 top-9 bg-white border border-gray-200 rounded-full p-1 shadow-sm text-gray-500 hover:text-red-600 z-50 hover:shadow transition-all flex items-center justify-center">
             {isSidebarOpen ? <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" /></svg> : <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>}
           </button>
@@ -150,85 +150,72 @@ export default function OperatorDashboard() {
         
         <div className="flex-1 overflow-y-auto px-4 pb-4">
           <nav className="space-y-2">
-            <button onClick={() => setActiveTab('overview')} className={`w-full flex items-center ${isSidebarOpen ? "gap-3 px-4" : "justify-center px-0"} py-3 rounded-xl font-medium transition-colors ${activeTab === 'overview' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
-                <span className="text-xl flex-shrink-0">🏠</span>
-                {isSidebarOpen && <span className="whitespace-nowrap overflow-hidden text-ellipsis">Vue d'ensemble</span>}
+            <button onClick={() => setActiveTab('overview')} className={`w-full flex items-center px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'overview' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
+                  <span className="text-xl flex-shrink-0">🏠</span>
+                  <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${isSidebarOpen ? "w-auto opacity-100 ml-3" : "w-0 opacity-0 ml-0"}`}>Vue d'ensemble</span>
               </button>
-            <button onClick={() => setActiveTab('kanban')} className={`w-full flex items-center ${isSidebarOpen ? "gap-3 px-4" : "justify-center px-0"} py-3 rounded-xl font-medium transition-colors ${activeTab === 'kanban' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
-                <span className="text-xl flex-shrink-0">📊</span>
-                {isSidebarOpen && <span className="whitespace-nowrap overflow-hidden text-ellipsis">Kanban en direct</span>}
+            <button onClick={() => setActiveTab('kanban')} className={`w-full flex items-center px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'kanban' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
+                  <span className="text-xl flex-shrink-0">📊</span>
+                  <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${isSidebarOpen ? "w-auto opacity-100 ml-3" : "w-0 opacity-0 ml-0"}`}>Kanban en direct</span>
               </button>
-            <button onClick={() => setActiveTab('menu')} className={`w-full flex items-center ${isSidebarOpen ? "gap-3 px-4" : "justify-center px-0"} py-3 rounded-xl font-medium transition-colors ${activeTab === 'menu' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
-                <span className="text-xl flex-shrink-0">🍽️</span>
-                {isSidebarOpen && <span className="whitespace-nowrap overflow-hidden text-ellipsis">Menu & Plats</span>}
+            <button onClick={() => setActiveTab('menu')} className={`w-full flex items-center px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'menu' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
+                  <span className="text-xl flex-shrink-0">🍽️</span>
+                  <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${isSidebarOpen ? "w-auto opacity-100 ml-3" : "w-0 opacity-0 ml-0"}`}>Menu & Plats</span>
               </button>
             
             {/* Vues réservées à l'ADMIN */}
             {isAdmin && (
               <>
-                {isSidebarOpen && <div className="pt-6 pb-2"><p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Administration</p></div>}
+                <div className={`pt-6 pb-2 transition-all duration-300 ${isSidebarOpen ? "opacity-100 h-auto" : "opacity-0 h-0 overflow-hidden"}`}><p className="text-xs font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">Administration</p></div>
 
-                <button onClick={() => setActiveTab('restaurants')} className={`w-full flex items-center ${isSidebarOpen ? "gap-3 px-4" : "justify-center px-0"} py-3 rounded-xl font-medium transition-colors ${activeTab === 'restaurants' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
-                <span className="text-xl flex-shrink-0">🏪</span>
-                {isSidebarOpen && <span className="whitespace-nowrap overflow-hidden text-ellipsis">Restaurants</span>}
+                <button onClick={() => setActiveTab('restaurants')} className={`w-full flex items-center px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'restaurants' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
+                  <span className="text-xl flex-shrink-0">🏪</span>
+                  <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${isSidebarOpen ? "w-auto opacity-100 ml-3" : "w-0 opacity-0 ml-0"}`}>Restaurants</span>
               </button>
-                <button onClick={() => setActiveTab('operateurs')} className={`w-full flex items-center ${isSidebarOpen ? "gap-3 px-4" : "justify-center px-0"} py-3 rounded-xl font-medium transition-colors ${activeTab === 'operateurs' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
-                <span className="text-xl flex-shrink-0">👥</span>
-                {isSidebarOpen && <span className="whitespace-nowrap overflow-hidden text-ellipsis">Équipe & Rôles</span>}
+                <button onClick={() => setActiveTab('operateurs')} className={`w-full flex items-center px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'operateurs' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
+                  <span className="text-xl flex-shrink-0">👥</span>
+                  <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${isSidebarOpen ? "w-auto opacity-100 ml-3" : "w-0 opacity-0 ml-0"}`}>Équipe & Rôles</span>
               </button>
-                <button onClick={() => setActiveTab('partners')} className={`w-full flex items-center ${isSidebarOpen ? "gap-3 px-4" : "justify-center px-0"} py-3 rounded-xl font-medium transition-colors ${activeTab === 'partners' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
-                <span className="text-xl flex-shrink-0">🤝</span>
-                {isSidebarOpen && <span className="whitespace-nowrap overflow-hidden text-ellipsis">Partenariats</span>}
+                <button onClick={() => setActiveTab('partners')} className={`w-full flex items-center px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'partners' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
+                  <span className="text-xl flex-shrink-0">🤝</span>
+                  <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${isSidebarOpen ? "w-auto opacity-100 ml-3" : "w-0 opacity-0 ml-0"}`}>Partenariats</span>
               </button>
-                <button onClick={() => setActiveTab('comptabilite')} className={`w-full flex items-center ${isSidebarOpen ? "gap-3 px-4" : "justify-center px-0"} py-3 rounded-xl font-medium transition-colors ${activeTab === 'comptabilite' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
-                <span className="text-xl flex-shrink-0">📈</span>
-                {isSidebarOpen && <span className="whitespace-nowrap overflow-hidden text-ellipsis">Comptabilité</span>}
+                <button onClick={() => setActiveTab('comptabilite')} className={`w-full flex items-center px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'comptabilite' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
+                  <span className="text-xl flex-shrink-0">📈</span>
+                  <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${isSidebarOpen ? "w-auto opacity-100 ml-3" : "w-0 opacity-0 ml-0"}`}>Comptabilité</span>
               </button>
-                <button onClick={() => setActiveTab('content')} className={`w-full flex items-center ${isSidebarOpen ? "gap-3 px-4" : "justify-center px-0"} py-3 rounded-xl font-medium transition-colors ${activeTab === 'content' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
-                <span className="text-xl flex-shrink-0">📝</span>
-                {isSidebarOpen && <span className="whitespace-nowrap overflow-hidden text-ellipsis">Pages & Contenu (CMS)</span>}
+                <button onClick={() => setActiveTab('content')} className={`w-full flex items-center px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'content' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
+                  <span className="text-xl flex-shrink-0">📝</span>
+                  <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${isSidebarOpen ? "w-auto opacity-100 ml-3" : "w-0 opacity-0 ml-0"}`}>Pages & Contenu (CMS)</span>
               </button>
   
-  <button onClick={() => setActiveTab('audit')} className={`w-full flex items-center ${isSidebarOpen ? "gap-3 px-4" : "justify-center px-0"} py-3 rounded-xl font-medium transition-colors ${activeTab === 'audit' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
-                <span className="text-xl flex-shrink-0">🕵️‍♂️</span>
-                {isSidebarOpen && <span className="whitespace-nowrap overflow-hidden text-ellipsis">Audit & Sécurité</span>}
+  <button onClick={() => setActiveTab('audit')} className={`w-full flex items-center px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'audit' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
+                  <span className="text-xl flex-shrink-0">🕵️‍♂️</span>
+                  <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${isSidebarOpen ? "w-auto opacity-100 ml-3" : "w-0 opacity-0 ml-0"}`}>Audit & Sécurité</span>
               </button>
-<button onClick={() => setActiveTab('parametres')} className={`w-full flex items-center ${isSidebarOpen ? "gap-3 px-4" : "justify-center px-0"} py-3 rounded-xl font-medium transition-colors mt-8 ${activeTab === 'parametres' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
-                <span className="text-xl flex-shrink-0">⚙️</span>
-                {isSidebarOpen && <span className="whitespace-nowrap overflow-hidden text-ellipsis">Paramètres</span>}
-              </button>
+<button onClick={() => setActiveTab('parametres')} className={w-full flex items-center px-4 py-3 rounded-xl font-medium transition-colors mt-8 }>
+  <span className="text-xl flex-shrink-0">⚙️</span>
+  <span className={whitespace-nowrap overflow-hidden transition-all duration-300 }>Paramètres</span>
+</button>
               </>
             )}
           </nav>
         </div>
 
-                <div className={`mt-auto ${isSidebarOpen ? "p-6" : "p-4"} border-t border-gray-100 shrink-0 bg-white z-10 overflow-hidden`}>
-          <div className={`flex flex-col items-center gap-4`}>
-            {isSidebarOpen ? (
-              <div className="flex items-center justify-between w-full">
-                <div className="flex items-center gap-3 overflow-hidden">
-                  <div className="w-10 h-10 shrink-0 bg-red-100 rounded-full flex items-center justify-center text-red-600 font-bold">
-                    {user.email ? user.email.charAt(0).toUpperCase() : 'U'}
-                  </div>
-                  <div className="overflow-hidden">
-                    <h4 className="font-bold text-sm text-gray-900 truncate" title={user.email}>{user.email || 'Utilisateur'}</h4>
-                    <p className="text-xs text-gray-500">{roleLabel}</p>
-                  </div>
-                </div>
-                <button onClick={handleLogout} className="text-gray-400 hover:text-red-600 transition-colors shrink-0 ml-2" title="Se d�connecter">
-                  🚪
-                </button>
+                        <div className={mt-auto p-4 border-t border-gray-100 shrink-0 bg-white z-10 overflow-hidden transition-all duration-300}>
+          <div className="flex items-center w-full">
+            <div className="w-10 h-10 shrink-0 bg-red-100 rounded-full flex items-center justify-center text-red-600 font-bold" title={user.email}>
+              {user.email ? user.email.charAt(0).toUpperCase() : 'U'}
+            </div>
+            <div className={overflow-hidden transition-all duration-300 flex-1 flex items-center justify-between }>
+              <div className="overflow-hidden">
+                <h4 className="font-bold text-sm text-gray-900 truncate" title={user.email}>{user.email || 'Utilisateur'}</h4>
+                <p className="text-xs text-gray-500">{roleLabel}</p>
               </div>
-            ) : (
-              <>
-                <div className="w-10 h-10 shrink-0 bg-red-100 rounded-full flex items-center justify-center text-red-600 font-bold" title={user.email}>
-                  {user.email ? user.email.charAt(0).toUpperCase() : 'U'}
-                </div>
-                <button onClick={handleLogout} className="text-gray-400 hover:text-red-600 transition-colors" title="Se d�connecter">
-                  🚪
-                </button>
-              </>
-            )}
+              <button onClick={handleLogout} className="text-gray-400 hover:text-red-600 transition-colors shrink-0 ml-2" title="Se déconnecter">
+                🚪
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -428,6 +415,9 @@ export default function OperatorDashboard() {
     </div>
   );
 }
+
+
+
 
 
 
