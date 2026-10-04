@@ -14,10 +14,10 @@ import OrderDetailsModal from './OrderDetailsModal';
 
 /**
  * ============================================================================
- * ?? Fichier : OperatorDashboard.jsx
- * ?? Description : Composant React g�rant l'interface utilisateur pour OperatorDashboard.
- * ?? R�le : Vue Frontend (Vite/Tailwind) pour l'exp�rience client/admin LekkRek.
- * ?? Auteur : Document� automatiquement (Standard Enterprise)
+ * 📁 Fichier : OperatorDashboard.jsx
+ * 📝 Description : Composant React gérant l'interface utilisateur pour OperatorDashboard.
+ * 🎨 Rôle : Vue Frontend (Vite/Tailwind) pour l'expérience client/admin LekkRek.
+ * 💡 Auteur : Documenté automatiquement (Standard Enterprise)
  * ============================================================================
  */
 
@@ -38,9 +38,9 @@ export default function OperatorDashboard() {
   const userStr = localStorage.getItem('user');
   const user = userStr ? JSON.parse(userStr) : { roles: [] };
   const isAdmin = user.roles.includes('ROLE_ADMIN');
-  const roleLabel = isAdmin ? 'Administrateur' : 'Op�rateur';
+  const roleLabel = isAdmin ? 'Administrateur' : 'Opérateur';
 
-  // Supprime la barre de d�filement globale du body (caus�e par index.css)
+  // Supprime la barre de défilement globale du body (causée par index.css)
   useEffect(() => {
     document.body.classList.add('admin-mode');
     return () => {
@@ -58,7 +58,7 @@ export default function OperatorDashboard() {
           localStorage.removeItem('token');
           localStorage.removeItem('user');
           window.location.href = '/login';
-          throw new Error("Session expir�e");
+          throw new Error("Session expirée");
         }
         return res.json();
       })
@@ -73,7 +73,7 @@ export default function OperatorDashboard() {
           type: cmd.type,
           paymentMethod: cmd.paymentMethod,
           paymentStatus: cmd.paymentStatus,
-          clientPhone: cmd.clientPhone || 'Non renseign�',
+          clientPhone: cmd.clientPhone || 'Non renseigné',
           clientAddress: cmd.clientAddress,
           totalAmount: cmd.totalAmount,
           fullStatus: cmd.status,
@@ -98,12 +98,12 @@ export default function OperatorDashboard() {
 
   const getPaymentBadge = (cmd) => {
     if (cmd.paymentStatus === 'PAYE') {
-      return <span className="flex items-center gap-1 text-green-700 bg-green-50 px-2 py-1 rounded border border-green-100 text-[10px] font-black uppercase"><span className="text-[12px]">?</span> Pay� ({cmd.paymentMethod})</span>;
+      return <span className="flex items-center gap-1 text-green-700 bg-green-50 px-2 py-1 rounded border border-green-100 text-[10px] font-black uppercase"><span className="text-[12px]">✅</span> Payé ({cmd.paymentMethod})</span>;
     }
     if (cmd.paymentStatus === 'ATTENTE') {
-      return <span className="flex items-center gap-1 text-amber-700 bg-amber-50 px-2 py-1 rounded border border-amber-100 text-[10px] font-black uppercase"><span className="text-[12px]">??</span> � encaisser ({cmd.paymentMethod})</span>;
+      return <span className="flex items-center gap-1 text-amber-700 bg-amber-50 px-2 py-1 rounded border border-amber-100 text-[10px] font-black uppercase"><span className="text-[12px]">⚠️</span> À encaisser ({cmd.paymentMethod})</span>;
     }
-    return <span className="flex items-center gap-1 text-red-700 bg-red-50 px-2 py-1 rounded border border-red-100 text-[10px] font-black uppercase"><span className="text-[12px]">?</span> �chou�</span>;
+    return <span className="flex items-center gap-1 text-red-700 bg-red-50 px-2 py-1 rounded border border-red-100 text-[10px] font-black uppercase"><span className="text-[12px]">❌</span> Échoué</span>;
   };
 
     const updatePaymentStatus = (id, newStatus) => {
@@ -151,71 +151,84 @@ export default function OperatorDashboard() {
         <div className="flex-1 overflow-y-auto px-4 pb-4">
           <nav className="space-y-2">
             <button onClick={() => setActiveTab('overview')} className={`w-full flex items-center px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'overview' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
-                  <span className="text-xl flex-shrink-0">??</span>
+                  <span className="text-xl flex-shrink-0">🏠</span>
                   <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${isSidebarOpen ? "w-auto opacity-100 ml-3" : "w-0 opacity-0 ml-0"}`}>Vue d'ensemble</span>
               </button>
             <button onClick={() => setActiveTab('kanban')} className={`w-full flex items-center px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'kanban' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
-                  <span className="text-xl flex-shrink-0">??</span>
+                  <span className="text-xl flex-shrink-0">📊</span>
                   <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${isSidebarOpen ? "w-auto opacity-100 ml-3" : "w-0 opacity-0 ml-0"}`}>Kanban en direct</span>
               </button>
             <button onClick={() => setActiveTab('menu')} className={`w-full flex items-center px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'menu' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
-                  <span className="text-xl flex-shrink-0">???</span>
+                  <span className="text-xl flex-shrink-0">🍽️</span>
                   <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${isSidebarOpen ? "w-auto opacity-100 ml-3" : "w-0 opacity-0 ml-0"}`}>Menu & Plats</span>
               </button>
             
-            {/* Vues r�serv�es � l'ADMIN */}
+            {/* Vues réservées à l'ADMIN */}
             {isAdmin && (
               <>
                 <div className={`pt-6 pb-2 transition-all duration-300 ${isSidebarOpen ? "opacity-100 h-auto" : "opacity-0 h-0 overflow-hidden"}`}><p className="text-xs font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">Administration</p></div>
 
                 <button onClick={() => setActiveTab('restaurants')} className={`w-full flex items-center px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'restaurants' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
-                  <span className="text-xl flex-shrink-0">??</span>
+                  <span className="text-xl flex-shrink-0">🏪</span>
                   <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${isSidebarOpen ? "w-auto opacity-100 ml-3" : "w-0 opacity-0 ml-0"}`}>Restaurants</span>
               </button>
                 <button onClick={() => setActiveTab('operateurs')} className={`w-full flex items-center px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'operateurs' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
-                  <span className="text-xl flex-shrink-0">??</span>
-                  <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${isSidebarOpen ? "w-auto opacity-100 ml-3" : "w-0 opacity-0 ml-0"}`}>�quipe & R�les</span>
+                  <span className="text-xl flex-shrink-0">👥</span>
+                  <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${isSidebarOpen ? "w-auto opacity-100 ml-3" : "w-0 opacity-0 ml-0"}`}>Équipe & Rôles</span>
               </button>
                 <button onClick={() => setActiveTab('partners')} className={`w-full flex items-center px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'partners' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
-                  <span className="text-xl flex-shrink-0">??</span>
+                  <span className="text-xl flex-shrink-0">🤝</span>
                   <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${isSidebarOpen ? "w-auto opacity-100 ml-3" : "w-0 opacity-0 ml-0"}`}>Partenariats</span>
               </button>
                 <button onClick={() => setActiveTab('comptabilite')} className={`w-full flex items-center px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'comptabilite' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
-                  <span className="text-xl flex-shrink-0">??</span>
-                  <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${isSidebarOpen ? "w-auto opacity-100 ml-3" : "w-0 opacity-0 ml-0"}`}>Comptabilit�</span>
+                  <span className="text-xl flex-shrink-0">📈</span>
+                  <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${isSidebarOpen ? "w-auto opacity-100 ml-3" : "w-0 opacity-0 ml-0"}`}>Comptabilité</span>
               </button>
                 <button onClick={() => setActiveTab('content')} className={`w-full flex items-center px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'content' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
-                  <span className="text-xl flex-shrink-0">??</span>
+                  <span className="text-xl flex-shrink-0">📝</span>
                   <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${isSidebarOpen ? "w-auto opacity-100 ml-3" : "w-0 opacity-0 ml-0"}`}>Pages & Contenu (CMS)</span>
               </button>
   
   <button onClick={() => setActiveTab('audit')} className={`w-full flex items-center px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'audit' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
-                  <span className="text-xl flex-shrink-0">??????</span>
-                  <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${isSidebarOpen ? "w-auto opacity-100 ml-3" : "w-0 opacity-0 ml-0"}`}>Audit & S�curit�</span>
+                  <span className="text-xl flex-shrink-0">🕵️‍♂️</span>
+                  <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${isSidebarOpen ? "w-auto opacity-100 ml-3" : "w-0 opacity-0 ml-0"}`}>Audit & Sécurité</span>
               </button>
 <button onClick={() => setActiveTab('parametres')} className={`w-full flex items-center px-4 py-3 rounded-xl font-medium transition-colors mt-8 ${activeTab === 'parametres' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
-  <span className="text-xl flex-shrink-0">??</span>
-  <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${isSidebarOpen ? "w-auto opacity-100 ml-3" : "w-0 opacity-0 ml-0"}`}>Param�tres</span>
-</button>
+                  <span className="text-xl flex-shrink-0">⚙️</span>
+                  <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${isSidebarOpen ? "w-auto opacity-100 ml-3" : "w-0 opacity-0 ml-0"}`}>Paramètres</span>
+              </button>
               </>
             )}
           </nav>
         </div>
 
-                        <div className="mt-auto p-4 border-t border-gray-100 shrink-0 bg-white z-10 overflow-hidden transition-all duration-300">
-          <div className="flex items-center w-full">
-            <div className="w-10 h-10 shrink-0 bg-red-100 rounded-full flex items-center justify-center text-red-600 font-bold" title={user.email}>
-              {user.email ? user.email.charAt(0).toUpperCase() : 'U'}
-            </div>
-            <div className={overflow-hidden transition-all duration-300 flex-1 flex items-center justify-between }>
-              <div className="overflow-hidden">
-                <h4 className="font-bold text-sm text-gray-900 truncate" title={user.email}>{user.email || 'Utilisateur'}</h4>
-                <p className="text-xs text-gray-500">{roleLabel}</p>
+                <div className={`mt-auto ${isSidebarOpen ? "p-6" : "p-4"} border-t border-gray-100 shrink-0 bg-white z-10 overflow-hidden`}>
+          <div className={`flex flex-col items-center gap-4`}>
+            {isSidebarOpen ? (
+              <div className="flex items-center justify-between w-full">
+                <div className="flex items-center gap-3 overflow-hidden">
+                  <div className="w-10 h-10 shrink-0 bg-red-100 rounded-full flex items-center justify-center text-red-600 font-bold">
+                    {user.email ? user.email.charAt(0).toUpperCase() : 'U'}
+                  </div>
+                  <div className="overflow-hidden">
+                    <h4 className="font-bold text-sm text-gray-900 truncate" title={user.email}>{user.email || 'Utilisateur'}</h4>
+                    <p className="text-xs text-gray-500">{roleLabel}</p>
+                  </div>
+                </div>
+                <button onClick={handleLogout} className="text-gray-400 hover:text-red-600 transition-colors shrink-0 ml-2" title="Se d�connecter">
+                  🚪
+                </button>
               </div>
-              <button onClick={handleLogout} className="text-gray-400 hover:text-red-600 transition-colors shrink-0 ml-2" title="Se d�connecter">
-                ??
-              </button>
-            </div>
+            ) : (
+              <>
+                <div className="w-10 h-10 shrink-0 bg-red-100 rounded-full flex items-center justify-center text-red-600 font-bold" title={user.email}>
+                  {user.email ? user.email.charAt(0).toUpperCase() : 'U'}
+                </div>
+                <button onClick={handleLogout} className="text-gray-400 hover:text-red-600 transition-colors" title="Se d�connecter">
+                  🚪
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -236,7 +249,7 @@ export default function OperatorDashboard() {
                     <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
                   </span>
                 </h2>
-                <p className="text-gray-500 text-sm mt-1">G�rez le flux de vos commandes du jour en temps r�el.</p>
+                <p className="text-gray-500 text-sm mt-1">Gérez le flux de vos commandes du jour en temps réel.</p>
               </div>
             </header>
 
@@ -266,7 +279,7 @@ export default function OperatorDashboard() {
                       <div className="bg-gray-50/80 rounded-xl p-3 border border-gray-100/80 text-sm font-semibold text-gray-700 leading-snug">
                          {cmd.plat.split(', ').map((item, idx) => (
                            <div key={idx} className="flex gap-2 items-start py-0.5">
-                             <span className="text-blue-500 text-xs mt-0.5">?</span>
+                             <span className="text-blue-500 text-xs mt-0.5">▪</span>
                              <span>{item}</span>
                            </div>
                          ))}
@@ -276,9 +289,9 @@ export default function OperatorDashboard() {
                       <div className="flex items-center gap-2 text-xs font-bold text-gray-500">
 
                          {cmd.type === 'LIVRAISON' ? (
-                           <span className="flex items-center gap-1.5 bg-gray-100 px-2 py-1 rounded-md"><span className="text-sm">??</span> Livraison</span>
+                           <span className="flex items-center gap-1.5 bg-gray-100 px-2 py-1 rounded-md"><span className="text-sm">🛵</span> Livraison</span>
                          ) : (
-                           <span className="flex items-center gap-1.5 bg-gray-100 px-2 py-1 rounded-md"><span className="text-sm">???</span> � emporter</span>
+                           <span className="flex items-center gap-1.5 bg-gray-100 px-2 py-1 rounded-md"><span className="text-sm">🛍️</span> À emporter</span>
                          )}
                       </div>
                       {getPaymentBadge(cmd)}
@@ -293,12 +306,12 @@ export default function OperatorDashboard() {
                 </div>
               </div>
 
-              {/* Colonne 2: En pr�paration */}
+              {/* Colonne 2: En préparation */}
               <div className="w-[340px] flex-shrink-0 flex flex-col bg-gray-100/50 rounded-2xl p-4 border border-gray-200/60" style={{ maxHeight: '100%' }}>
                 <div className="flex items-center justify-between mb-5 px-1">
                   <div className="flex items-center gap-2">
                     <div className="w-2.5 h-2.5 rounded-full bg-orange-500"></div>
-                    <h3 className="font-bold text-gray-800 tracking-tight">En pr�paration</h3>
+                    <h3 className="font-bold text-gray-800 tracking-tight">En préparation</h3>
                   </div>
                   <span className="bg-white shadow-sm text-orange-700 px-2.5 py-1 rounded-full text-xs font-black border border-gray-200">{commandes.preparation.length}</span>
                 </div>
@@ -316,7 +329,7 @@ export default function OperatorDashboard() {
                       <div className="bg-gray-50/80 rounded-xl p-3 border border-gray-100/80 text-sm font-semibold text-gray-700 leading-snug">
                          {cmd.plat.split(', ').map((item, idx) => (
                            <div key={idx} className="flex gap-2 items-start py-0.5">
-                             <span className="text-orange-500 text-xs mt-0.5">?</span>
+                             <span className="text-orange-500 text-xs mt-0.5">▪</span>
                              <span>{item}</span>
                            </div>
                          ))}
@@ -326,9 +339,9 @@ export default function OperatorDashboard() {
                       <div className="flex items-center gap-2 text-xs font-bold text-gray-500">
 
                          {cmd.type === 'LIVRAISON' ? (
-                           <span className="flex items-center gap-1.5 bg-gray-100 px-2 py-1 rounded-md"><span className="text-sm">??</span> Livraison</span>
+                           <span className="flex items-center gap-1.5 bg-gray-100 px-2 py-1 rounded-md"><span className="text-sm">🛵</span> Livraison</span>
                          ) : (
-                           <span className="flex items-center gap-1.5 bg-gray-100 px-2 py-1 rounded-md"><span className="text-sm">???</span> � emporter</span>
+                           <span className="flex items-center gap-1.5 bg-gray-100 px-2 py-1 rounded-md"><span className="text-sm">🛍️</span> À emporter</span>
                          )}
                       </div>
                       {getPaymentBadge(cmd)}
@@ -343,12 +356,12 @@ export default function OperatorDashboard() {
                 </div>
               </div>
 
-              {/* Colonne 3: Pr�tes */}
+              {/* Colonne 3: Prêtes */}
               <div className="w-[340px] flex-shrink-0 flex flex-col bg-gray-100/50 rounded-2xl p-4 border border-gray-200/60" style={{ maxHeight: '100%' }}>
                 <div className="flex items-center justify-between mb-5 px-1">
                   <div className="flex items-center gap-2">
                     <div className="w-2.5 h-2.5 rounded-full bg-green-500"></div>
-                    <h3 className="font-bold text-gray-800 tracking-tight">Pr�tes / En route</h3>
+                    <h3 className="font-bold text-gray-800 tracking-tight">Prêtes / En route</h3>
                   </div>
                   <span className="bg-white shadow-sm text-green-700 px-2.5 py-1 rounded-full text-xs font-black border border-gray-200">{commandes.pretes.length}</span>
                 </div>
@@ -362,14 +375,14 @@ export default function OperatorDashboard() {
                         </div>
                         <span className="text-[10px] font-bold text-green-700 bg-green-50 px-2.5 py-1 rounded-full whitespace-nowrap flex items-center gap-1">
                           <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" /></svg>
-                          Pr�t
+                          Prêt
                         </span>
                       </div>
                       
                       <div className="bg-gray-50/80 rounded-xl p-3 border border-gray-100/80 text-sm font-semibold text-gray-500 leading-snug">
                          {cmd.plat.split(', ').map((item, idx) => (
                            <div key={idx} className="flex gap-2 items-start py-0.5">
-                             <span className="text-green-500/50 text-xs mt-0.5">?</span>
+                             <span className="text-green-500/50 text-xs mt-0.5">▪</span>
                              <span>{item}</span>
                            </div>
                          ))}
@@ -377,9 +390,9 @@ export default function OperatorDashboard() {
                       
                       <div className="flex items-center gap-2 text-xs font-bold text-gray-400">
                          {cmd.type === 'LIVRAISON' ? (
-                           <span className="flex items-center gap-1.5"><span className="text-sm grayscale opacity-70">??</span> En livraison</span>
+                           <span className="flex items-center gap-1.5"><span className="text-sm grayscale opacity-70">🛵</span> En livraison</span>
                          ) : (
-                           <span className="flex items-center gap-1.5"><span className="text-sm grayscale opacity-70">???</span> Remis au client</span>
+                           <span className="flex items-center gap-1.5"><span className="text-sm grayscale opacity-70">🛍️</span> Remis au client</span>
                          )}
                       </div>
                     </div>
@@ -415,16 +428,6 @@ export default function OperatorDashboard() {
     </div>
   );
 }
-
-
-
-
-
-
-
-
-
-
 
 
 
