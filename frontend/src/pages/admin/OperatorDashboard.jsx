@@ -207,7 +207,7 @@ export default function OperatorDashboard() {
             <div className="w-10 h-10 shrink-0 bg-red-100 rounded-full flex items-center justify-center text-red-600 font-bold" title={user.email}>
               {user.email ? user.email.charAt(0).toUpperCase() : 'U'}
             </div>
-            <div className={overflow-hidden transition-all duration-300 flex-1 flex items-center justify-between }>
+            <div className={`overflow-hidden transition-all duration-300 flex-1 flex items-center justify-between ${isSidebarOpen ? "w-auto opacity-100 ml-3" : "w-0 opacity-0 ml-0"}`}>
               <div className="overflow-hidden">
                 <h4 className="font-bold text-sm text-gray-900 truncate" title={user.email}>{user.email || 'Utilisateur'}</h4>
                 <p className="text-xs text-gray-500">{roleLabel}</p>
@@ -415,6 +415,7 @@ export default function OperatorDashboard() {
     </div>
   );
 }
+
 
 
 
