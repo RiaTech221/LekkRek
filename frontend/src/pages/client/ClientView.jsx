@@ -700,21 +700,35 @@ return () => {
 
       {/* LOGIN MODAL */}
       {isLoginOpen && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-          <div className="bg-white p-8 rounded-3xl shadow-2xl max-w-md w-full relative animate-fade-in-up">
-            <button onClick={() => setLoginOpen(false)} className="absolute top-6 right-6 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 font-bold transition-colors">✕</button>
-            <h2 className="text-2xl font-black text-gray-900 mb-2">Se connecter</h2>
-            <p className="text-gray-500 text-sm mb-6">Retrouvez vos favoris et commandez plus rapidement.</p>
-            <form onSubmit={handleLogin} className="flex flex-col gap-4">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+          <div className="bg-white p-8 sm:p-10 rounded-[2.5rem] shadow-2xl max-w-md w-full relative animate-fade-in-up border border-gray-100">
+            <button onClick={() => setLoginOpen(false)} className="absolute top-6 right-6 w-10 h-10 flex items-center justify-center rounded-full bg-gray-50 hover:bg-red-50 hover:text-red-600 text-gray-400 transition-colors">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            
+            <div className="text-center mb-8">
+              <div className="w-16 h-16 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-inner">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+              </div>
+              <h2 className="text-3xl font-black text-gray-900 mb-2 tracking-tight">Bon retour !</h2>
+              <p className="text-gray-500 text-sm px-4">Connectez-vous pour retrouver vos favoris et commander en un clic.</p>
+            </div>
+
+            <form onSubmit={handleLogin} className="flex flex-col gap-5">
               <div>
-                <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">Votre Nom (Optionnel)</label>
-                <input type="text" placeholder="Ex: Jean Dupont" className="w-full bg-gray-50 border border-gray-200 rounded-xl p-4 font-bold text-gray-900 focus:outline-none focus:border-red-600 transition-colors" value={loginName} onChange={(e) => setLoginName(e.target.value)} />
+                <label className="block text-[11px] font-extrabold text-gray-500 mb-2 uppercase tracking-widest pl-1">Votre Nom <span className="text-gray-400 font-normal capitalize">(Optionnel)</span></label>
+                <input type="text" placeholder="Ex: Jean Dupont" className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 font-bold text-gray-900 focus:outline-none focus:border-red-500 focus:ring-4 focus:ring-red-500/10 transition-all placeholder:font-medium placeholder:text-gray-400" value={loginName} onChange={(e) => setLoginName(e.target.value)} />
               </div>
               <div>
-                <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">Numéro de téléphone *</label>
-                <input type="tel" placeholder="Ex: 77 123 45 67" required className="w-full bg-gray-50 border border-gray-200 rounded-xl p-4 font-bold text-gray-900 focus:outline-none focus:border-red-600 transition-colors" value={loginPhone} onChange={(e) => setLoginPhone(e.target.value)} />
+                <label className="block text-[11px] font-extrabold text-gray-500 mb-2 uppercase tracking-widest pl-1">Numéro de téléphone <span className="text-red-500">*</span></label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
+                    <span className="text-gray-400 font-bold border-r border-gray-200 pr-3">+221</span>
+                  </div>
+                  <input type="tel" placeholder="77 123 45 67" required className="w-full bg-gray-50 border border-gray-200 rounded-2xl pl-20 pr-5 py-4 font-bold text-gray-900 focus:outline-none focus:border-red-500 focus:ring-4 focus:ring-red-500/10 transition-all placeholder:font-medium placeholder:text-gray-400" value={loginPhone} onChange={(e) => setLoginPhone(e.target.value)} />
+                </div>
               </div>
-              <button type="submit" className="w-full bg-gray-900 hover:bg-black text-white p-4 rounded-xl font-bold mt-2 shadow-lg transition-colors">
+              <button type="submit" className="w-full bg-red-600 hover:bg-red-700 text-white py-4 rounded-2xl font-black text-lg mt-4 shadow-[0_8px_20px_-6px_rgba(220,38,38,0.5)] hover:shadow-[0_12px_25px_-6px_rgba(220,38,38,0.6)] hover:-translate-y-0.5 transition-all">
                 Me connecter
               </button>
             </form>
