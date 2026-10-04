@@ -231,7 +231,9 @@ export default function Overview() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 
                 {/* BarChart */}
-                <div className="h-[300px]">
+                <div className="flex flex-col">
+                  <h5 className="font-bold text-gray-700 mb-2 text-sm text-center">Top 5 des plats recherchés</h5>
+                  <div className="h-[300px]">
                   {analytics && analytics.topSearches && analytics.topSearches.length > 0 ? (
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={analytics.topSearches} layout="vertical" margin={{ top: 10, right: 30, left: 40, bottom: 10 }}>
@@ -255,9 +257,12 @@ export default function Overview() {
                     </div>
                   )}
                 </div>
+                </div>
 
                 {/* PieChart */}
-                <div className="h-[300px] flex flex-col justify-center items-center relative">
+                <div className="flex flex-col">
+                  <h5 className="font-bold text-gray-700 mb-2 text-sm text-center">Répartition des intéractions</h5>
+                  <div className="h-[300px] flex flex-col justify-center items-center relative">
                   {pieData.length > 0 ? (
                     <>
                       <ResponsiveContainer width="100%" height="100%">
@@ -299,6 +304,7 @@ export default function Overview() {
                       <p className="text-gray-500 font-medium">Aucune donnée</p>
                     </div>
                   )}
+                </div>
                 </div>
               </div>
             </div>
