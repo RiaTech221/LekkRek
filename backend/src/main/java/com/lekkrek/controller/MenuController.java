@@ -44,4 +44,19 @@ public class MenuController {
 
         return platRepository.searchPlats(keyword, resto, budgetMax, quartier, moment);
     }
+
+    @GetMapping("/recommendations")
+    public List<Plat> getRecommendations(@RequestParam(required = false) String phone) {
+        org.springframework.data.domain.Pageable top4 = org.springframework.data.domain.PageRequest.of(0, 4);
+        
+        if (phone != null && !phone.isBlank()) {
+            List<Plat> recommended = platRepository.findMostOrderedByPhone(phone, top4);
+            if (!recommended.isEmpty()) {
+                return recommended;
+            }
+        }
+        
+        // Fallback: les plats les plus populaires globalement
+        return platRepository.findPopularPlats(top4);
+    }
 }

@@ -34,6 +34,10 @@ public class PlatformSettingsService {
                     .instagramUrl("lekkrek.sn")
                     .facebookUrl("lekkrekofficiel")
                     .tiktokUrl("lekkrek_food")
+                    .whatsappMessageGreeting("Bonjour l'équipe LekkRek 👋, ")
+                    .whatsappMessageCart("J'ai actuellement {count} plat(s) dans mon panier pour un total de {total} FCFA et j'aimerais avoir de l'aide pour finaliser ma commande.")
+                    .whatsappMessageOrder("Je vous contacte concernant ma commande N° {orderNumber}.")
+                    .whatsappMessageDefault("j'aimerais avoir de plus amples informations s'il vous plaît.")
                     .build();
         });
     }
