@@ -151,7 +151,7 @@ return () => {
     if (!phoneRegex.test(formData.clientPhone.replace(/\s/g, ''))) {
       return alert("Numéro de téléphone invalide. Ex: 771234567");
     }
-    if (!formData.clientAddress || formData.clientAddress.trim().length < 5) {
+    if (formData.type === 'LIVRAISON' && (!formData.clientAddress || formData.clientAddress.trim().length < 5)) {
       return alert("Veuillez saisir une adresse de livraison plus précise.");
     }
 
