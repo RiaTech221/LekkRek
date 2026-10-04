@@ -104,6 +104,13 @@ export default function Overview() {
   const clicksWhatsapp = getStat('click_whatsapp');
   const clicksPhone = getStat('click_phone');
 
+  const pieData = [
+    { name: 'Recherches', value: searches },
+    { name: 'Rech. Vides', value: emptySearches },
+    { name: 'WhatsApp', value: clicksWhatsapp },
+    { name: 'Téléphone', value: clicksPhone }
+  ].filter(d => d.value > 0);
+
   return (
     <div className="p-8 w-full min-h-screen text-left" style={{ background: '#f8fafc' }}>
       <header className="mb-8">
@@ -220,7 +227,7 @@ export default function Overview() {
           </div>
 
                       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-8">
-              <h4 className="font-black text-gray-900 mb-6 text-lg">Recherches & Tendances</h4>
+              <h4 className="font-black text-gray-900 mb-6 text-lg">Analytiques & Tendances</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 
                 {/* BarChart */}
@@ -251,26 +258,26 @@ export default function Overview() {
 
                 {/* PieChart */}
                 <div className="h-[300px] flex flex-col justify-center items-center relative">
-                  {analytics && analytics.topSearches && analytics.topSearches.length > 0 ? (
+                  {pieData.length > 0 ? (
                     <>
                       <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
                           <Pie
-                            data={analytics.topSearches}
+                            data={pieData}
                             innerRadius={70}
                             outerRadius={95}
                             paddingAngle={5}
-                            dataKey="count"
-                            nameKey="query"
+                            dataKey="value"
+                            nameKey="name"
                             stroke="none"
                           >
-                            {analytics.topSearches.map((entry, index) => (
+                            {pieData.map((entry, index) => (
                               <Cell key={`pie-cell-${index}`} fill={COLORS[index % COLORS.length]} />
                             ))}
                           </Pie>
                           <RechartsTooltip 
                             contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'}}
-                            formatter={(value) => [`${value} fois`, 'Recherché']}
+                            formatter={(value) => [`${value} évènements`, 'Volume']}
                           />
                           <Legend 
                             verticalAlign="bottom" 
@@ -282,8 +289,8 @@ export default function Overview() {
                       </ResponsiveContainer>
                       <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ marginTop: '-36px' }}>
                          <div className="text-center">
-                           <span className="block text-3xl font-black text-gray-900">{analytics.topSearches.reduce((a,b) => a + b.count, 0)}</span>
-                           <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Recherches</span>
+                           <span className="block text-3xl font-black text-gray-900">{pieData.reduce((a,b) => a + b.value, 0)}</span>
+                           <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Interactions</span>
                          </div>
                       </div>
                     </>
