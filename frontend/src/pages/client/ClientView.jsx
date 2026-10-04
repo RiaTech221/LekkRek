@@ -71,6 +71,12 @@ export default function ClientView() {
   const [loginPhone, setLoginPhone] = useState('');
   const [loginName, setLoginName] = useState('');
 
+  const openLoginModal = () => {
+    setLoginPhone(formData.clientPhone || '');
+    setLoginName(formData.clientName || '');
+    setLoginOpen(true);
+  };
+
   const handleLogin = (e) => {
     e.preventDefault();
     if (!/^(77|78|76|75|70|33)\d{7}$/.test(loginPhone.replace(/\s/g, ''))) {
@@ -91,15 +97,19 @@ export default function ClientView() {
       .catch(err => console.error(err));
       
     setLoginOpen(false);
-    alert("Connecté avec succès ! Vos favoris ont été chargés.");
+    if (formData.clientPhone) {
+      alert("Profil mis à jour !");
+    } else {
+      alert("Connecté avec succès ! Vos favoris ont été chargés.");
+    }
   };
 
   const handleLogout = () => {
-    if (window.confirm("Voulez-vous vous déconnecter ?")) {
-      localStorage.removeItem('lekkrek_client_profile');
-      setFormData(prev => ({ ...prev, clientPhone: '', clientName: '' }));
-      setRecommendations([]);
-    }
+    localStorage.removeItem('lekkrek_client_profile');
+    setFormData(prev => ({ ...prev, clientPhone: '', clientName: '' }));
+    setRecommendations([]);
+    setLoginOpen(false);
+    alert("Vous êtes déconnecté.");
   };
 
   
@@ -393,11 +403,11 @@ return () => {
                 </button>
               )}
               {formData.clientPhone ? (
-                <button onClick={handleLogout} className="flex items-center gap-2 bg-gray-50 border border-gray-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200 text-gray-800 px-4 sm:px-5 py-2.5 sm:py-3 rounded-full font-bold transition-all text-xs sm:text-sm" title="Se déconnecter">
+                <button onClick={openLoginModal} className="flex items-center gap-2 bg-gray-50 border border-gray-200 hover:bg-gray-100 text-gray-800 px-4 sm:px-5 py-2.5 sm:py-3 rounded-full font-bold transition-all text-xs sm:text-sm" title="Mon Profil">
                   <span className="truncate max-w-[100px]">👋 {formData.clientName || 'Client'}</span>
                 </button>
               ) : (
-                <button onClick={() => setLoginOpen(true)} className="flex items-center gap-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 px-4 sm:px-5 py-2.5 sm:py-3 rounded-full font-bold transition-all text-xs sm:text-sm shadow-sm">
+                <button onClick={openLoginModal} className="flex items-center gap-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 px-4 sm:px-5 py-2.5 sm:py-3 rounded-full font-bold transition-all text-xs sm:text-sm shadow-sm">
                   👤 Se connecter
                 </button>
               )}
@@ -706,7 +716,7 @@ return () => {
         </div>
       )}
 
-      {/* LOGIN MODAL */}
+      {/* LOGIN/PROFILE MODAL */}
       {isLoginOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[100] flex items-center justify-center p-4">
           <div className="bg-white p-8 sm:p-10 rounded-[2.5rem] shadow-2xl max-w-md w-full relative animate-fade-in-up border border-gray-100">
@@ -718,8 +728,12 @@ return () => {
               <div className="w-16 h-16 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-inner">
                 <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
               </div>
-              <h2 className="text-3xl font-black text-gray-900 mb-2 tracking-tight">Bon retour !</h2>
-              <p className="text-gray-500 text-sm px-4">Connectez-vous pour retrouver vos favoris et commander en un clic.</p>
+              <h2 className="text-3xl font-black text-gray-900 mb-2 tracking-tight">
+                {formData.clientPhone ? "Mon Profil" : "Bon retour !"}
+              </h2>
+              <p className="text-gray-500 text-sm px-4">
+                {formData.clientPhone ? "Vérifiez ou modifiez vos informations personnelles." : "Connectez-vous pour retrouver vos favoris et commander en un clic."}
+              </p>
             </div>
 
             <form onSubmit={handleLogin} className="flex flex-col gap-5">
@@ -737,9 +751,17 @@ return () => {
                 </div>
               </div>
               <button type="submit" className="w-full bg-red-600 hover:bg-red-700 text-white py-4 rounded-2xl font-black text-lg mt-4 shadow-[0_8px_20px_-6px_rgba(220,38,38,0.5)] hover:shadow-[0_12px_25px_-6px_rgba(220,38,38,0.6)] hover:-translate-y-0.5 transition-all">
-                Me connecter
+                {formData.clientPhone ? "Mettre à jour" : "Me connecter"}
               </button>
             </form>
+            
+            {formData.clientPhone && (
+              <div className="mt-6 text-center">
+                <button type="button" onClick={handleLogout} className="text-red-500 hover:text-red-700 font-bold text-sm underline decoration-red-500/30 hover:decoration-red-500 underline-offset-4 transition-all">
+                  Se déconnecter
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
