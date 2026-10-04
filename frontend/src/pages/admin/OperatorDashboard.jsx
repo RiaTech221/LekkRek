@@ -138,20 +138,13 @@ export default function OperatorDashboard() {
     <div id="desktop-dashboard" className="flex bg-gray-50 font-sans" style={{ position: "fixed", top: 0, left: 0, width: "100%", height: "100vh", zIndex: 50 }}>
       
       {/* Sidebar */}
-      <div className={`${isSidebarOpen ? "w-64" : "w-20"} bg-white border-r border-gray-200 flex flex-col h-full flex-shrink-0 transition-all duration-300 relative`}>
+      <div className={`bg-white border-r border-gray-200 flex flex-col h-full flex-shrink-0 transition-all duration-300 relative`} style={{ width: isSidebarOpen ? "256px" : "80px", minWidth: isSidebarOpen ? "256px" : "80px", maxWidth: isSidebarOpen ? "256px" : "80px" }}>
           <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="absolute -right-3 top-9 bg-white border border-gray-200 rounded-full p-1 shadow-sm text-gray-500 hover:text-red-600 z-50 hover:shadow transition-all flex items-center justify-center">
             {isSidebarOpen ? <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" /></svg> : <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>}
           </button>
         <div className="p-6 shrink-0">
-          <div className="flex items-center justify-center h-8 overflow-hidden">
-              {isSidebarOpen ? (
-                <h1 className="text-2xl font-black tracking-tighter text-red-600 cursor-pointer flex items-start" onClick={() => navigate('/')}>
-                  Lekk<span className="text-gray-900">Rek</span>
-                  <img src="/logo-square.png" alt="Logo" className="w-3.5 h-3.5 ml-1.5 mt-1.5 rounded-sm shadow-sm object-cover opacity-90" />
-                </h1>
-              ) : (
-                <img src="/logo-square.png" alt="Logo" className="w-8 h-8 rounded-lg shadow-sm object-cover cursor-pointer" onClick={() => navigate('/')} />
-              )}
+                      <div className="flex items-center justify-center h-12 overflow-hidden">
+              <img src="/logo-square.png" alt="Logo LekkRek" className={`object-contain transition-all duration-300 cursor-default ${isSidebarOpen ? "h-12 w-auto" : "h-10 w-10"}`} />
             </div>
         </div>
         
@@ -435,6 +428,9 @@ export default function OperatorDashboard() {
     </div>
   );
 }
+
+
+
 
 
 

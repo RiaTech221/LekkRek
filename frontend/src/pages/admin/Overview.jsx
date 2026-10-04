@@ -1,5 +1,8 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+
+const COLORS = ['#ef4444', '#f87171', '#fca5a5', '#fecaca', '#fee2e2'];
 
 /**
  * ============================================================================
@@ -216,41 +219,61 @@ export default function Overview() {
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-8">
-            <h4 className="font-black text-gray-900 mb-6 text-lg">Recherches Tendances</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-4">
-                {analytics && analytics.topSearches && analytics.topSearches.map((item, idx) => (
-                  <div key={idx} className="flex items-center gap-4">
-                    <span className="text-gray-400 font-black text-lg w-6">#{idx + 1}</span>
-                    <div className="flex-1 bg-gray-50 rounded-lg h-10 flex items-center px-4 relative overflow-hidden group">
-                      <div className="absolute left-0 top-0 h-full bg-red-100 group-hover:bg-red-200 transition-colors" style={{ width: `${(item.count / analytics.topSearches[0].count) * 100}%` }}></div>
-                      <span className="relative z-10 font-bold text-gray-900">{item.query}</span>
-                    </div>
-                    <span className="font-black text-gray-900 w-12 text-right">{item.count}</span>
-                  </div>
-                ))}
-                {(!analytics || !analytics.topSearches || analytics.topSearches.length === 0) && (
-                  <div className="p-8 text-center bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                    <p className="text-gray-500 font-medium">Aucune recherche effectuée pour le moment.</p>
-                  </div>
-                )}
-              </div>
-              
-                              <div className="bg-gray-50 p-6 rounded-xl border border-gray-100 flex flex-col justify-center items-center text-center">
-                  <div className="w-16 h-16 rounded-full bg-white shadow-sm flex items-center justify-center mb-4 text-gray-400">
-                    <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
-                  </div>
-                  <h5 className="font-bold text-gray-900 mb-2">Analyse des tendances</h5>
+                      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-8">
+              <h4 className="font-black text-gray-900 mb-6 text-lg">Recherches & Tendances</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                
+                {/* BarChart */}
+                <div className="h-64">
                   {analytics && analytics.topSearches && analytics.topSearches.length > 0 ? (
-                    <p className="text-sm text-gray-500 max-w-sm leading-relaxed">
-                      Forte demande constatée pour <strong>{analytics.topSearches[0].query}</strong> ({analytics.topSearches[0].count} requêtes){analytics.topSearches.length > 1 ? <>, suivi de près par <strong>{analytics.topSearches[1].query}</strong>.</> : '.'} <br/><br/>
-                      <span className="text-red-600 font-medium">💡 Recommandation :</span> Mettez ces plats en avant sur l'accueil et notifiez vos partenaires pour assurer leur disponibilitééé.
-                    </p>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={analytics.topSearches} layout="vertical" margin={{ top: 5, right: 30, left: 40, bottom: 5 }}>
+                        <XAxis type="number" hide />
+                        <YAxis dataKey="query" type="category" axisLine={false} tickLine={false} tick={{ fill: '#4b5563', fontSize: 12, fontWeight: 600 }} width={120} />
+                        <RechartsTooltip cursor={{fill: '#f9fafb'}} contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'}} />
+                        <Bar dataKey="count" fill="#ef4444" radius={[0, 4, 4, 0]} barSize={24} />
+                      </BarChart>
+                    </ResponsiveContainer>
                   ) : (
-                    <p className="text-sm text-gray-500 max-w-sm">
-                      Les plats les plus recherchés permettent d'ajuster l'offre des prestataires en temps réel pour maximiser les conversions.
-                    </p>
+                    <div className="h-full flex items-center justify-center bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                      <p className="text-gray-500 font-medium">Aucune donnée de recherche.</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* PieChart */}
+                <div className="h-64 flex flex-col justify-center items-center relative">
+                  {analytics && analytics.topSearches && analytics.topSearches.length > 0 ? (
+                    <>
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={analytics.topSearches}
+                            innerRadius={60}
+                            outerRadius={80}
+                            paddingAngle={5}
+                            dataKey="count"
+                            nameKey="query"
+                            stroke="none"
+                          >
+                            {analytics.topSearches.map((entry, index) => (
+                              <Cell key={cell-${index}} fill={COLORS[index % COLORS.length]} />
+                            ))}
+                          </Pie>
+                          <RechartsTooltip contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'}} />
+                        </PieChart>
+                      </ResponsiveContainer>
+                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                         <div className="text-center">
+                           <span className="block text-2xl font-black text-gray-900">{analytics.topSearches.reduce((a,b) => a + b.count, 0)}</span>
+                           <span className="block text-xs text-gray-500 font-medium uppercase">Recherches</span>
+                         </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="h-full w-full flex flex-col justify-center items-center text-center bg-gray-50 rounded-xl border border-gray-100">
+                      <p className="text-sm text-gray-500 max-w-sm">Les plats les plus recherchés permettent d'ajuster l'offre en temps réel.</p>
+                    </div>
                   )}
                 </div>
               </div>
@@ -344,6 +367,7 @@ export default function Overview() {
     </div>
   );
 }
+
 
 
 
