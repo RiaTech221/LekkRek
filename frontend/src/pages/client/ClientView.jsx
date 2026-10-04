@@ -17,6 +17,7 @@ export default function ClientView() {
   const [plats, setPlats] = useState([]);
   const [allCategories, setAllCategories] = useState([]); // All categories loaded once
   const [allPlats, setAllPlats] = useState([]); // All plats for fallbacks
+  const [recommendations, setRecommendations] = useState([]);
   const [cart, setCart] = useState([]);
   const [isCheckoutOpen, setCheckoutOpen] = useState(false);
   const [isSuccessOpen, setSuccessOpen] = useState(false);
@@ -29,7 +30,16 @@ export default function ClientView() {
   const [momentFilter, setMomentFilter] = useState('');
   
   // Checkout form state
-  const [formData, setFormData] = useState({ clientName: '', clientPhone: '', clientAddress: '', type: 'LIVRAISON', paymentMethod: 'WAVE' });
+  const [formData, setFormData] = useState(() => {
+    const saved = localStorage.getItem('lekkrek_client_profile');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        return { clientName: parsed.name || '', clientPhone: parsed.phone || '', clientAddress: parsed.address || '', type: 'LIVRAISON', paymentMethod: 'WAVE' };
+      } catch (e) {}
+    }
+    return { clientName: '', clientPhone: '', clientAddress: '', type: 'LIVRAISON', paymentMethod: 'WAVE' };
+  });
   const [orderInfo, setOrderInfo] = useState(null);
 
   // States pour le suivi
@@ -134,6 +144,18 @@ return () => {
       });
   }, []);
 
+  useEffect(() => {
+    const saved = localStorage.getItem('lekkrek_client_profile');
+    let phone = '';
+    if (saved) {
+      try { phone = JSON.parse(saved).phone || ''; } catch (e) {}
+    }
+    fetch(`http://192.168.1.6:8080/api/v1/public/menu/recommendations?phone=${phone}`)
+      .then(res => res.json())
+      .then(data => setRecommendations(data))
+      .catch(err => console.error(err));
+  }, []);
+
   // Recharge les plats dès qu'un filtre change
   useEffect(() => {
     // 1. Fetch settings
@@ -193,6 +215,11 @@ return () => {
         return res.json();
       })
       .then(data => {
+        localStorage.setItem('lekkrek_client_profile', JSON.stringify({ 
+          name: formData.clientName, 
+          phone: formData.clientPhone, 
+          address: formData.clientAddress 
+        }));
         setOrderInfo(data);
         setCart([]);
         setCheckoutOpen(false);
@@ -420,6 +447,36 @@ return () => {
         </div>
         <h3 className="text-2xl font-black text-gray-900 mb-8">Au menu aujourd'hui</h3>
         
+        {/* RECOMMENDATIONS SECTION */}
+        {recommendations.length > 0 && !keyword && !resto && !quartier && (
+          <div className="mb-12">
+            <h2 className="text-2xl font-black text-gray-900 mb-6 flex items-center gap-2">
+              <span>🌟</span> Recommandé pour vous
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
+              {recommendations.map(plat => (
+                <div key={`rec-${plat.id}`} className="bg-orange-50/50 rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-orange-100 group flex flex-col relative">
+                  <div className="absolute top-2 right-2 bg-orange-500 text-white text-[10px] font-bold px-2 py-1 rounded-full z-10 shadow-sm">Favori</div>
+                  <div className="relative h-40 overflow-hidden bg-gray-100 shrink-0">
+                    <img src={plat.image?.replace('localhost', '192.168.1.6')} alt={plat.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&q=80&w=800'; }} />
+                  </div>
+                  <div className="p-4 flex flex-col flex-grow">
+                    <h3 className="font-bold text-lg text-gray-900 leading-tight mb-1 truncate">{plat.name}</h3>
+                    <p className="text-gray-500 text-xs mb-3 truncate">{plat.restaurant?.name}</p>
+                    <div className="mt-auto flex items-center justify-between">
+                      <span className="font-black text-red-600 text-lg">{plat.price} {platformSettings?.defaultCurrency || 'FCFA'}</span>
+                      <button onClick={() => addToCart(plat)} disabled={plat.status !== 'DISPO'} className="w-10 h-10 bg-gray-900 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-colors disabled:opacity-50 shadow-md">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-8 border-t border-gray-200"></div>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8 pb-12">
           {Array.isArray(plats) && plats.length > 0 ? plats.map(plat => (
             <div key={plat.id} className="bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 group flex flex-col">
