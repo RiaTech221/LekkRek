@@ -1,8 +1,8 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 
-const COLORS = ['#ef4444', '#f87171', '#fca5a5', '#fecaca', '#fee2e2'];
+const COLORS = ['#ef4444', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#ec4899', '#06b6d4'];
 
 /**
  * ============================================================================
@@ -224,14 +224,22 @@ export default function Overview() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 
                 {/* BarChart */}
-                <div className="h-64">
+                <div className="h-[300px]">
                   {analytics && analytics.topSearches && analytics.topSearches.length > 0 ? (
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={analytics.topSearches} layout="vertical" margin={{ top: 5, right: 30, left: 40, bottom: 5 }}>
+                      <BarChart data={analytics.topSearches} layout="vertical" margin={{ top: 10, right: 30, left: 40, bottom: 10 }}>
                         <XAxis type="number" hide />
-                        <YAxis dataKey="query" type="category" axisLine={false} tickLine={false} tick={{ fill: '#4b5563', fontSize: 12, fontWeight: 600 }} width={120} />
-                        <RechartsTooltip cursor={{fill: '#f9fafb'}} contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'}} />
-                        <Bar dataKey="count" fill="#ef4444" radius={[0, 4, 4, 0]} barSize={24} />
+                        <YAxis dataKey="query" type="category" axisLine={false} tickLine={false} tick={{ fill: '#4b5563', fontSize: 13, fontWeight: 600 }} width={120} />
+                        <RechartsTooltip 
+                          cursor={{fill: '#f3f4f6'}} 
+                          contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'}} 
+                          formatter={(value) => [`${value} requêtes`, 'Volume']}
+                        />
+                        <Bar dataKey="count" radius={[0, 6, 6, 0]} barSize={28}>
+                          {analytics.topSearches.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Bar>
                       </BarChart>
                     </ResponsiveContainer>
                   ) : (
@@ -242,37 +250,46 @@ export default function Overview() {
                 </div>
 
                 {/* PieChart */}
-                <div className="h-64 flex flex-col justify-center items-center relative">
+                <div className="h-[300px] flex flex-col justify-center items-center relative">
                   {analytics && analytics.topSearches && analytics.topSearches.length > 0 ? (
                     <>
                       <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
                           <Pie
                             data={analytics.topSearches}
-                            innerRadius={60}
-                            outerRadius={80}
+                            innerRadius={70}
+                            outerRadius={95}
                             paddingAngle={5}
                             dataKey="count"
                             nameKey="query"
                             stroke="none"
                           >
                             {analytics.topSearches.map((entry, index) => (
-                              <Cell key={'cell-' + index} fill={COLORS[index % COLORS.length]} />
+                              <Cell key={`pie-cell-${index}`} fill={COLORS[index % COLORS.length]} />
                             ))}
                           </Pie>
-                          <RechartsTooltip contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'}} />
+                          <RechartsTooltip 
+                            contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'}}
+                            formatter={(value) => [`${value} fois`, 'Recherché']}
+                          />
+                          <Legend 
+                            verticalAlign="bottom" 
+                            height={36} 
+                            iconType="circle"
+                            formatter={(value) => <span className="text-gray-700 font-medium text-sm ml-1">{value}</span>}
+                          />
                         </PieChart>
                       </ResponsiveContainer>
-                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ marginTop: '-36px' }}>
                          <div className="text-center">
-                           <span className="block text-2xl font-black text-gray-900">{analytics.topSearches.reduce((a,b) => a + b.count, 0)}</span>
-                           <span className="block text-xs text-gray-500 font-medium uppercase">Recherches</span>
+                           <span className="block text-3xl font-black text-gray-900">{analytics.topSearches.reduce((a,b) => a + b.count, 0)}</span>
+                           <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Recherches</span>
                          </div>
                       </div>
                     </>
                   ) : (
-                    <div className="h-full w-full flex flex-col justify-center items-center text-center bg-gray-50 rounded-xl border border-gray-100">
-                      <p className="text-sm text-gray-500 max-w-sm">Les plats les plus recherchés permettent d'ajuster l'offre en temps réel.</p>
+                    <div className="h-full w-full flex items-center justify-center bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                      <p className="text-gray-500 font-medium">Aucune donnée</p>
                     </div>
                   )}
                 </div>
