@@ -34,11 +34,11 @@ import java.util.Arrays;
 public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
-    private final JwtAuthFilter jwtAuthFilter;
+    private final JwtUtils jwtUtils;
 
-    public SecurityConfig(CustomUserDetailsService userDetailsService, JwtAuthFilter jwtAuthFilter) {
+    public SecurityConfig(CustomUserDetailsService userDetailsService, JwtUtils jwtUtils) {
         this.userDetailsService = userDetailsService;
-        this.jwtAuthFilter = jwtAuthFilter;
+        this.jwtUtils = jwtUtils;
     }
 
     @Bean
@@ -90,7 +90,7 @@ public class SecurityConfig {
             );
 
         http.authenticationProvider(authenticationProvider());
-        http.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(new JwtAuthFilter(jwtUtils, userDetailsService), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

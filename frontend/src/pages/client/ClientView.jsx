@@ -16,6 +16,7 @@ export default function ClientView() {
   const [platformSettings, setPlatformSettings] = useState(null);
   const [plats, setPlats] = useState([]);
   const [allCategories, setAllCategories] = useState([]); // All categories loaded once
+  const [allPlats, setAllPlats] = useState([]); // All plats for fallbacks
   const [cart, setCart] = useState([]);
   const [isCheckoutOpen, setCheckoutOpen] = useState(false);
   const [isSuccessOpen, setSuccessOpen] = useState(false);
@@ -35,6 +36,24 @@ export default function ClientView() {
   const [isTrackModalOpen, setTrackModalOpen] = useState(false);
   const [trackOrderNumber, setTrackOrderNumber] = useState('');
   const [trackResult, setTrackResult] = useState(null);
+  
+  // Carousel State
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const heroImages = [
+    "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?q=80&w=2000&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1550547660-d9450f859349?q=80&w=2000&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=2000&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?q=80&w=2000&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=2000&auto=format&fit=crop"
+  ];
+
+  React.useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % heroImages.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, []);
+
   const [trackError, setTrackError] = useState('');
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
@@ -81,6 +100,7 @@ return () => {
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data)) {
+          setAllPlats(data);
           const cats = [...new Set(data.map(p => p.moment).filter(Boolean))].sort();
           setAllCategories(cats);
           localStorage.setItem('lekkrek_cache_cats', JSON.stringify(cats));
@@ -224,22 +244,61 @@ return () => {
       
       {/* NAVBAR */}
       <nav className="fixed top-0 left-0 w-full bg-white/90 backdrop-blur-md z-50 border-b border-gray-100 shadow-sm transition-all duration-300">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-20 items-center">
-            <h1 className="text-3xl font-black tracking-tighter text-red-600">
-              Lekk<span className="text-gray-900">Rek</span>
-            </h1>
-            <div className="flex gap-4">
+        <div className="w-full px-2 sm:px-4 lg:px-6 mx-auto">
+          <div className="flex justify-between h-20 items-center gap-2">
+            
+            <img src="/logo.png" alt="LekkRek Logo" className="h-14 sm:h-16 w-auto object-contain shrink-0 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} />
+            
+            {/* BIG SEARCH BAR IN NAVBAR */}
+            <div className="flex w-full max-w-[50rem] mx-2 lg:mx-6 bg-white rounded-full border border-gray-200 shadow-sm hover:shadow-md items-center divide-x divide-gray-100 transition-all h-14 overflow-x-auto [&::-webkit-scrollbar]:hidden">
+              
+              <div className="flex-[1.5] flex items-center pl-4 lg:pl-6 pr-3 h-full cursor-text hover:bg-gray-50 transition-colors shrink-0">
+                <span className="text-gray-400 mr-2 text-sm lg:text-base shrink-0">🔍</span>
+                <div className="flex flex-col w-full text-left justify-center overflow-hidden">
+                  <span className="text-[10px] lg:text-[11px] uppercase tracking-wider font-bold text-gray-800 leading-tight">Quoi ?</span>
+                  <input type="text" placeholder="Plat, ingrédient..." className="bg-transparent border-none outline-none w-full text-gray-500 font-medium text-xs lg:text-sm placeholder-gray-400 truncate leading-tight min-w-[70px]" value={keyword} onChange={(e) => setKeyword(e.target.value)} />
+                </div>
+              </div>
+
+              <div className="flex-1 flex items-center px-3 lg:px-5 h-full cursor-pointer hover:bg-gray-50 transition-colors shrink-0">
+                <div className="flex flex-col w-full text-left justify-center overflow-hidden">
+                  <span className="text-[10px] lg:text-[11px] uppercase tracking-wider font-bold text-gray-800 leading-tight">Restaurant</span>
+                  <select className="bg-transparent border-none outline-none w-full text-gray-500 font-medium text-xs lg:text-sm appearance-none cursor-pointer truncate leading-tight min-w-[80px]" value={resto} onChange={(e) => setResto(e.target.value)}>
+                    <option value="">Tous les restos</option>
+                    {[...new Set(plats.map(p => p.restaurant?.name).filter(Boolean))].sort().map(name => (
+                      <option key={name} value={name}>{name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex-1 flex items-center px-3 lg:px-5 h-full cursor-text hover:bg-gray-50 transition-colors shrink-0">
+                <div className="flex flex-col w-full text-left justify-center overflow-hidden">
+                  <span className="text-[10px] lg:text-[11px] uppercase tracking-wider font-bold text-gray-800 leading-tight">Quartier</span>
+                  <input type="text" placeholder="Où livrer ?" className="bg-transparent border-none outline-none w-full text-gray-500 font-medium text-xs lg:text-sm placeholder-gray-400 truncate leading-tight min-w-[60px]" value={quartier} onChange={(e) => setQuartier(e.target.value)} />
+                </div>
+              </div>
+
+              <div className="flex-1 flex items-center px-3 lg:px-5 h-full cursor-text hover:bg-gray-50 transition-colors shrink-0">
+                <div className="flex flex-col w-full text-left justify-center overflow-hidden">
+                  <span className="text-[10px] lg:text-[11px] uppercase tracking-wider font-bold text-gray-800 leading-tight">Budget Max</span>
+                  <input type="number" placeholder="ex: 2000" className="bg-transparent border-none outline-none w-full text-gray-500 font-medium text-xs lg:text-sm placeholder-gray-400 truncate leading-tight min-w-[60px]" value={budgetMax} onChange={(e) => setBudgetMax(e.target.value)} />
+                </div>
+              </div>
+
+            </div>
+
+            <div className="flex gap-2 lg:gap-4 shrink-0 ml-auto">
               {localStorage.getItem('token') && (
-                <button onClick={() => window.location.href='/dashboard'} className="flex items-center gap-2 bg-red-50 text-red-600 hover:bg-red-100 px-5 py-2.5 rounded-full font-bold transition-all border border-red-100">
-                  ⚙️ Mon Dashboard
+                <button onClick={() => window.location.href='/dashboard'} className="hidden lg:flex items-center gap-2 bg-red-50 text-red-600 hover:bg-red-100 px-5 py-3 rounded-full font-bold transition-all border border-red-100 text-sm">
+                  ⚙️ Dash
                 </button>
               )}
-              <button onClick={() => setTrackModalOpen(true)} className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-5 py-2.5 rounded-full font-bold transition-all">
-                📍 Suivi Commande
+              <button onClick={() => setTrackModalOpen(true)} className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 sm:px-5 py-2.5 sm:py-3 rounded-full font-bold transition-all text-xs sm:text-sm">
+                📍 Suivi
               </button>
-              <button onClick={() => setCheckoutOpen(true)} className="flex items-center gap-2 bg-gray-900 hover:bg-black text-white px-5 py-2.5 rounded-full font-bold transition-all shadow-md">
-                🛒 Mon Panier <span className="bg-red-600 text-white text-xs px-2 py-0.5 rounded-full ml-1">{cart.length}</span>
+              <button onClick={() => setCheckoutOpen(true)} className="flex items-center gap-2 bg-gray-900 hover:bg-black text-white px-4 sm:px-5 py-2.5 sm:py-3 rounded-full font-bold transition-all shadow-md text-xs sm:text-sm">
+                🛒 Panier <span className="bg-red-600 text-white text-xs px-2 py-0.5 rounded-full ml-1">{cart.length}</span>
               </button>
             </div>
           </div>
@@ -255,59 +314,52 @@ return () => {
       )}
 
       {/* HERO SECTION */}
-      <div className="relative bg-orange-50 overflow-hidden pt-20">
-        <div className="absolute inset-0">
-          <img src="https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?q=80&w=2000&auto=format&fit=crop" alt="Food Delivery" className="w-full h-full object-cover opacity-90" />
+      <div className="relative bg-orange-50 overflow-hidden pt-20 group">
+        <div className="absolute inset-0 bg-black">
+          {heroImages.map((src, index) => (
+            <img 
+              key={src}
+              src={src} 
+              alt="Food Delivery" 
+              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out ${index === currentImageIndex ? 'opacity-90' : 'opacity-0'}`} 
+            />
+          ))}
           <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent"></div>
         </div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32 flex flex-col items-start text-left">
+
+        {/* Carousel Controls (Always Visible) */}
+        <button 
+          onClick={() => setCurrentImageIndex((prev) => (prev - 1 + heroImages.length) % heroImages.length)}
+          className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 bg-white/50 hover:bg-white text-gray-800 rounded-full p-2 lg:p-3 shadow-md transition-all z-20"
+          aria-label="Image précédente"
+        >
+          <svg className="w-6 h-6 lg:w-8 lg:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"></path></svg>
+        </button>
+        <button 
+          onClick={() => setCurrentImageIndex((prev) => (prev + 1) % heroImages.length)}
+          className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 bg-white/50 hover:bg-white text-gray-800 rounded-full p-2 lg:p-3 shadow-md transition-all z-20"
+          aria-label="Image suivante"
+        >
+          <svg className="w-6 h-6 lg:w-8 lg:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"></path></svg>
+        </button>
+
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32 flex flex-col items-start text-left pointer-events-none z-10">
           <span className="bg-red-600 text-white font-bold tracking-wider uppercase text-sm px-4 py-1.5 rounded-full mb-6 shadow-lg">Livraison partout à Ziguinchor</span>
           <h2 className="text-4xl md:text-6xl font-black text-white mb-6 tracking-tight leading-tight max-w-2xl">
             Vos plats préférés,<br/>livrés très vite.
           </h2>
           <p className="text-xl text-gray-200 max-w-xl mb-10 font-medium">Découvrez les meilleurs restaurants de la région. Commandez en quelques clics et suivez votre livreur en temps réel.</p>
-          
-          {/* SEARCH BAR (Airbnb style - Fixed for all screens) */}
-          <div className="w-full max-w-5xl bg-white p-2 rounded-2xl md:rounded-full shadow-2xl flex flex-wrap md:flex-nowrap items-center divide-y md:divide-y-0 md:divide-x divide-gray-200">
-            
-            <div className="flex-1 w-full md:w-auto flex items-center px-4 py-3 hover:bg-gray-50 md:rounded-l-full cursor-text transition-colors">
-              <span className="text-xl mr-3">🔍</span>
-              <div className="flex flex-col w-full text-left">
-                <span className="text-[10px] uppercase tracking-wider font-bold text-gray-500 mb-0.5">Quoi ?</span>
-                <input type="text" placeholder="Plat, ingrédient..." className="bg-transparent border-none outline-none w-full text-gray-900 font-bold text-sm placeholder-gray-400" value={keyword} onChange={(e) => setKeyword(e.target.value)} />
-              </div>
-            </div>
+        </div>
 
-            <div className="flex-1 w-full md:w-auto flex items-center px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors">
-              <span className="text-xl mr-3">🏪</span>
-              <div className="flex flex-col w-full text-left">
-                <span className="text-[10px] uppercase tracking-wider font-bold text-gray-500 mb-0.5">Restaurant</span>
-                <select className="bg-transparent border-none outline-none w-full text-gray-900 font-bold text-sm appearance-none cursor-pointer" value={resto} onChange={(e) => setResto(e.target.value)}>
-                  <option value="">Tous les restos</option>
-                  {[...new Set(plats.map(p => p.restaurant?.name).filter(Boolean))].sort().map(name => (
-                    <option key={name} value={name}>{name}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div className="flex-1 w-full md:w-auto flex items-center px-4 py-3 hover:bg-gray-50 cursor-text transition-colors">
-              <span className="text-xl mr-3">📍</span>
-              <div className="flex flex-col w-full text-left">
-                <span className="text-[10px] uppercase tracking-wider font-bold text-gray-500 mb-0.5">Quartier</span>
-                <input type="text" placeholder="Où livrer ?" className="bg-transparent border-none outline-none w-full text-gray-900 font-bold text-sm placeholder-gray-400" value={quartier} onChange={(e) => setQuartier(e.target.value)} />
-              </div>
-            </div>
-
-            <div className="flex-1 w-full md:w-auto flex items-center px-4 py-3 hover:bg-gray-50 md:rounded-r-full cursor-text transition-colors">
-              <span className="text-xl mr-3">💰</span>
-              <div className="flex flex-col w-full text-left">
-                <span className="text-[10px] uppercase tracking-wider font-bold text-gray-500 mb-0.5">Budget Max</span>
-                <input type="number" placeholder="ex: 2000 FCFA" className="bg-transparent border-none outline-none w-full text-gray-900 font-bold text-sm placeholder-gray-400" value={budgetMax} onChange={(e) => setBudgetMax(e.target.value)} />
-              </div>
-            </div>
-
-          </div>
+        {/* Carousel Indicators */}
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+          {heroImages.map((_, index) => (
+            <button 
+              key={index}
+              onClick={() => setCurrentImageIndex(index)}
+              className={`w-2.5 h-2.5 rounded-full transition-all ${index === currentImageIndex ? 'bg-red-600 w-6' : 'bg-white/50 hover:bg-white'}`}
+            />
+          ))}
         </div>
       </div>
       
@@ -370,10 +422,52 @@ return () => {
               </div>
             </div>
           )) : (
-            <div className="col-span-full py-20 text-center bg-white rounded-3xl border-2 border-dashed border-gray-200">
-              <span className="text-5xl block mb-4">🍽️</span>
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">Aucun plat trouvé.</h3>
-              <p className="text-gray-500">Essayez de modifier votre recherche ou vos filtres.</p>
+            <div className="col-span-full py-12">
+              <div className="text-center bg-white rounded-3xl border-2 border-dashed border-gray-200 py-12 mb-12">
+                <span className="text-5xl block mb-4">🍽️</span>
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">Aucun plat trouvé avec ces filtres.</h3>
+                <p className="text-gray-500">Mais ne vous inquiétez pas, voici quelques autres plats qui pourraient vous plaire :</p>
+              </div>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8">
+                {allPlats.slice(0, 3).map(plat => (
+                  <div key={plat.id} className="bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 group flex flex-col">
+                    <div className="relative h-56 overflow-hidden bg-gray-100 shrink-0">
+                      <img src={plat.image?.replace('localhost', '192.168.1.6')} alt={plat.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&q=80&w=800'; }} />
+                      <div className="absolute top-4 left-4">
+                        <span className={`px-3 py-1 text-xs font-black uppercase tracking-wider rounded-full shadow-md backdrop-blur-md ${plat.status === 'DISPO' ? 'bg-white/90 text-green-600' : 'bg-red-600/90 text-white'}`}>
+                          {plat.status === 'DISPO' ? 'Disponible' : 'Épuisé'}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="p-6 flex flex-col flex-1">
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-xs">🏪</span>
+                        <span className="text-sm font-bold text-gray-500">{plat.restaurant?.name || 'Restaurant Partenaire'}</span>
+                      </div>
+                      <h3 className="text-xl font-bold text-gray-900 mb-2 leading-tight">{plat.name}</h3>
+                      <p className="text-gray-500 text-sm mb-6 flex-1 line-clamp-2">{plat.description || 'Un délicieux plat préparé avec soin.'}</p>
+                      
+                      <div className="flex justify-between items-end mt-auto pt-4 border-t border-gray-50">
+                        <div>
+                          <span className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Prix</span>
+                          <span className="text-2xl font-black text-gray-900">{plat.price.toLocaleString()} <span className="text-base text-gray-500">FCFA</span></span>
+                        </div>
+                        {plat.status === 'DISPO' ? (
+                          <button onClick={() => addToCart(plat)} className="w-12 h-12 bg-gray-900 text-white rounded-full flex items-center justify-center text-2xl font-light hover:bg-red-600 hover:shadow-lg hover:shadow-red-600/30 transition-all transform hover:-translate-y-1">
+                            +
+                          </button>
+                        ) : (
+                           <button disabled className="w-12 h-12 bg-gray-100 text-gray-400 rounded-full flex items-center justify-center text-xl font-light cursor-not-allowed">
+                            —
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>
@@ -528,7 +622,7 @@ return () => {
                 {platformSettings?.platformName || 'LekkRek'}
               </h2>
               <p className="text-gray-400 text-sm leading-relaxed mb-4">
-                La plateforme n°1 de livraison de repas en Casamance. Vos plats préférés, livrés rapidement et encore chauds.
+                La plateforme n°1 de livraison partout à Ziguinchor. Vos plats préférés, livrés rapidement et encore chauds.
               </p>
               <div className="text-gray-400 text-sm">
                 <p>📞 {platformSettings?.supportPhone || '+221 77 000 00 00'}</p>

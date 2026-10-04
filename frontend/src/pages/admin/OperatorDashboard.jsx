@@ -54,9 +54,10 @@ export default function OperatorDashboard() {
       headers: { 'Authorization': `Bearer ${token}` }
     })
       .then(res => {
-        if (res.status === 401 || res.status === 403 || res.status === 400) {
+        if (res.status === 401 || res.status === 403) {
           localStorage.removeItem('token');
-          navigate('/login');
+          localStorage.removeItem('user');
+          window.location.href = '/login';
           throw new Error("Session expirée");
         }
         return res.json();
