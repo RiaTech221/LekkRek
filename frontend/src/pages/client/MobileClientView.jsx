@@ -50,6 +50,33 @@ export default function MobileClientView() {
   const [trackError, setTrackError] = useState('');
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
+  const [isLoginOpen, setLoginOpen] = useState(false);
+  const [loginPhone, setLoginPhone] = useState('');
+  const [loginName, setLoginName] = useState('');
+
+  const handleLogin = (e) => {
+    e.preventDefault();
+    if (!/^(77|78|76|75|70|33)\d{7}$/.test(loginPhone.replace(/\s/g, ''))) {
+      return alert("Numéro de téléphone invalide.");
+    }
+    const cleanPhone = loginPhone.replace(/\s/g, '');
+    localStorage.setItem('lekkrek_client_profile', JSON.stringify({ 
+      name: loginName || formData.clientName, 
+      phone: cleanPhone, 
+      address: formData.clientAddress 
+    }));
+    setFormData(prev => ({ ...prev, clientPhone: cleanPhone, clientName: loginName || prev.clientName }));
+    
+    // Refresh recommendations
+    fetch(`http://192.168.1.6:8080/api/v1/public/menu/recommendations?phone=${cleanPhone}`)
+      .then(res => res.json())
+      .then(data => setRecommendations(data))
+      .catch(err => console.error(err));
+      
+    setLoginOpen(false);
+    alert("Connecté avec succès ! Vos favoris ont été chargés.");
+  };
+
   
     
   const handleWhatsappClick = (e) => {
@@ -299,6 +326,15 @@ return () => {
               {localStorage.getItem('token') && (
                 <button onClick={() => window.location.href='/dashboard'} className="flex items-center gap-2 bg-red-50 text-red-600 hover:bg-red-100 px-5 py-2.5 rounded-full font-bold transition-all border border-red-100">
                   ⚙️ Mon Dashboard
+                </button>
+              )}
+              {formData.clientPhone ? (
+                <div className="flex items-center gap-1 bg-green-50 text-green-700 px-3 py-2 rounded-full font-bold text-xs border border-green-100">
+                  <span className="truncate max-w-[70px]">👋 {formData.clientName || 'Client'}</span>
+                </div>
+              ) : (
+                <button onClick={() => setLoginOpen(true)} className="flex items-center gap-1 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 px-3 py-2 rounded-full font-bold transition-all text-xs shadow-sm">
+                  👤 Connexion
                 </button>
               )}
               <button onClick={() => setTrackModalOpen(true)} className="flex items-center gap-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-full font-bold transition-all text-xs">
@@ -641,6 +677,30 @@ return () => {
             <button onClick={() => setSuccessOpen(false)} className="w-full bg-gray-900 text-white font-bold py-4 rounded-xl hover:bg-black transition-colors">
               Fermer
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* LOGIN MODAL */}
+      {isLoginOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+          <div className="bg-white p-8 rounded-3xl shadow-2xl max-w-md w-full relative animate-fade-in-up">
+            <button onClick={() => setLoginOpen(false)} className="absolute top-6 right-6 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 font-bold transition-colors">✕</button>
+            <h2 className="text-2xl font-black text-gray-900 mb-2">Se connecter</h2>
+            <p className="text-gray-500 text-sm mb-6">Retrouvez vos favoris et commandez plus rapidement.</p>
+            <form onSubmit={handleLogin} className="flex flex-col gap-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">Votre Nom (Optionnel)</label>
+                <input type="text" placeholder="Ex: Jean Dupont" className="w-full bg-gray-50 border border-gray-200 rounded-xl p-4 font-bold text-gray-900 focus:outline-none focus:border-red-600 transition-colors" value={loginName} onChange={(e) => setLoginName(e.target.value)} />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">Numéro de téléphone *</label>
+                <input type="tel" placeholder="Ex: 77 123 45 67" required className="w-full bg-gray-50 border border-gray-200 rounded-xl p-4 font-bold text-gray-900 focus:outline-none focus:border-red-600 transition-colors" value={loginPhone} onChange={(e) => setLoginPhone(e.target.value)} />
+              </div>
+              <button type="submit" className="w-full bg-gray-900 hover:bg-black text-white p-4 rounded-xl font-bold mt-2 shadow-lg transition-colors">
+                Me connecter
+              </button>
+            </form>
           </div>
         </div>
       )}
