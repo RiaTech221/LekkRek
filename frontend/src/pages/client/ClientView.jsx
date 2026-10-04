@@ -94,6 +94,14 @@ export default function ClientView() {
     alert("Connecté avec succès ! Vos favoris ont été chargés.");
   };
 
+  const handleLogout = () => {
+    if (window.confirm("Voulez-vous vous déconnecter ?")) {
+      localStorage.removeItem('lekkrek_client_profile');
+      setFormData(prev => ({ ...prev, clientPhone: '', clientName: '' }));
+      setRecommendations([]);
+    }
+  };
+
   
     
   const handleWhatsappClick = (e) => {
@@ -385,7 +393,7 @@ return () => {
                 </button>
               )}
               {formData.clientPhone ? (
-                <button onClick={() => setLoginOpen(true)} className="flex items-center gap-2 bg-gray-50 border border-gray-200 hover:bg-gray-100 text-gray-800 px-4 sm:px-5 py-2.5 sm:py-3 rounded-full font-bold transition-all text-xs sm:text-sm">
+                <button onClick={handleLogout} className="flex items-center gap-2 bg-gray-50 border border-gray-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200 text-gray-800 px-4 sm:px-5 py-2.5 sm:py-3 rounded-full font-bold transition-all text-xs sm:text-sm" title="Se déconnecter">
                   <span className="truncate max-w-[100px]">👋 {formData.clientName || 'Client'}</span>
                 </button>
               ) : (
