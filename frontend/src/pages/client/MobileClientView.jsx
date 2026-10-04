@@ -45,18 +45,21 @@ export default function MobileClientView() {
   const handleWhatsappClick = (e) => {
     e.preventDefault();
 
-    let message = "Bonjour l'équipe LekkRek 👋, ";
+    let message = platformSettings?.whatsappMessageGreeting || "Bonjour l'équipe LekkRek 👋, ";
     if (formData.clientName && formData.clientName.trim() !== '') {
       message += "je suis " + formData.clientName + ". ";
     }
     
     if (trackOrderNumber && trackOrderNumber.trim() !== '') {
-      message += "Je vous contacte concernant ma commande N° " + trackOrderNumber + ". ";
+      const orderTpl = platformSettings?.whatsappMessageOrder || "Je vous contacte concernant ma commande N° {orderNumber}.";
+      message += orderTpl.replace('{orderNumber}', trackOrderNumber) + " ";
     } else if (cart.length > 0) {
       const total = cart.reduce((sum, item) => sum + item.price, 0);
-      message += "J'ai actuellement " + cart.length + " plat(s) dans mon panier pour un total de " + total + " FCFA et j'aimerais avoir de l'aide pour finaliser ma commande.";
+      const cartTpl = platformSettings?.whatsappMessageCart || "J'ai actuellement {count} plat(s) dans mon panier pour un total de {total} FCFA et j'aimerais avoir de l'aide pour finaliser ma commande.";
+      message += cartTpl.replace('{count}', cart.length).replace('{total}', total) + " ";
     } else {
-      message += "j'aimerais avoir de plus amples informations s'il vous plaît.";
+      const defTpl = platformSettings?.whatsappMessageDefault || "j'aimerais avoir de plus amples informations s'il vous plaît.";
+      message += defTpl;
     }
 
     const encodedMessage = encodeURIComponent(message);

@@ -39,4 +39,16 @@ public class PlatformSettings {
     private String instagramUrl;
     private String facebookUrl;
     private String tiktokUrl;
+
+    @Column(columnDefinition = "TEXT")
+    private String whatsappMessageGreeting = "Bonjour l'équipe LekkRek 👋, ";
+    
+    @Column(columnDefinition = "TEXT")
+    private String whatsappMessageCart = "J'ai actuellement {count} plat(s) dans mon panier pour un total de {total} FCFA et j'aimerais avoir de l'aide pour finaliser ma commande.";
+    
+    @Column(columnDefinition = "TEXT")
+    private String whatsappMessageOrder = "Je vous contacte concernant ma commande N° {orderNumber}.";
+    
+    @Column(columnDefinition = "TEXT")
+    private String whatsappMessageDefault = "j'aimerais avoir de plus amples informations s'il vous plaît.";
 }
