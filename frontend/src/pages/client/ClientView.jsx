@@ -385,9 +385,9 @@ return () => {
                 </button>
               )}
               {formData.clientPhone ? (
-                <div className="hidden sm:flex items-center gap-2 bg-green-50 text-green-700 px-4 py-2 rounded-full font-bold text-xs sm:text-sm border border-green-100">
+                <button onClick={() => setLoginOpen(true)} className="flex items-center gap-2 bg-gray-50 border border-gray-200 hover:bg-gray-100 text-gray-800 px-4 sm:px-5 py-2.5 sm:py-3 rounded-full font-bold transition-all text-xs sm:text-sm">
                   <span className="truncate max-w-[100px]">👋 {formData.clientName || 'Client'}</span>
-                </div>
+                </button>
               ) : (
                 <button onClick={() => setLoginOpen(true)} className="flex items-center gap-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 px-4 sm:px-5 py-2.5 sm:py-3 rounded-full font-bold transition-all text-xs sm:text-sm shadow-sm">
                   👤 Se connecter

@@ -329,9 +329,9 @@ return () => {
                 </button>
               )}
               {formData.clientPhone ? (
-                <div className="flex items-center gap-1 bg-green-50 text-green-700 px-3 py-2 rounded-full font-bold text-xs border border-green-100">
+                <button onClick={() => setLoginOpen(true)} className="flex items-center gap-1 bg-gray-50 border border-gray-200 hover:bg-gray-100 text-gray-800 px-3 py-2 rounded-full font-bold transition-all text-xs">
                   <span className="truncate max-w-[70px]">👋 {formData.clientName || 'Client'}</span>
-                </div>
+                </button>
               ) : (
                 <button onClick={() => setLoginOpen(true)} className="flex items-center gap-1 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 px-3 py-2 rounded-full font-bold transition-all text-xs shadow-sm">
                   👤 Connexion
