@@ -1,4 +1,4 @@
-﻿package com.lekkrek.entity;
+package com.lekkrek.entity;
 
 /**
  * ============================================================================
