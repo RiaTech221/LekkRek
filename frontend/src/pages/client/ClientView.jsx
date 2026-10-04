@@ -61,12 +61,30 @@ export default function ClientView() {
     
   const handleWhatsappClick = (e) => {
     e.preventDefault();
+
+    let message = "Bonjour l'équipe LekkRek 👋, ";
+    if (formData.clientName && formData.clientName.trim() !== '') {
+      message += "je suis " + formData.clientName + ". ";
+    }
+    
+    if (trackOrderNumber && trackOrderNumber.trim() !== '') {
+      message += "Je vous contacte concernant ma commande N° " + trackOrderNumber + ". ";
+    } else if (cart.length > 0) {
+      const total = cart.reduce((sum, item) => sum + item.price, 0);
+      message += "J'ai actuellement " + cart.length + " plat(s) dans mon panier pour un total de " + total + " FCFA et j'aimerais avoir de l'aide pour finaliser ma commande.";
+    } else {
+      message += "j'aimerais avoir de plus amples informations s'il vous plaît.";
+    }
+
+    const encodedMessage = encodeURIComponent(message);
+    const waUrl = `https://wa.me/221781161910?text=${encodedMessage}`;
+
     fetch('http://192.168.1.6:8080/api/v1/public/analytics', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ eventType: 'click_whatsapp', entityId: '781161910', context: 'floating_button' })
     }).catch(err => console.error(err)).finally(() => {
-      window.open('https://wa.me/221781161910', '_blank');
+      window.open(waUrl, '_blank');
     });
   };
 
