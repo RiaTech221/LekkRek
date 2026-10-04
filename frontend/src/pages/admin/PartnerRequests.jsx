@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from "react";
+﻿import React, { useState, useEffect } from "react";
 
 /**
  * ============================================================================
- * 📁 Fichier : PartnerRequests.jsx
- * 📝 Description : Composant React gérant l'interface utilisateur pour PartnerRequests.
- * 🎨 Rôle : Vue Frontend (Vite/Tailwind) pour l'expérience client/admin LekkRek.
- * 💡 Auteur : Documenté automatiquement (Standard Enterprise)
+ * ?? Fichier : PartnerRequests.jsx
+ * ?? Description : Composant React g�rant l'interface utilisateur pour PartnerRequests.
+ * ?? R�le : Vue Frontend (Vite/Tailwind) pour l'exp�rience client/admin LekkRek.
+ * ?? Auteur : Document� automatiquement (Standard Enterprise)
  * ============================================================================
  */
 
@@ -55,7 +55,7 @@ export default function PartnerRequests() {
       <header className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-3xl font-black text-gray-900 tracking-tight">Demandes de Partenariat</h1>
-          <p className="text-gray-500 text-sm mt-1">Gérez les demandes entrantes des restaurants souhaitant rejoindre LekkRek.</p>
+          <p className="text-gray-500 text-sm mt-1">G�rez les demandes entrantes des restaurants souhaitant rejoindre LekkRek.</p>
         </div>
         
         <div className="flex gap-4">
@@ -80,18 +80,23 @@ export default function PartnerRequests() {
             <tr className="bg-gray-50/50 border-b border-gray-100 text-gray-400 text-xs font-black uppercase tracking-widest">
               <th className="px-6 py-4">Date</th>
               <th className="px-6 py-4">Restaurant</th>
-              <th className="px-6 py-4">Gérant</th>
-              <th className="px-6 py-4">Téléphone</th>
+              <th className="px-6 py-4">G�rant</th>
+              <th className="px-6 py-4">T�l�phone</th>
               <th className="px-6 py-4">Ville</th>
               <th className="px-6 py-4">Statut</th>
               <th className="px-6 py-4 text-right">Actions</th>
             </tr>
           </thead>
-          <tbody>
-            {requests.length === 0 ? (
-              <tr><td colSpan="7" className="p-8 text-center text-gray-500">Aucune demande pour le moment.</td></tr>
-            ) : (
-              requests.map(req => (
+                      <tbody>
+              {(() => {
+                const filtered = requests.filter(req => 
+                  (req.nomRestaurant || "").toLowerCase().includes(searchTerm.toLowerCase()) || 
+                  (req.nomGerant || "").toLowerCase().includes(searchTerm.toLowerCase()) || 
+                  (req.telephone || "").toLowerCase().includes(searchTerm.toLowerCase()) || 
+                  (req.ville || "").toLowerCase().includes(searchTerm.toLowerCase())
+                );
+                if (filtered.length === 0) return <tr><td colSpan="7" className="p-8 text-center text-gray-500">Aucune demande pour le moment.</td></tr>;
+                return filtered.map(req => (
                 <tr key={req.id} className="hover:bg-gray-50/80 transition-colors group border-b border-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {new Date(req.createdAt).toLocaleDateString("fr-FR", {day: "2-digit", month: "short", year:"numeric"})}
@@ -107,15 +112,15 @@ export default function PartnerRequests() {
                       req.status === "REJECTED" ? "bg-red-100 text-red-700" :
                       "bg-green-100 text-green-700"
                     }`}>
-                      {req.status === "PENDING" ? "À Contacter" : 
-                       req.status === "CONTACTED" ? "Contacté" : 
-                       req.status === "REJECTED" ? "Refusé" : "Accepté"}
+                      {req.status === "PENDING" ? "� Contacter" : 
+                       req.status === "CONTACTED" ? "Contact�" : 
+                       req.status === "REJECTED" ? "Refus�" : "Accept�"}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right">
                     {req.status === "PENDING" && (
                       <button onClick={() => updateStatus(req.id, "CONTACTED")} className="bg-blue-50 text-blue-600 hover:bg-blue-100 px-3 py-1.5 rounded font-bold text-xs transition-colors">
-                        Marquer Contacté
+                        Marquer Contact�
                       </button>
                     )}
                     {req.status === "CONTACTED" && (
@@ -129,12 +134,13 @@ export default function PartnerRequests() {
                       </div>
                     )}
                   </td>
-                </tr>
-              ))
-            )}
+                </tr>)); })()}
           </tbody>
         </table>
       </div>
     </div>
   );
 }
+
+
+
