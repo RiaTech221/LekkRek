@@ -186,6 +186,21 @@ return () => {
 
   const handlePartnerSubmit = (e) => {
     e.preventDefault();
+
+    const phoneRegex = /^(77|78|76|75|70|33)\d{7}$/;
+    if (!partnerForm.nomRestaurant || partnerForm.nomRestaurant.trim().length < 2) {
+      return alert("Le nom du restaurant doit contenir au moins 2 caractères.");
+    }
+    if (!partnerForm.nomContact || partnerForm.nomContact.trim().length < 2) {
+      return alert("Votre nom doit contenir au moins 2 caractères.");
+    }
+    if (!phoneRegex.test(partnerForm.telephone.replace(/\s/g, ''))) {
+      return alert("Numéro de téléphone invalide. Ex: 771234567");
+    }
+    if (!partnerForm.ville || partnerForm.ville.trim().length < 3) {
+      return alert("La ville/quartier doit contenir au moins 3 caractères.");
+    }
+
     setPartnerStatus('loading');
     fetch('http://192.168.1.6:8080/api/v1/public/partner-requests', {
       method: 'POST',
