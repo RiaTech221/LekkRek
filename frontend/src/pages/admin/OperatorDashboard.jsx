@@ -142,11 +142,11 @@ export default function OperatorDashboard() {
           <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="absolute -right-3 top-9 bg-white border border-gray-200 rounded-full p-1 shadow-sm text-gray-500 hover:text-red-600 z-50 hover:shadow transition-all flex items-center justify-center">
             {isSidebarOpen ? <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" /></svg> : <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>}
           </button>
-        <div className="p-6 shrink-0">
-                      <div className="flex items-center justify-center h-12 overflow-hidden">
-              <img src="/logo-square.png" alt="Logo LekkRek" className={`object-contain transition-all duration-300 cursor-default ${isSidebarOpen ? "h-12 w-auto" : "h-10 w-10"}`} />
+        <div className="px-5 pt-8 pb-4 shrink-0">
+            <div className={`flex items-center h-16 overflow-hidden transition-all duration-300 ${isSidebarOpen ? "justify-start" : "justify-center"}`}>
+              <img src="/logo-square.png" alt="Logo LekkRek" className={`object-contain transition-all duration-300 cursor-default ${isSidebarOpen ? "h-16 w-auto" : "h-10 w-10"}`} />
             </div>
-        </div>
+          </div>
         
         <div className="flex-1 overflow-y-auto px-4 pb-4">
           <nav className="space-y-2">
@@ -428,6 +428,7 @@ export default function OperatorDashboard() {
     </div>
   );
 }
+
 
 
 
