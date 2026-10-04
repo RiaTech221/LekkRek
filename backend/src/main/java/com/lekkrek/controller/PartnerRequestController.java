@@ -13,6 +13,7 @@ package com.lekkrek.controller;
 import com.lekkrek.entity.PartnerRequest;
 import com.lekkrek.repository.PartnerRequestRepository;
 import org.springframework.security.access.prepost.PreAuthorize;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -27,7 +28,7 @@ public class PartnerRequestController {
     }
 
     @PostMapping("/api/v1/public/partner-requests")
-    public PartnerRequest createRequest(@RequestBody PartnerRequest request) {
+    public PartnerRequest createRequest(@Valid @RequestBody PartnerRequest request) {
         return repository.save(request);
     }
 
