@@ -147,16 +147,7 @@ export default function ClientView() {
   };
 
   
-  const handleSearchSubmit = (e) => {
-    e.preventDefault();
-    if(keyword) {
-      fetch('http://192.168.1.6:8080/api/v1/public/analytics', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ eventType: 'search', entityId: keyword, context: 'search_bar' })
-      }).catch(console.error);
-    }
-  };
+
 
   
   useEffect(() => {
@@ -222,6 +213,19 @@ return () => {
       .then(data => setPlats(data))
       .catch(err => console.error("Erreur API:", err));
   }, [keyword, resto, budgetMax, quartier, momentFilter]);
+
+  // Analytics logging (debounced)
+  useEffect(() => {
+    if (!keyword || keyword.length < 3) return;
+    const timeoutId = setTimeout(() => {
+      fetch('http://192.168.1.6:8080/api/v1/public/analytics', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ eventType: 'search', entityId: keyword, context: 'search_bar' })
+      }).catch(console.error);
+    }, 1500); // Wait 1.5 seconds after typing stops before logging
+    return () => clearTimeout(timeoutId);
+  }, [keyword]);
 
   const addToCart = (plat) => setCart([...cart, plat]);
   const total = cart.reduce((sum, item) => sum + item.price, 0);
