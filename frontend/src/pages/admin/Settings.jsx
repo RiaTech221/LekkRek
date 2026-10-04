@@ -207,7 +207,7 @@ export default function Settings() {
 
         <div className="flex justify-end mt-4">
           <button type="submit" disabled={loading} className="bg-red-600 hover:bg-red-700 text-white px-8 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-red-600/20 transition-all disabled:opacity-50">
-            {loading ? \'...\' : \'💾 Enregistrer les modifications\'}
+            {loading ? '...' : '💾 Enregistrer les modifications'}
           </button>
         </div>
       </form>
