@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 /**
@@ -237,18 +237,25 @@ export default function Overview() {
                 )}
               </div>
               
-              <div className="bg-gray-50 p-6 rounded-xl border border-gray-100 flex flex-col justify-center items-center text-center">
-                <div className="w-16 h-16 rounded-full bg-white shadow-sm flex items-center justify-center mb-4 text-gray-400">
-                  <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+                              <div className="bg-gray-50 p-6 rounded-xl border border-gray-100 flex flex-col justify-center items-center text-center">
+                  <div className="w-16 h-16 rounded-full bg-white shadow-sm flex items-center justify-center mb-4 text-gray-400">
+                    <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+                  </div>
+                  <h5 className="font-bold text-gray-900 mb-2">Analyse des tendances</h5>
+                  {analytics && analytics.topSearches && analytics.topSearches.length > 0 ? (
+                    <p className="text-sm text-gray-500 max-w-sm leading-relaxed">
+                      Forte demande constatée pour <strong>{analytics.topSearches[0].query}</strong> ({analytics.topSearches[0].count} requêtes){analytics.topSearches.length > 1 ? <>, suivi de près par <strong>{analytics.topSearches[1].query}</strong>.</> : '.'} <br/><br/>
+                      <span className="text-red-600 font-medium">💡 Recommandation :</span> Mettez ces plats en avant sur l'accueil et notifiez vos partenaires pour assurer leur disponibilitééé.
+                    </p>
+                  ) : (
+                    <p className="text-sm text-gray-500 max-w-sm">
+                      Les plats les plus recherchés permettent d'ajuster l'offre des prestataires en temps réel pour maximiser les conversions.
+                    </p>
+                  )}
                 </div>
-                <h5 className="font-bold text-gray-900 mb-2">Analyse des tendances</h5>
-                <p className="text-sm text-gray-500 max-w-sm">
-                  Les plats les plus recherchés permettent d'ajuster l'offre des prestataires en temps réel pour maximiser les conversions.
-                </p>
               </div>
             </div>
-          </div>
-        </>
+          </>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           {/* Opérateur Stats */}
@@ -337,4 +344,6 @@ export default function Overview() {
     </div>
   );
 }
+
+
 
