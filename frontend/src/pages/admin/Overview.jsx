@@ -257,7 +257,7 @@ export default function Overview() {
                             stroke="none"
                           >
                             {analytics.topSearches.map((entry, index) => (
-                              <Cell key={cell-${index}} fill={COLORS[index % COLORS.length]} />
+                              <Cell key={'cell-' + index} fill={COLORS[index % COLORS.length]} />
                             ))}
                           </Pie>
                           <RechartsTooltip contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'}} />
