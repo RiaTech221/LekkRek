@@ -29,8 +29,11 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.Arrays;
 
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
@@ -80,8 +83,11 @@ public class SecurityConfig {
                 auth.requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll() // IMPORTANT POUR LES PREFLIGHT
                     .requestMatchers("/api/v1/public/**").permitAll()
                     .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/pages/**").permitAll()
-                    .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/settings").permitAll()
+                    .requestMatchers("/api/v1/pages/**").hasRole("ADMIN")
+                    .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/settings", "/api/v1/settings/**").permitAll()
+                    .requestMatchers("/api/v1/settings", "/api/v1/settings/**").hasRole("ADMIN")
                     .requestMatchers("/uploads/**").permitAll()
+                    .requestMatchers("/api/v1/upload", "/api/v1/upload/**").hasRole("ADMIN")
                     .requestMatchers("/api/v1/auth/**").permitAll()
                     .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                     .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
