@@ -12,12 +12,13 @@ package com.lekkrek.service;
 
 import com.lekkrek.entity.Commande;
 import com.lekkrek.dto.OrderRequestDTO;
+import com.lekkrek.dto.OrderResponseDTO;
 import com.lekkrek.dto.OrderTrackingDTO;
 
 import java.util.List;
 
 public interface OrderService {
-    Commande createOrder(OrderRequestDTO request);
+    OrderResponseDTO createOrder(OrderRequestDTO request);
     List<Commande> getAllOrders();
     Commande updateOrderStatus(Long id, String status);
     Commande getOrderByNumber(String orderNumber);

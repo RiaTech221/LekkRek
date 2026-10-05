@@ -12,6 +12,7 @@ package com.lekkrek.controller;
 
 import com.lekkrek.entity.Commande;
 import com.lekkrek.dto.OrderRequestDTO;
+import com.lekkrek.dto.OrderResponseDTO;
 import com.lekkrek.dto.OrderTrackingDTO;
 import com.lekkrek.service.OrderService;
 import org.springframework.web.bind.annotation.*;
@@ -28,7 +29,7 @@ public class OrderController {
     }
 
     @PostMapping
-    public Commande createOrder(@RequestBody OrderRequestDTO request) {
+    public OrderResponseDTO createOrder(@RequestBody OrderRequestDTO request) {
         return orderService.createOrder(request);
     }
 
