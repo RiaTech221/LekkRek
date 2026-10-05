@@ -42,6 +42,14 @@ export default function ClientView() {
     return { clientName: '', clientPhone: '', clientAddress: '', type: 'LIVRAISON', paymentMethod: 'WAVE' };
   });
   const [orderInfo, setOrderInfo] = useState(null);
+  const [toast, setToast] = useState(null);
+
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => {
+      setToast(null);
+    }, 3000);
+  };
 
   // States pour le suivi
   const [isTrackModalOpen, setTrackModalOpen] = useState(false);
@@ -99,9 +107,9 @@ export default function ClientView() {
       
     setLoginOpen(false);
     if (formData.clientPhone) {
-      alert("Profil mis à jour !");
+      showToast("Profil mis à jour !", "success");
     } else {
-      alert("Connecté avec succès ! Vos favoris ont été chargés.");
+      showToast("Connecté avec succès ! Vos favoris ont été chargés.", "success");
     }
   };
 
@@ -110,7 +118,7 @@ export default function ClientView() {
     setFormData(prev => ({ ...prev, clientPhone: '', clientName: '' }));
     setRecommendations([]);
     setLoginOpen(false);
-    alert("Vous êtes déconnecté.");
+    showToast("Vous êtes déconnecté.", "info");
   };
 
   
@@ -261,7 +269,13 @@ return () => {
         body: JSON.stringify(orderRequest)
       })
       .then(res => {
-        if (!res.ok) throw new Error("Erreur serveur lors de la commande.");
+        if (!res.ok) {
+          return res.json().then(err => {
+            throw new Error(err.message || "Erreur serveur lors de la commande.");
+          }).catch(() => {
+            throw new Error("Erreur serveur lors de la commande.");
+          });
+        }
         return res.json();
       })
       .then(data => {
@@ -989,6 +1003,16 @@ return () => {
           Besoin d'aide ?
         </span>
       </a>
+
+      {/* TOAST NOTIFICATION */}
+      {toast && (
+        <div className="fixed top-24 right-6 z-[9999] flex items-center gap-3 bg-white/95 backdrop-blur-md px-5 py-3.5 rounded-2xl shadow-xl border border-gray-100 text-sm font-bold text-gray-800 transition-all duration-300 animate-in fade-in slide-in-from-top-4">
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${toast.type === 'success' ? 'bg-green-100 text-green-600' : 'bg-red-50 text-red-600'}`}>
+            {toast.type === 'success' ? '✓' : '👋'}
+          </div>
+          <span>{toast.message}</span>
+        </div>
+      )}
     </div>
   );
 }

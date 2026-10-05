@@ -23,6 +23,7 @@ export default function Login() {
     .then(data => {
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify({ email: data.email, roles: data.roles }));
+      localStorage.setItem('lekkrek_admin_tab', 'overview');
       navigate('/admin');
     })
     .catch(err => setError(err.message));
