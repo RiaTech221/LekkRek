@@ -4,8 +4,8 @@ package com.lekkrek.controller;
  * ============================================================================
  * 📁 Fichier : OperatorController.java
  * 📝 Description : Classe métier pour la gestion de OperatorController dans LekkRek.
- * 🔒 Rôle : Fait partie de l'architecture Backend Spring Boot.
- * 💡 Auteur : Documenté automatiquement (Standard Enterprise)
+ * 🛠 Rôle : Fait partie de l'architecture Backend Spring Boot.
+ * 👨‍💻 Auteur : Documenté automatiquement (Standard Enterprise)
  * ============================================================================
  */
 
@@ -16,10 +16,7 @@ import com.lekkrek.dto.PlatRequestDTO;
 import com.lekkrek.service.OrderService;
 import com.lekkrek.service.PlatService;
 import org.springframework.security.access.prepost.PreAuthorize;
-<<<<<<< HEAD
-=======
 import jakarta.validation.Valid;
->>>>>>> develop
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -32,10 +29,6 @@ import com.lekkrek.repository.UtilisateurRepository;
 @RestController
 @RequestMapping("${api.prefix.operator:/api/v1/operator}")
 @PreAuthorize("hasAnyRole('ADMIN', 'OPERATEUR')")
-<<<<<<< HEAD
-@CrossOrigin(origins = "*")
-=======
->>>>>>> develop
 public class OperatorController {
 
     private final OrderService orderService;
@@ -104,4 +97,3 @@ public class OperatorController {
         platService.duplicateYesterdayPlats(restaurantId);
     }
 }
-

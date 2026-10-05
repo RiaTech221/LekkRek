@@ -25,10 +25,7 @@ import java.util.List;
 @RestController
 @RequestMapping("${api.prefix.admin:/api/v1/admin}")
 @PreAuthorize("hasRole('ADMIN')")
-<<<<<<< HEAD
-@CrossOrigin(origins = "*")
-=======
->>>>>>> develop
+
 public class AdminController {
 
     private final UtilisateurRepository utilisateurRepository;
