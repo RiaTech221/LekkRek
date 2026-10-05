@@ -11,30 +11,16 @@ package com.lekkrek.controller;
 
 
 import org.apache.tika.Tika;
-import org.apache.tika.utils.XMLReaderUtils;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import jakarta.annotation.PostConstruct;
 import java.util.HashMap;
 import java.util.Map;
 
 @RestController
 @RequestMapping("${api.prefix.admin:/api/v1/admin}/documents")
 public class DocumentParserController {
-
-    @PostConstruct
-    public void secureTika() {
-        try {
-            // Désactiver les DTD et entités externes pour prévenir les failles XXE
-            XMLReaderUtils.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
-            XMLReaderUtils.setFeature("http://xml.org/sax/features/external-general-entities", false);
-            XMLReaderUtils.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 
     @PostMapping("/parse")
     @PreAuthorize("hasRole('ADMIN')")
