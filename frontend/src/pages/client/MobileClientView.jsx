@@ -1,3 +1,4 @@
+import { API_URL, formatImageUrl } from '../../config';
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -74,7 +75,7 @@ export default function MobileClientView() {
     setFormData(prev => ({ ...prev, clientPhone: cleanPhone, clientName: loginName || prev.clientName }));
     
     // Refresh recommendations
-    fetch(`http://192.168.1.6:8080/api/v1/public/menu/recommendations?phone=${cleanPhone}`)
+    fetch(`${API_URL}/api/v1/public/menu/recommendations?phone=${cleanPhone}`)
       .then(res => res.json())
       .then(data => setRecommendations(data))
       .catch(err => console.error(err));
@@ -120,7 +121,7 @@ export default function MobileClientView() {
     const encodedMessage = encodeURIComponent(message);
     const waUrl = `https://wa.me/221781161910?text=${encodedMessage}`;
 
-    fetch('http://192.168.1.6:8080/api/v1/public/analytics', {
+    fetch(`${API_URL}/api/v1/public/analytics`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ eventType: 'click_whatsapp', entityId: '781161910', context: 'floating_button' })
@@ -146,7 +147,7 @@ return () => {
 
   // Fetch ALL plats once to build the full category list (independent of filters)
   useEffect(() => {
-    fetch('http://192.168.1.6:8080/api/v1/public/menu')
+    fetch(`${API_URL}/api/v1/public/menu`)
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data)) {
@@ -169,7 +170,7 @@ return () => {
     if (saved) {
       try { phone = JSON.parse(saved).phone || ''; } catch (e) {}
     }
-    fetch(`http://192.168.1.6:8080/api/v1/public/menu/recommendations?phone=${phone}`)
+    fetch(`${API_URL}/api/v1/public/menu/recommendations?phone=${phone}`)
       .then(res => res.json())
       .then(data => setRecommendations(data))
       .catch(err => console.error(err));
@@ -178,7 +179,7 @@ return () => {
   // Recharge les plats dès qu'un filtre change
   useEffect(() => {
     // 1. Fetch settings
-    fetch('http://192.168.1.6:8080/api/v1/settings')
+    fetch(`${API_URL}/api/v1/settings`)
       .then(res => res.json())
       .then(data => setPlatformSettings(data))
       .catch(err => console.error("Erreur Settings:", err));
@@ -191,7 +192,7 @@ return () => {
     if (quartier) params.append('quartier', quartier);
     if (momentFilter) params.append('moment', momentFilter);
 
-    fetch(`http://192.168.1.6:8080/api/v1/public/menu?${params.toString()}`)
+    fetch(`${API_URL}/api/v1/public/menu?${params.toString()}`)
       .then(res => res.json())
       .then(data => setPlats(data))
       .catch(err => console.error("Erreur API:", err));
@@ -201,7 +202,7 @@ return () => {
   useEffect(() => {
     if (!keyword || keyword.length < 3) return;
     const timeoutId = setTimeout(() => {
-      fetch('http://192.168.1.6:8080/api/v1/public/analytics', {
+      fetch(`${API_URL}/api/v1/public/analytics`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ eventType: 'search', entityId: keyword, context: 'search_bar_mobile' })
@@ -237,7 +238,7 @@ return () => {
         platIds: cart.map(p => p.id)
       };
 
-      fetch('http://192.168.1.6:8080/api/v1/public/orders', {
+      fetch(`${API_URL}/api/v1/public/orders`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(orderRequest)
@@ -299,7 +300,7 @@ return () => {
     }
 
     setPartnerStatus('loading');
-    fetch('http://192.168.1.6:8080/api/v1/public/partner-requests', {
+    fetch(`${API_URL}/api/v1/public/partner-requests`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(partnerForm)
@@ -324,7 +325,7 @@ return () => {
     setTrackError('');
     setTrackResult(null);
 
-    fetch(`http://192.168.1.6:8080/api/v1/public/orders/track/${trackOrderNumber}`)
+    fetch(`${API_URL}/api/v1/public/orders/track/${trackOrderNumber}`)
       .then(res => {
         if (res.status === 404) throw new Error("Commande introuvable.");
         if (!res.ok) throw new Error("Erreur lors de la recherche.");
@@ -497,7 +498,7 @@ return () => {
                 <div key={`rec-${plat.id}`} className="bg-orange-50/50 rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-orange-100 group flex flex-col relative">
                   <div className="absolute top-2 right-2 bg-orange-500 text-white text-[10px] font-bold px-2 py-1 rounded-full z-10 shadow-sm">Favori</div>
                   <div className="relative h-40 overflow-hidden bg-gray-100 shrink-0">
-                    <img src={plat.image?.replace('localhost', '192.168.1.6')} alt={plat.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&q=80&w=800'; }} />
+                    <img src={formatImageUrl(plat.image)} alt={plat.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&q=80&w=800'; }} />
                   </div>
                   <div className="p-4 flex flex-col flex-grow">
                     <h3 className="font-bold text-lg text-gray-900 leading-tight mb-1 truncate">{plat.name}</h3>
@@ -520,7 +521,7 @@ return () => {
           {Array.isArray(plats) && plats.length > 0 ? plats.map(plat => (
             <div key={plat.id} className="bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 group flex flex-col">
               <div className="relative h-56 overflow-hidden bg-gray-100 shrink-0">
-                <img src={plat.image?.replace('localhost', '192.168.1.6')} alt={plat.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&q=80&w=800'; }} />
+                <img src={formatImageUrl(plat.image)} alt={plat.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&q=80&w=800'; }} />
                 <div className="absolute top-4 left-4">
                   <span className={`px-3 py-1 text-xs font-black uppercase tracking-wider rounded-full shadow-md backdrop-blur-md ${plat.status === 'DISPO' ? 'bg-white/90 text-green-600' : 'bg-red-600/90 text-white'}`}>
                     {plat.status === 'DISPO' ? 'Disponible' : 'Épuisé'}
@@ -565,7 +566,7 @@ return () => {
                 {allPlats.slice(0, 3).map(plat => (
                   <div key={plat.id} className="bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 group flex flex-col">
                     <div className="relative h-56 overflow-hidden bg-gray-100 shrink-0">
-                      <img src={plat.image?.replace('localhost', '192.168.1.6')} alt={plat.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&q=80&w=800'; }} />
+                      <img src={formatImageUrl(plat.image)} alt={plat.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&q=80&w=800'; }} />
                       <div className="absolute top-4 left-4">
                         <span className={`px-3 py-1 text-xs font-black uppercase tracking-wider rounded-full shadow-md backdrop-blur-md ${plat.status === 'DISPO' ? 'bg-white/90 text-green-600' : 'bg-red-600/90 text-white'}`}>
                           {plat.status === 'DISPO' ? 'Disponible' : 'Épuisé'}
@@ -625,7 +626,7 @@ return () => {
                   {cart.map((item, idx) => (
                     <li key={idx} className="flex justify-between items-center bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
                       <div className="flex items-center gap-4">
-                        <img src={item.image?.replace('localhost', '192.168.1.6')} alt={item.name} className="w-16 h-16 rounded-xl object-cover" />
+                        <img src={formatImageUrl(item.image)} alt={item.name} className="w-16 h-16 rounded-xl object-cover" />
                         <div>
                           <p className="font-bold text-gray-900 text-sm">{item.name}</p>
                           <p className="text-red-600 font-bold text-sm">{item.price} FCFA</p>

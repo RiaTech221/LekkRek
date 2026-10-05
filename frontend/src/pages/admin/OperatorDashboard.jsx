@@ -1,3 +1,4 @@
+import { API_URL } from '../../config';
 ﻿import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../../index.css';
@@ -50,7 +51,7 @@ export default function OperatorDashboard() {
 
   const fetchCommandes = () => {
     const token = localStorage.getItem('token');
-    fetch('http://192.168.1.6:8080/api/v1/operator/orders', {
+    fetch(`${API_URL}/api/v1/operator/orders`, {
       headers: { 'Authorization': `Bearer ${token}` }
     })
       .then(res => {
@@ -108,7 +109,7 @@ export default function OperatorDashboard() {
 
     const updatePaymentStatus = (id, newStatus) => {
     const token = localStorage.getItem('token');
-    fetch(`http://192.168.1.6:8080/api/v1/operator/orders/${id}/payment-status?status=${newStatus}`, { 
+    fetch(`${API_URL}/api/v1/operator/orders/${id}/payment-status?status=${newStatus}`, { 
       method: 'PUT',
       headers: { 'Authorization': `Bearer ${token}` }
     })
@@ -119,7 +120,7 @@ export default function OperatorDashboard() {
 
   const updateStatus = (id, newStatus) => {
     const token = localStorage.getItem('token');
-    fetch(`http://192.168.1.6:8080/api/v1/operator/orders/${id}/status?status=${newStatus}`, { 
+    fetch(`${API_URL}/api/v1/operator/orders/${id}/status?status=${newStatus}`, { 
       method: 'PUT',
       headers: { 'Authorization': `Bearer ${token}` }
     })

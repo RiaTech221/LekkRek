@@ -1,3 +1,4 @@
+import { API_URL } from '../../config';
 import React, { useState, useEffect } from 'react';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
@@ -31,12 +32,12 @@ export default function Accounting() {
     setLoading(true);
     const token = localStorage.getItem('token');
     try {
-      const resOrders = await fetch('http://192.168.1.6:8080/api/v1/operator/orders', {
+      const resOrders = await fetch(`${API_URL}/api/v1/operator/orders`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const dataOrders = await resOrders.json();
       
-      const resRestos = await fetch('http://192.168.1.6:8080/api/v1/admin/restaurants', {
+      const resRestos = await fetch(`${API_URL}/api/v1/admin/restaurants`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const dataRestos = await resRestos.json();
