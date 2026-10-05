@@ -1,6 +1,7 @@
 import { API_URL, formatImageUrl } from '../../config';
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import DOMPurify from 'dompurify';
 
 /**
  * ============================================================================
@@ -51,6 +52,13 @@ export default function MobileClientView() {
   const [trackError, setTrackError] = useState('');
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
+  // Toast notifications
+  const [toast, setToast] = useState({ visible: false, message: '', type: 'success' });
+  const showToast = (message, type = 'success') => {
+    setToast({ visible: true, message, type });
+    setTimeout(() => setToast(prev => ({ ...prev, visible: false })), 3000);
+  };
+
   const [isLoginOpen, setLoginOpen] = useState(false);
   const [loginPhone, setLoginPhone] = useState('');
   const [loginName, setLoginName] = useState('');
@@ -64,7 +72,7 @@ export default function MobileClientView() {
   const handleLogin = (e) => {
     e.preventDefault();
     if (!/^(77|78|76|75|70|33)\d{7}$/.test(loginPhone.replace(/\s/g, ''))) {
-      return alert("Numéro de téléphone invalide.");
+      return showToast("Numéro de téléphone invalide.", 'error');
     }
     const cleanPhone = loginPhone.replace(/\s/g, '');
     localStorage.setItem('lekkrek_client_profile', JSON.stringify({ 
@@ -82,9 +90,9 @@ export default function MobileClientView() {
       
     setLoginOpen(false);
     if (formData.clientPhone) {
-      alert("Profil mis à jour !");
+      showToast("Profil mis à jour !");
     } else {
-      alert("Connecté avec succès ! Vos favoris ont été chargés.");
+      showToast("Connecté avec succès ! Vos favoris ont été chargés.");
     }
   };
 
@@ -93,7 +101,7 @@ export default function MobileClientView() {
     setFormData(prev => ({ ...prev, clientPhone: '', clientName: '' }));
     setRecommendations([]);
     setLoginOpen(false);
-    alert("Vous êtes déconnecté.");
+    showToast("Vous êtes déconnecté.", 'info');
   };
 
   
@@ -244,7 +252,13 @@ return () => {
         body: JSON.stringify(orderRequest)
       })
       .then(res => {
-        if (!res.ok) throw new Error("Erreur serveur lors de la commande.");
+        if (!res.ok) {
+          return res.json().then(err => {
+            throw new Error(err.message || "Erreur serveur lors de la commande.");
+          }).catch(() => {
+            throw new Error("Erreur serveur lors de la commande.");
+          });
+        }
         return res.json();
       })
       .then(data => {
@@ -337,7 +351,25 @@ return () => {
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
-      
+
+      {/* TOAST NOTIFICATION */}
+      {toast.visible && (
+        <div style={{
+          position: 'fixed', bottom: '24px', left: '50%', transform: 'translateX(-50%)',
+          zIndex: 99999, display: 'flex', alignItems: 'center', gap: '10px',
+          padding: '12px 20px', borderRadius: '12px', fontWeight: '600', fontSize: '14px',
+          boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
+          background: toast.type === 'error' ? '#fff1f0' : toast.type === 'info' ? '#f0f4ff' : '#f0fff4',
+          color: toast.type === 'error' ? '#c0392b' : toast.type === 'info' ? '#2563eb' : '#16a34a',
+          border: `1.5px solid ${toast.type === 'error' ? '#fca5a5' : toast.type === 'info' ? '#93c5fd' : '#86efac'}`,
+          animation: 'slideUp 0.3s ease',
+          whiteSpace: 'nowrap',
+        }}>
+          <span>{toast.type === 'error' ? '❌' : toast.type === 'info' ? 'ℹ️' : '✅'}</span>
+          {toast.message}
+        </div>
+      )}
+
       {/* NAVBAR */}
       <nav className="fixed top-0 left-0 w-full bg-white/90 backdrop-blur-md z-50 border-b border-gray-100 shadow-sm transition-all duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -387,8 +419,8 @@ return () => {
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32 flex flex-col items-start text-left">
           <span className="bg-red-600 text-white font-bold tracking-wider uppercase text-sm px-4 py-1.5 rounded-full mb-6 shadow-lg">Livraison partout à Ziguinchor</span>
-          <h2 className="text-4xl md:text-6xl font-black text-white mb-6 tracking-tight leading-tight max-w-2xl whitespace-pre-line" dangerouslySetInnerHTML={{ __html: platformSettings?.heroTitle || 'Les menus du jour<br/>à Ziguinchor.' }}></h2>
-          <p className="text-xl text-gray-200 max-w-xl mb-10 font-medium leading-relaxed whitespace-pre-line" dangerouslySetInnerHTML={{ __html: platformSettings?.heroSubtitle || 'Qui a cuisiné quoi, à quel prix, où le trouver.<br/>Publié du lundi au samedi à 10h30.<br/>Ce qu\'il reste à 13h30.' }}></p>
+          <h2 className="text-4xl md:text-6xl font-black text-white mb-6 tracking-tight leading-tight max-w-2xl whitespace-pre-line" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(platformSettings?.heroTitle || 'Les menus du jour<br/>à Ziguinchor.') }}></h2>
+          <p className="text-xl text-gray-200 max-w-xl mb-10 font-medium leading-relaxed whitespace-pre-line" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(platformSettings?.heroSubtitle || 'Qui a cuisiné quoi, à quel prix, où le trouver.<br/>Publié du lundi au samedi à 10h30.<br/>Ce qu\'il reste à 13h30.') }}></p>
           
           {/* SEARCH BAR (Airbnb style - Fixed for all screens) */}
           <div className="w-full bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden mb-4 transition-all duration-300">
@@ -449,7 +481,19 @@ return () => {
                     <span className="text-lg mr-2">💰</span>
                     <div className="flex flex-col w-full">
                       <span className="text-[9px] uppercase tracking-wider font-bold text-gray-500 mb-0.5">Budget max</span>
-                      <input type="number" placeholder="ex: 2000" className="bg-transparent border-none outline-none w-full text-gray-900 font-bold text-xs" value={budgetMax} onChange={(e) => setBudgetMax(e.target.value)} />
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        placeholder="ex: 2000"
+                        className="bg-transparent border-none outline-none w-full text-gray-900 font-bold text-xs"
+                        value={budgetMax}
+                        onChange={(e) => setBudgetMax(e.target.value.replace(/\D/g, ''))}
+                        onKeyDown={(e) => {
+                          if (!/[0-9]/.test(e.key) && !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key)) {
+                            e.preventDefault();
+                          }
+                        }}
+                      />
                     </div>
                   </div>
                 </div>
@@ -660,7 +704,21 @@ return () => {
                     </div>
 
                     <input type="text" placeholder="Votre Nom Complet" required className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-red-600" value={formData.clientName} onChange={e => setFormData({...formData, clientName: e.target.value})} />
-                    <input type="tel" placeholder="Numéro de Téléphone" required className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-red-600" value={formData.clientPhone} onChange={e => setFormData({...formData, clientPhone: e.target.value})} />
+                    <input
+                      type="tel"
+                      inputMode="numeric"
+                      maxLength={9}
+                      placeholder="Numéro de Téléphone (9 chiffres, ex: 771234567)"
+                      required
+                      className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-red-600"
+                      value={formData.clientPhone}
+                      onChange={e => setFormData({...formData, clientPhone: e.target.value.replace(/\D/g, '').slice(0, 9)})}
+                      onKeyDown={e => {
+                        if (!/[0-9]/.test(e.key) && !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key) && !e.ctrlKey && !e.metaKey) {
+                          e.preventDefault();
+                        }
+                      }}
+                    />
                     
                     {formData.type === 'LIVRAISON' && (
                       <textarea placeholder="Adresse de livraison complète (Quartier, Repère)" required className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-red-600" value={formData.clientAddress} onChange={e => setFormData({...formData, clientAddress: e.target.value})} />
@@ -733,7 +791,21 @@ return () => {
                   <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
                     <span className="text-gray-400 font-bold border-r border-gray-200 pr-3">+221</span>
                   </div>
-                  <input type="tel" placeholder="77 123 45 67" required className="w-full bg-gray-50 border border-gray-200 rounded-2xl pl-20 pr-5 py-4 font-bold text-gray-900 focus:outline-none focus:border-red-500 focus:ring-4 focus:ring-red-500/10 transition-all placeholder:font-medium placeholder:text-gray-400" value={loginPhone} onChange={(e) => setLoginPhone(e.target.value)} />
+                  <input
+                    type="tel"
+                    inputMode="numeric"
+                    maxLength={9}
+                    placeholder="771234567"
+                    required
+                    className="w-full bg-gray-50 border border-gray-200 rounded-2xl pl-20 pr-5 py-4 font-bold text-gray-900 focus:outline-none focus:border-red-500 focus:ring-4 focus:ring-red-500/10 transition-all placeholder:font-medium placeholder:text-gray-400"
+                    value={loginPhone}
+                    onChange={(e) => setLoginPhone(e.target.value.replace(/\D/g, '').slice(0, 9))}
+                    onKeyDown={(e) => {
+                      if (!/[0-9]/.test(e.key) && !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key) && !e.ctrlKey && !e.metaKey) {
+                        e.preventDefault();
+                      }
+                    }}
+                  />
                 </div>
               </div>
               <button type="submit" className="w-full bg-red-600 hover:bg-red-700 text-white py-4 rounded-2xl font-black text-lg mt-4 shadow-[0_8px_20px_-6px_rgba(220,38,38,0.5)] hover:shadow-[0_12px_25px_-6px_rgba(220,38,38,0.6)] hover:-translate-y-0.5 transition-all">
@@ -828,7 +900,21 @@ return () => {
                 </div>
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-1">Téléphone</label>
-                  <input type="tel" required className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 outline-none focus:ring-2 focus:ring-red-500" value={partnerForm.telephone} onChange={(e) => setPartnerForm({...partnerForm, telephone: e.target.value})} placeholder="Ex: 77 123 45 67" />
+                  <input
+                    type="tel"
+                    inputMode="numeric"
+                    maxLength={9}
+                    required
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 outline-none focus:ring-2 focus:ring-red-500"
+                    value={partnerForm.telephone}
+                    onChange={(e) => setPartnerForm({...partnerForm, telephone: e.target.value.replace(/\D/g, '').slice(0, 9)})}
+                    placeholder="Ex: 771234567"
+                    onKeyDown={(e) => {
+                      if (!/[0-9]/.test(e.key) && !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key) && !e.ctrlKey && !e.metaKey) {
+                        e.preventDefault();
+                      }
+                    }}
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-1">Ville / Quartier</label>

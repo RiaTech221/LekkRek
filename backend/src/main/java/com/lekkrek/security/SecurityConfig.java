@@ -28,7 +28,11 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.beans.factory.annotation.Value;
 import java.util.Arrays;
+import java.util.List;
+
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 
 @Configuration
 @EnableWebSecurity
@@ -37,10 +41,17 @@ public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
     private final JwtUtils jwtUtils;
+    private final com.lekkrek.security.ratelimit.RateLimitFilter rateLimitFilter;
 
-    public SecurityConfig(CustomUserDetailsService userDetailsService, JwtUtils jwtUtils) {
+    @Value("${cors.allowed-origins}")
+    private String allowedOriginsRaw;
+
+    public SecurityConfig(CustomUserDetailsService userDetailsService,
+                          JwtUtils jwtUtils,
+                          com.lekkrek.security.ratelimit.RateLimitFilter rateLimitFilter) {
         this.userDetailsService = userDetailsService;
         this.jwtUtils = jwtUtils;
+        this.rateLimitFilter = rateLimitFilter;
     }
 
     @Bean
@@ -64,7 +75,9 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(Arrays.asList("*"));
+        // Origines autorisées lues depuis la variable d'env CORS_ALLOWED_ORIGINS
+        List<String> origins = Arrays.asList(allowedOriginsRaw.split(","));
+        configuration.setAllowedOriginPatterns(origins);
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept"));
         configuration.setAllowCredentials(true);
@@ -82,8 +95,11 @@ public class SecurityConfig {
                 auth.requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll() // IMPORTANT POUR LES PREFLIGHT
                     .requestMatchers("/api/v1/public/**").permitAll()
                     .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/pages/**").permitAll()
-                    .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/settings").permitAll()
+                    .requestMatchers("/api/v1/pages/**").hasRole("ADMIN")
+                    .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/settings", "/api/v1/settings/**").permitAll()
+                    .requestMatchers("/api/v1/settings", "/api/v1/settings/**").hasRole("ADMIN")
                     .requestMatchers("/uploads/**").permitAll()
+                    .requestMatchers("/api/v1/upload", "/api/v1/upload/**").hasRole("ADMIN")
                     .requestMatchers("/api/v1/auth/**").permitAll()
                     .requestMatchers("/error").permitAll()
                     .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
@@ -93,6 +109,7 @@ public class SecurityConfig {
             );
 
         http.authenticationProvider(authenticationProvider());
+        http.addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class);
         http.addFilterBefore(new JwtAuthFilter(jwtUtils, userDetailsService), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

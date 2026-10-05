@@ -12,12 +12,14 @@ package com.lekkrek.controller;
 
 import com.lekkrek.entity.Commande;
 import com.lekkrek.dto.OrderRequestDTO;
+import com.lekkrek.dto.OrderResponseDTO;
+import com.lekkrek.dto.OrderTrackingDTO;
 import com.lekkrek.service.OrderService;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("${api.prefix.public}/orders")
-@CrossOrigin(origins = "*")
 public class OrderController {
 
     private final OrderService orderService;
@@ -27,12 +29,13 @@ public class OrderController {
     }
 
     @PostMapping
-    public Commande createOrder(@RequestBody OrderRequestDTO request) {
+    public OrderResponseDTO createOrder(@Valid @RequestBody OrderRequestDTO request) {
+
         return orderService.createOrder(request);
     }
 
     @GetMapping("/track/{orderNumber}")
-    public Commande trackOrder(@PathVariable String orderNumber) {
-        return orderService.getOrderByNumber(orderNumber);
+    public OrderTrackingDTO trackOrder(@PathVariable String orderNumber) {
+        return orderService.getOrderTrackingByNumber(orderNumber);
     }
 }

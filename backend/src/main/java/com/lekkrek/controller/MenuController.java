@@ -18,7 +18,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("${api.prefix.public:/api/v1/public}/menu")
-@CrossOrigin(origins = "*")
 public class MenuController {
 
     private final PlatRepository platRepository;
@@ -31,7 +30,7 @@ public class MenuController {
     public List<Plat> searchPlats(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String resto,
-            @RequestParam(required = false) Double budgetMax,
+            @RequestParam(required = false) java.math.BigDecimal budgetMax,
             @RequestParam(required = false) String quartier,
             @RequestParam(required = false) String moment) {
         

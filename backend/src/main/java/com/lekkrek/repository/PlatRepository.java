@@ -26,7 +26,7 @@ public interface PlatRepository extends JpaRepository<Plat, Long> {
            "(:moment IS NULL OR p.moment = :moment)")
     List<Plat> searchPlats(@Param("keyword") String keyword, 
                            @Param("resto") String resto, 
-                           @Param("budgetMax") Double budgetMax, 
+                           @Param("budgetMax") java.math.BigDecimal budgetMax, 
                            @Param("quartier") String quartier,
                            @Param("moment") String moment);
 

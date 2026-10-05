@@ -10,6 +10,7 @@ package com.lekkrek.entity;
  */
 
 
+import java.math.BigDecimal;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -41,8 +42,8 @@ public class Restaurant {
 
     private boolean active = true;
 
-    @Column(nullable = false, columnDefinition = "double default 10.0")
-    private Double commissionRate = 10.0;
+    @Column(nullable = false, columnDefinition = "DECIMAL(5,2) default 10.0")
+    private BigDecimal commissionRate = new BigDecimal("10.0");
 
     private String subscriptionPlan = "Basic";
 

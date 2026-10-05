@@ -1,6 +1,7 @@
 import { API_URL } from '../../config';
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import DOMPurify from 'dompurify';
 
 /**
  * ============================================================================
@@ -66,10 +67,10 @@ export default function PublicPage() {
               {page.title}
             </h1>
             
-            {/* Contenu généré par le WYSIWYG (ReactQuill) */}
+            {/* Contenu généré par le WYSIWYG (ReactQuill) - Sécurisé par DOMPurify */}
             <div 
               className="prose prose-red max-w-none text-gray-700"
-              dangerouslySetInnerHTML={{ __html: page.content }}
+              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(page.content || '') }}
             />
           </article>
         )}

@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@CrossOrigin(origins = "*")
 public class PartnerRequestController {
 
     private final PartnerRequestRepository repository;
@@ -33,13 +32,13 @@ public class PartnerRequestController {
     }
 
     @GetMapping("/api/v1/admin/partner-requests")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public List<PartnerRequest> getRequests() {
         return repository.findAll();
     }
     
     @PutMapping("/api/v1/admin/partner-requests/{id}/status")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public PartnerRequest updateStatus(@PathVariable Long id, @RequestParam String status) {
         PartnerRequest req = repository.findById(id).orElseThrow(() -> new RuntimeException("Not found"));
         req.setStatus(status);

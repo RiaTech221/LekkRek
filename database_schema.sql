@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS plats (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     description TEXT,
-    price DOUBLE NOT NULL,
+    price DECIMAL(10,2) NOT NULL,
     image VARCHAR(255),
     moment VARCHAR(50), -- petit_dej, dejeuner, diner, fastfood
     status VARCHAR(50) NOT NULL, -- DISPO ou EPUISE
@@ -44,12 +44,13 @@ CREATE TABLE IF NOT EXISTS plats (
 CREATE TABLE IF NOT EXISTS commandes (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     order_number VARCHAR(50) NOT NULL UNIQUE, -- ex: CMD-123456
-    client_name VARCHAR(255) NOT NULL,
-    client_phone VARCHAR(50) NOT NULL,
-    client_address TEXT NOT NULL,
-    payment_method VARCHAR(50) NOT NULL, -- CASH_ON_DELIVERY, WAVE, ORANGE_MONEY
+    client_name VARCHAR(100) NOT NULL,
+    client_phone VARCHAR(9) NOT NULL,
+        CONSTRAINT chk_client_phone CHECK (client_phone REGEXP '^(77|78|76|75|70|33)[0-9]{7}$'),
+    client_address VARCHAR(200),
+    payment_method VARCHAR(50) NOT NULL, -- WAVE, ORANGE_MONEY, SAMIR_PAY, ESPECES, SUR_PLACE
     status VARCHAR(50) NOT NULL, -- NOUVELLE, EN_PREPARATION, PRETE, LIVREE, ANNULEE
-    total_amount DOUBLE NOT NULL,
+    total_amount DECIMAL(10,2) NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -59,9 +60,21 @@ CREATE TABLE IF NOT EXISTS commande_items (
     commande_id BIGINT NOT NULL,
     plat_id BIGINT NOT NULL,
     quantity INT NOT NULL,
-    price_at_order DOUBLE NOT NULL,
+    price_at_order DECIMAL(10,2) NOT NULL,
     CONSTRAINT fk_item_commande FOREIGN KEY (commande_id) REFERENCES commandes(id) ON DELETE CASCADE,
     CONSTRAINT fk_item_plat FOREIGN KEY (plat_id) REFERENCES plats(id)
+);
+
+-- 6. Table des Demandes Partenaires (Devenir Partenaire)
+CREATE TABLE IF NOT EXISTS partner_requests (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    nom_restaurant VARCHAR(255) NOT NULL,
+    nom_contact VARCHAR(255) NOT NULL,
+    telephone VARCHAR(9) NOT NULL,
+        CONSTRAINT chk_partner_telephone CHECK (telephone REGEXP '^(77|78|76|75|70|33)[0-9]{7}$'),
+    ville VARCHAR(100) NOT NULL,
+    status VARCHAR(50) NOT NULL DEFAULT 'PENDING',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 -- ==========================================
