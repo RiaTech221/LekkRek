@@ -39,13 +39,17 @@ public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
     private final JwtUtils jwtUtils;
+    private final com.lekkrek.security.ratelimit.RateLimitFilter rateLimitFilter;
 
     @Value("${cors.allowed-origins}")
     private String allowedOriginsRaw;
 
-    public SecurityConfig(CustomUserDetailsService userDetailsService, JwtUtils jwtUtils) {
+    public SecurityConfig(CustomUserDetailsService userDetailsService,
+                          JwtUtils jwtUtils,
+                          com.lekkrek.security.ratelimit.RateLimitFilter rateLimitFilter) {
         this.userDetailsService = userDetailsService;
         this.jwtUtils = jwtUtils;
+        this.rateLimitFilter = rateLimitFilter;
     }
 
     @Bean
@@ -100,6 +104,7 @@ public class SecurityConfig {
             );
 
         http.authenticationProvider(authenticationProvider());
+        http.addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class);
         http.addFilterBefore(new JwtAuthFilter(jwtUtils, userDetailsService), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
