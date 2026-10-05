@@ -33,7 +33,7 @@ public class Commande {
     @Column(nullable = false)
     private String clientName;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 9)
     private String clientPhone;
 
     private String clientAddress;
@@ -84,8 +84,7 @@ public class Commande {
         WAVE,
         ORANGE_MONEY,
         SAMIR_PAY,
-        ESPECES,
-        SUR_PLACE
+        ESPECES
     }
 
     public enum PaymentStatus {

@@ -1,3 +1,4 @@
+import { API_URL } from '../../config';
 import React, { useState, useEffect } from 'react';
 
 /**
@@ -29,7 +30,7 @@ export default function MenuManager() {
 
   const fetchPlats = () => {
     const token = localStorage.getItem('token');
-    fetch('http://192.168.1.6:8080/api/v1/operator/plats', {
+    fetch(`${API_URL}/api/v1/operator/plats`, {
       headers: { 'Authorization': `Bearer ${token}` }
     })
       .then(res => res.json())
@@ -38,7 +39,7 @@ export default function MenuManager() {
   };
 
   const fetchRestaurants = () => {
-    fetch('http://192.168.1.6:8080/api/v1/public/menu')
+    fetch(`${API_URL}/api/v1/public/menu`)
       .then(res => res.json())
       .then(data => {
         const uniqueRestos = [];
@@ -84,8 +85,8 @@ export default function MenuManager() {
     e.preventDefault();
     const token = localStorage.getItem('token');
     const url = currentPlat 
-      ? `http://192.168.1.6:8080/api/v1/operator/plats/${currentPlat.id}`
-      : 'http://192.168.1.6:8080/api/v1/operator/plats';
+      ? `${API_URL}/api/v1/operator/plats/${currentPlat.id}`
+      : `${API_URL}/api/v1/operator/plats`;
     const method = currentPlat ? 'PUT' : 'POST';
 
     fetch(url, {
@@ -107,7 +108,7 @@ export default function MenuManager() {
   const toggleStatus = (plat) => {
     const token = localStorage.getItem('token');
     const newStatus = plat.status === 'DISPO' ? 'EPUISE' : 'DISPO';
-    fetch(`http://192.168.1.6:8080/api/v1/operator/plats/${plat.id}/status?status=${newStatus}`, {
+    fetch(`${API_URL}/api/v1/operator/plats/${plat.id}/status?status=${newStatus}`, {
       method: 'PUT',
       headers: { 'Authorization': `Bearer ${token}` }
     })
@@ -119,7 +120,7 @@ export default function MenuManager() {
     if (!selectedRestaurant) return;
     if (!window.confirm("Voulez-vous marquer tous les plats de ce restaurant comme disponibles (dupliquer le menu de la veille) ?")) return;
     const token = localStorage.getItem('token');
-    fetch(`http://192.168.1.6:8080/api/v1/operator/restaurants/${selectedRestaurant.id}/plats/duplicate`, {
+    fetch(`${API_URL}/api/v1/operator/restaurants/${selectedRestaurant.id}/plats/duplicate`, {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${token}` }
     })
@@ -130,7 +131,7 @@ export default function MenuManager() {
   const handleDelete = (id) => {
     if (!window.confirm("Supprimer ce plat ?")) return;
     const token = localStorage.getItem('token');
-    fetch(`http://192.168.1.6:8080/api/v1/operator/plats/${id}`, {
+    fetch(`${API_URL}/api/v1/operator/plats/${id}`, {
       method: 'DELETE',
       headers: { 'Authorization': `Bearer ${token}` }
     })
@@ -357,7 +358,20 @@ export default function MenuManager() {
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1">Prix (FCFA)</label>
                   <div className="relative">
-                    <input required type="number" value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} className="w-full border border-gray-200 p-3 pr-12 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all shadow-sm text-gray-800 font-medium" placeholder="0" />
+                    <input
+                      required
+                      type="text"
+                      inputMode="numeric"
+                      value={formData.price}
+                      onChange={e => setFormData({...formData, price: e.target.value.replace(/\D/g, '')})}
+                      onKeyDown={e => {
+                        if (!/[0-9]/.test(e.key) && !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key)) {
+                          e.preventDefault();
+                        }
+                      }}
+                      className="w-full border border-gray-200 p-3 pr-12 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all shadow-sm text-gray-800 font-medium"
+                      placeholder="0"
+                    />
                     <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 font-medium">FCFA</span>
                   </div>
                 </div>
@@ -390,8 +404,8 @@ export default function MenuManager() {
                         if (!file) return;
                         const formDataUpload = new FormData();
                         formDataUpload.append('file', file);
-                        const token = localStorage.getItem('token');
-                        fetch('http://192.168.1.6:8080/api/v1/upload', {
+const token = localStorage.getItem('token');
+                          fetch(`${API_URL}/api/v1/upload`, {
                           method: 'POST',
                           headers: { 'Authorization': `Bearer ${token}` },
                           body: formDataUpload

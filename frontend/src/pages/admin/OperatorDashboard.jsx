@@ -1,4 +1,5 @@
-﻿import React, { useState, useEffect } from 'react';
+import { API_URL } from '../../config';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../../index.css';
 import MenuManager from './MenuManager';
@@ -36,8 +37,18 @@ export default function OperatorDashboard() {
   const navigate = useNavigate();
 
   const userStr = localStorage.getItem('user');
-  const user = userStr ? JSON.parse(userStr) : { roles: [] };
-  const isAdmin = user.roles.includes('ROLE_ADMIN');
+  let user = { roles: [] };
+  try {
+    if (userStr) {
+      const parsed = JSON.parse(userStr);
+      if (parsed && typeof parsed === 'object') {
+        user = { ...parsed, roles: Array.isArray(parsed.roles) ? parsed.roles : [] };
+      }
+    }
+  } catch (e) {
+    console.error("Erreur parsing user:", e);
+  }
+  const isAdmin = Array.isArray(user.roles) && user.roles.includes('ROLE_ADMIN');
   const roleLabel = isAdmin ? 'Administrateur' : 'Opérateur';
 
   // Supprime la barre de défilement globale du body (causée par index.css)
@@ -50,7 +61,7 @@ export default function OperatorDashboard() {
 
   const fetchCommandes = () => {
     const token = localStorage.getItem('token');
-    fetch('http://192.168.1.6:8080/api/v1/operator/orders', {
+    fetch(`${API_URL}/api/v1/operator/orders`, {
       headers: { 'Authorization': `Bearer ${token}` }
     })
       .then(res => {
@@ -108,7 +119,7 @@ export default function OperatorDashboard() {
 
     const updatePaymentStatus = (id, newStatus) => {
     const token = localStorage.getItem('token');
-    fetch(`http://192.168.1.6:8080/api/v1/operator/orders/${id}/payment-status?status=${newStatus}`, { 
+    fetch(`${API_URL}/api/v1/operator/orders/${id}/payment-status?status=${newStatus}`, { 
       method: 'PUT',
       headers: { 'Authorization': `Bearer ${token}` }
     })
@@ -119,7 +130,7 @@ export default function OperatorDashboard() {
 
   const updateStatus = (id, newStatus) => {
     const token = localStorage.getItem('token');
-    fetch(`http://192.168.1.6:8080/api/v1/operator/orders/${id}/status?status=${newStatus}`, { 
+    fetch(`${API_URL}/api/v1/operator/orders/${id}/status?status=${newStatus}`, { 
       method: 'PUT',
       headers: { 'Authorization': `Bearer ${token}` }
     })
@@ -138,71 +149,64 @@ export default function OperatorDashboard() {
     <div id="desktop-dashboard" className="flex bg-gray-50 font-sans" style={{ position: "fixed", top: 0, left: 0, width: "100%", height: "100vh", zIndex: 50 }}>
       
       {/* Sidebar */}
-      <div className={`${isSidebarOpen ? "w-64" : "w-20"} bg-white border-r border-gray-200 flex flex-col h-full flex-shrink-0 transition-all duration-300 relative`}>
+      <div className={`bg-white border-r border-gray-200 flex flex-col h-full flex-shrink-0 transition-all duration-300 relative overflow-x-hidden`} style={{ width: isSidebarOpen ? "256px" : "80px" }}>
           <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="absolute -right-3 top-9 bg-white border border-gray-200 rounded-full p-1 shadow-sm text-gray-500 hover:text-red-600 z-50 hover:shadow transition-all flex items-center justify-center">
             {isSidebarOpen ? <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" /></svg> : <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>}
           </button>
-        <div className="p-6 shrink-0">
-          <div className="flex items-center justify-center h-8 overflow-hidden">
-              {isSidebarOpen ? (
-                <h1 className="text-2xl font-black tracking-tighter text-red-600 cursor-pointer flex items-start" onClick={() => navigate('/')}>
-                  Lekk<span className="text-gray-900">Rek</span>
-                  <img src="/logo-square.png" alt="Logo" className="w-3.5 h-3.5 ml-1.5 mt-1.5 rounded-sm shadow-sm object-cover opacity-90" />
-                </h1>
-              ) : (
-                <img src="/logo-square.png" alt="Logo" className="w-8 h-8 rounded-lg shadow-sm object-cover cursor-pointer" onClick={() => navigate('/')} />
-              )}
+        <div className="px-5 pt-8 pb-4 shrink-0">
+            <div className="flex items-center justify-center h-16 overflow-hidden transition-all duration-300">
+              <img src="/logo-square.png" alt="Logo LekkRek" className={`object-contain transition-all duration-300 cursor-default ${isSidebarOpen ? "h-14 w-auto" : "h-10 w-10"}`} />
             </div>
-        </div>
+          </div>
         
         <div className="flex-1 overflow-y-auto px-4 pb-4">
           <nav className="space-y-2">
-            <button onClick={() => setActiveTab('overview')} className={`w-full flex items-center ${isSidebarOpen ? "gap-3 px-4" : "justify-center px-0"} py-3 rounded-xl font-medium transition-colors ${activeTab === 'overview' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
-                <span className="text-xl flex-shrink-0">🏠</span>
-                {isSidebarOpen && <span className="whitespace-nowrap overflow-hidden text-ellipsis">Vue d'ensemble</span>}
+            <button onClick={() => setActiveTab('overview')} className={`w-full flex items-center px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'overview' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
+                  <span className="text-xl flex-shrink-0">🏠</span>
+                  <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${isSidebarOpen ? "w-auto opacity-100 ml-3" : "w-0 opacity-0 ml-0"}`}>Vue d'ensemble</span>
               </button>
-            <button onClick={() => setActiveTab('kanban')} className={`w-full flex items-center ${isSidebarOpen ? "gap-3 px-4" : "justify-center px-0"} py-3 rounded-xl font-medium transition-colors ${activeTab === 'kanban' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
-                <span className="text-xl flex-shrink-0">📊</span>
-                {isSidebarOpen && <span className="whitespace-nowrap overflow-hidden text-ellipsis">Kanban en direct</span>}
+            <button onClick={() => setActiveTab('kanban')} className={`w-full flex items-center px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'kanban' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
+                  <span className="text-xl flex-shrink-0">📊</span>
+                  <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${isSidebarOpen ? "w-auto opacity-100 ml-3" : "w-0 opacity-0 ml-0"}`}>Kanban en direct</span>
               </button>
-            <button onClick={() => setActiveTab('menu')} className={`w-full flex items-center ${isSidebarOpen ? "gap-3 px-4" : "justify-center px-0"} py-3 rounded-xl font-medium transition-colors ${activeTab === 'menu' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
-                <span className="text-xl flex-shrink-0">🍽️</span>
-                {isSidebarOpen && <span className="whitespace-nowrap overflow-hidden text-ellipsis">Menu & Plats</span>}
+            <button onClick={() => setActiveTab('menu')} className={`w-full flex items-center px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'menu' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
+                  <span className="text-xl flex-shrink-0">🍽️</span>
+                  <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${isSidebarOpen ? "w-auto opacity-100 ml-3" : "w-0 opacity-0 ml-0"}`}>Menu & Plats</span>
               </button>
             
             {/* Vues réservées à l'ADMIN */}
             {isAdmin && (
               <>
-                {isSidebarOpen && <div className="pt-6 pb-2"><p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Administration</p></div>}
+                <div className={`pt-6 pb-2 transition-all duration-300 ${isSidebarOpen ? "opacity-100 h-auto" : "opacity-0 h-0 overflow-hidden"}`}><p className="text-xs font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">Administration</p></div>
 
-                <button onClick={() => setActiveTab('restaurants')} className={`w-full flex items-center ${isSidebarOpen ? "gap-3 px-4" : "justify-center px-0"} py-3 rounded-xl font-medium transition-colors ${activeTab === 'restaurants' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
-                <span className="text-xl flex-shrink-0">🏪</span>
-                {isSidebarOpen && <span className="whitespace-nowrap overflow-hidden text-ellipsis">Restaurants</span>}
+                <button onClick={() => setActiveTab('restaurants')} className={`w-full flex items-center px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'restaurants' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
+                  <span className="text-xl flex-shrink-0">🏪</span>
+                  <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${isSidebarOpen ? "w-auto opacity-100 ml-3" : "w-0 opacity-0 ml-0"}`}>Restaurants</span>
               </button>
-                <button onClick={() => setActiveTab('operateurs')} className={`w-full flex items-center ${isSidebarOpen ? "gap-3 px-4" : "justify-center px-0"} py-3 rounded-xl font-medium transition-colors ${activeTab === 'operateurs' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
-                <span className="text-xl flex-shrink-0">👥</span>
-                {isSidebarOpen && <span className="whitespace-nowrap overflow-hidden text-ellipsis">Équipe & Rôles</span>}
+                <button onClick={() => setActiveTab('operateurs')} className={`w-full flex items-center px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'operateurs' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
+                  <span className="text-xl flex-shrink-0">👥</span>
+                  <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${isSidebarOpen ? "w-auto opacity-100 ml-3" : "w-0 opacity-0 ml-0"}`}>Équipe & Rôles</span>
               </button>
-                <button onClick={() => setActiveTab('partners')} className={`w-full flex items-center ${isSidebarOpen ? "gap-3 px-4" : "justify-center px-0"} py-3 rounded-xl font-medium transition-colors ${activeTab === 'partners' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
-                <span className="text-xl flex-shrink-0">🤝</span>
-                {isSidebarOpen && <span className="whitespace-nowrap overflow-hidden text-ellipsis">Partenariats</span>}
+                <button onClick={() => setActiveTab('partners')} className={`w-full flex items-center px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'partners' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
+                  <span className="text-xl flex-shrink-0">🤝</span>
+                  <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${isSidebarOpen ? "w-auto opacity-100 ml-3" : "w-0 opacity-0 ml-0"}`}>Partenariats</span>
               </button>
-                <button onClick={() => setActiveTab('comptabilite')} className={`w-full flex items-center ${isSidebarOpen ? "gap-3 px-4" : "justify-center px-0"} py-3 rounded-xl font-medium transition-colors ${activeTab === 'comptabilite' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
-                <span className="text-xl flex-shrink-0">📈</span>
-                {isSidebarOpen && <span className="whitespace-nowrap overflow-hidden text-ellipsis">Comptabilité</span>}
+                <button onClick={() => setActiveTab('comptabilite')} className={`w-full flex items-center px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'comptabilite' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
+                  <span className="text-xl flex-shrink-0">📈</span>
+                  <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${isSidebarOpen ? "w-auto opacity-100 ml-3" : "w-0 opacity-0 ml-0"}`}>Comptabilité</span>
               </button>
-                <button onClick={() => setActiveTab('content')} className={`w-full flex items-center ${isSidebarOpen ? "gap-3 px-4" : "justify-center px-0"} py-3 rounded-xl font-medium transition-colors ${activeTab === 'content' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
-                <span className="text-xl flex-shrink-0">📝</span>
-                {isSidebarOpen && <span className="whitespace-nowrap overflow-hidden text-ellipsis">Pages & Contenu (CMS)</span>}
+                <button onClick={() => setActiveTab('content')} className={`w-full flex items-center px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'content' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
+                  <span className="text-xl flex-shrink-0">📝</span>
+                  <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${isSidebarOpen ? "w-auto opacity-100 ml-3" : "w-0 opacity-0 ml-0"}`}>Pages & Contenu (CMS)</span>
               </button>
   
-  <button onClick={() => setActiveTab('audit')} className={`w-full flex items-center ${isSidebarOpen ? "gap-3 px-4" : "justify-center px-0"} py-3 rounded-xl font-medium transition-colors ${activeTab === 'audit' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
-                <span className="text-xl flex-shrink-0">🕵️‍♂️</span>
-                {isSidebarOpen && <span className="whitespace-nowrap overflow-hidden text-ellipsis">Audit & Sécurité</span>}
+  <button onClick={() => setActiveTab('audit')} className={`w-full flex items-center px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'audit' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
+                  <span className="text-xl flex-shrink-0">🕵️‍♂️</span>
+                  <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${isSidebarOpen ? "w-auto opacity-100 ml-3" : "w-0 opacity-0 ml-0"}`}>Audit & Sécurité</span>
               </button>
-<button onClick={() => setActiveTab('parametres')} className={`w-full flex items-center ${isSidebarOpen ? "gap-3 px-4" : "justify-center px-0"} py-3 rounded-xl font-medium transition-colors mt-8 ${activeTab === 'parametres' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
-                <span className="text-xl flex-shrink-0">⚙️</span>
-                {isSidebarOpen && <span className="whitespace-nowrap overflow-hidden text-ellipsis">Paramètres</span>}
+<button onClick={() => setActiveTab('parametres')} className={`w-full flex items-center px-4 py-3 rounded-xl font-medium transition-colors mt-8 ${activeTab === 'parametres' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
+                  <span className="text-xl flex-shrink-0">⚙️</span>
+                  <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${isSidebarOpen ? "w-auto opacity-100 ml-3" : "w-0 opacity-0 ml-0"}`}>Paramètres</span>
               </button>
               </>
             )}
@@ -435,6 +439,10 @@ export default function OperatorDashboard() {
     </div>
   );
 }
+
+
+
+
 
 
 

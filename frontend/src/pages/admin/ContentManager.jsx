@@ -1,3 +1,4 @@
+import { API_URL } from '../../config';
 import React, { useState, useEffect, useRef } from 'react';
 import ReactQuill from 'react-quill';
 
@@ -35,7 +36,7 @@ export default function ContentManager() {
   const fetchPageContent = async (slug) => {
     setLoading(true);
     try {
-      const response = await fetch(`http://192.168.1.6:8080/api/v1/pages/${slug}`);
+      const response = await fetch(`${API_URL}/api/v1/pages/${slug}`);
       if (response.ok) {
         const data = await response.json();
         setTitle(data.title || '');
@@ -64,7 +65,7 @@ export default function ContentManager() {
     const token = localStorage.getItem('token');
 
     try {
-      const response = await fetch(`http://192.168.1.6:8080/api/v1/pages/${selectedSlug}`, {
+      const response = await fetch(`${API_URL}/api/v1/pages/${selectedSlug}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -98,7 +99,7 @@ export default function ContentManager() {
     const token = localStorage.getItem('token');
 
     try {
-      const response = await fetch('http://192.168.1.6:8080/api/v1/admin/documents/parse', {
+      const response = await fetch(`${API_URL}/api/v1/admin/documents/parse`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`

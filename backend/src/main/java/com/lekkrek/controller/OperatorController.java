@@ -16,6 +16,10 @@ import com.lekkrek.dto.PlatRequestDTO;
 import com.lekkrek.service.OrderService;
 import com.lekkrek.service.PlatService;
 import org.springframework.security.access.prepost.PreAuthorize;
+<<<<<<< HEAD
+=======
+import jakarta.validation.Valid;
+>>>>>>> develop
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,7 +27,10 @@ import java.util.List;
 @RestController
 @RequestMapping("${api.prefix.operator:/api/v1/operator}")
 @PreAuthorize("hasAnyRole('ADMIN', 'OPERATEUR')")
+<<<<<<< HEAD
 @CrossOrigin(origins = "*")
+=======
+>>>>>>> develop
 public class OperatorController {
 
     private final OrderService orderService;
@@ -57,12 +64,12 @@ public class OperatorController {
     }
 
     @PostMapping("/plats")
-    public Plat createPlat(@RequestBody PlatRequestDTO request) {
+    public Plat createPlat(@Valid @RequestBody PlatRequestDTO request) {
         return platService.createPlat(request);
     }
 
     @PutMapping("/plats/{id}")
-    public Plat updatePlat(@PathVariable Long id, @RequestBody PlatRequestDTO request) {
+    public Plat updatePlat(@PathVariable Long id, @Valid @RequestBody PlatRequestDTO request) {
         return platService.updatePlat(id, request);
     }
 

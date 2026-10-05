@@ -15,6 +15,7 @@ import com.lekkrek.entity.Restaurant;
 import com.lekkrek.repository.UtilisateurRepository;
 import com.lekkrek.repository.RestaurantRepository;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -24,7 +25,10 @@ import java.util.List;
 @RestController
 @RequestMapping("${api.prefix.admin:/api/v1/admin}")
 @PreAuthorize("hasRole('ADMIN')")
+<<<<<<< HEAD
 @CrossOrigin(origins = "*")
+=======
+>>>>>>> develop
 public class AdminController {
 
     private final UtilisateurRepository utilisateurRepository;
@@ -60,8 +64,6 @@ public class AdminController {
         return ResponseEntity.ok(saved);
     }
 
-    @DeleteMapping("/operators/{id}")
-    
     @PutMapping("/operators/{id}")
     public ResponseEntity<Utilisateur> updateOperator(@PathVariable Long id, @RequestBody Utilisateur operatorDetails) {
         return utilisateurRepository.findById(id).map(op -> {
@@ -81,7 +83,8 @@ public class AdminController {
         }).orElse(ResponseEntity.notFound().build());
     }
 
-public ResponseEntity<?> deleteOperator(@PathVariable Long id) {
+    @DeleteMapping("/operators/{id}")
+    public ResponseEntity<?> deleteOperator(@PathVariable Long id) {
         return utilisateurRepository.findById(id).map(op -> {
             utilisateurRepository.delete(op);
             return ResponseEntity.ok().build();

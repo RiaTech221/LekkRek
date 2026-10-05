@@ -1,5 +1,9 @@
-﻿import React, { useState, useEffect } from 'react';
+import { API_URL } from '../../config';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
+
+const COLORS = ['#ef4444', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#ec4899', '#06b6d4'];
 
 /**
  * ============================================================================
@@ -24,22 +28,32 @@ export default function Overview() {
   const [analytics, setAnalytics] = useState(null);
   
   const userStr = localStorage.getItem('user');
-  const user = userStr ? JSON.parse(userStr) : { roles: [] };
-  const isAdmin = user.roles.includes('ROLE_ADMIN');
+  let user = { roles: [] };
+  try {
+    if (userStr) {
+      const parsed = JSON.parse(userStr);
+      if (parsed && typeof parsed === 'object') {
+        user = { ...parsed, roles: Array.isArray(parsed.roles) ? parsed.roles : [] };
+      }
+    }
+  } catch (e) {
+    console.error("Erreur parsing user:", e);
+  }
+  const isAdmin = Array.isArray(user.roles) && user.roles.includes('ROLE_ADMIN');
 
   useEffect(() => {
     const token = localStorage.getItem('token');
     const headers = { 'Authorization': `Bearer ${token}` };
 
     // Commandes récentes
-    fetch('http://192.168.1.6:8080/api/v1/operator/orders', { headers })
+    fetch(`${API_URL}/api/v1/operator/orders`, { headers })
       .then(res => res.json())
       .then(data => { if (Array.isArray(data)) setOrders(data); })
       .catch(console.error);
 
     if (isAdmin) {
       // Fetch Restaurants (Actifs / Inactifs)
-      fetch('http://192.168.1.6:8080/api/v1/admin/restaurants', { headers })
+      fetch(`${API_URL}/api/v1/admin/restaurants`, { headers })
         .then(res => res.json())
         .then(data => { 
           if (Array.isArray(data)) {
@@ -50,19 +64,19 @@ export default function Overview() {
         .catch(console.error);
 
       // Fetch Analytics (Visites, Recherches, Clics)
-      fetch('http://192.168.1.6:8080/api/v1/admin/analytics/kpi', { headers })
+      fetch(`${API_URL}/api/v1/admin/analytics/kpi`, { headers })
         .then(res => res.json())
         .then(data => setAnalytics(data))
         .catch(console.error);
 
       // Fetch Opérateurs (Utilisateurs internes)
-      fetch('http://192.168.1.6:8080/api/v1/admin/operators', { headers })
+      fetch(`${API_URL}/api/v1/admin/operators`, { headers })
         .then(res => res.json())
         .then(data => { if (Array.isArray(data)) setOperatorsCount(data.length); })
         .catch(console.error);
         
       // Fetch des Menus (pour simuler Offres du Jour, dispo, épuisées)
-      fetch('http://192.168.1.6:8080/api/v1/public/menus') // Point d'entrée public pour les offres
+      fetch(`${API_URL}/api/v1/public/menu`) // Point d'entrée public pour les offres
         .then(res => res.json())
         .then(data => {
             if (Array.isArray(data)) {
@@ -75,7 +89,7 @@ export default function Overview() {
 
     } else {
       // Pour l'opérateur classique
-      fetch('http://192.168.1.6:8080/api/v1/operator/plats', { headers })
+      fetch(`${API_URL}/api/v1/operator/plats`, { headers })
         .then(res => res.json())
         .then(data => { if (Array.isArray(data)) setPlatsCount(data.length); })
         .catch(console.error);
@@ -84,7 +98,7 @@ export default function Overview() {
 
   const totalRevenue = orders
     .filter(o => o.paymentStatus === 'PAYE')
-    .reduce((acc, curr) => acc + curr.totalAmount, 0);
+    .reduce((acc, curr) => acc + (curr.totalAmount || 0), 0);
 
   const pendingOrders = orders.filter(o => o.status === 'NOUVELLE' || o.status === 'EN_PREPARATION').length;
   const completedOrders = orders.filter(o => o.status === 'LIVREE' || o.status === 'PRETE').length;
@@ -100,6 +114,13 @@ export default function Overview() {
   const emptySearches = getStat('search_no_result') || 0;
   const clicksWhatsapp = getStat('click_whatsapp');
   const clicksPhone = getStat('click_phone');
+
+  const pieData = [
+    { name: 'Recherches', value: searches },
+    { name: 'Rech. Vides', value: emptySearches },
+    { name: 'WhatsApp', value: clicksWhatsapp },
+    { name: 'Téléphone', value: clicksPhone }
+  ].filter(d => d.value > 0);
 
   return (
     <div className="p-8 w-full min-h-screen text-left" style={{ background: '#f8fafc' }}>
@@ -216,42 +237,85 @@ export default function Overview() {
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-8">
-            <h4 className="font-black text-gray-900 mb-6 text-lg">Recherches Tendances</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-4">
-                {analytics && analytics.topSearches && analytics.topSearches.map((item, idx) => (
-                  <div key={idx} className="flex items-center gap-4">
-                    <span className="text-gray-400 font-black text-lg w-6">#{idx + 1}</span>
-                    <div className="flex-1 bg-gray-50 rounded-lg h-10 flex items-center px-4 relative overflow-hidden group">
-                      <div className="absolute left-0 top-0 h-full bg-red-100 group-hover:bg-red-200 transition-colors" style={{ width: `${(item.count / analytics.topSearches[0].count) * 100}%` }}></div>
-                      <span className="relative z-10 font-bold text-gray-900">{item.query}</span>
-                    </div>
-                    <span className="font-black text-gray-900 w-12 text-right">{item.count}</span>
-                  </div>
-                ))}
-                {(!analytics || !analytics.topSearches || analytics.topSearches.length === 0) && (
-                  <div className="p-8 text-center bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                    <p className="text-gray-500 font-medium">Aucune recherche effectuée pour le moment.</p>
-                  </div>
-                )}
-              </div>
-              
-                              <div className="bg-gray-50 p-6 rounded-xl border border-gray-100 flex flex-col justify-center items-center text-center">
-                  <div className="w-16 h-16 rounded-full bg-white shadow-sm flex items-center justify-center mb-4 text-gray-400">
-                    <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
-                  </div>
-                  <h5 className="font-bold text-gray-900 mb-2">Analyse des tendances</h5>
+                      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-8">
+              <h4 className="font-black text-gray-900 mb-6 text-lg">Analytiques & Tendances</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                
+                {/* BarChart */}
+                <div className="flex flex-col">
+                  <h5 className="font-bold text-gray-700 mb-2 text-sm text-center">Top 5 des plats recherchés</h5>
+                  <div className="h-[300px]">
                   {analytics && analytics.topSearches && analytics.topSearches.length > 0 ? (
-                    <p className="text-sm text-gray-500 max-w-sm leading-relaxed">
-                      Forte demande constatée pour <strong>{analytics.topSearches[0].query}</strong> ({analytics.topSearches[0].count} requêtes){analytics.topSearches.length > 1 ? <>, suivi de près par <strong>{analytics.topSearches[1].query}</strong>.</> : '.'} <br/><br/>
-                      <span className="text-red-600 font-medium">💡 Recommandation :</span> Mettez ces plats en avant sur l'accueil et notifiez vos partenaires pour assurer leur disponibilitééé.
-                    </p>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={analytics.topSearches} layout="vertical" margin={{ top: 10, right: 30, left: 40, bottom: 10 }}>
+                        <XAxis type="number" hide />
+                        <YAxis dataKey="query" type="category" axisLine={false} tickLine={false} tick={{ fill: '#4b5563', fontSize: 13, fontWeight: 600 }} width={120} />
+                        <RechartsTooltip 
+                          cursor={{fill: '#f3f4f6'}} 
+                          contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'}} 
+                          formatter={(value) => [`${value} requêtes`, 'Volume']}
+                        />
+                        <Bar dataKey="count" radius={[0, 6, 6, 0]} barSize={28}>
+                          {analytics.topSearches.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
                   ) : (
-                    <p className="text-sm text-gray-500 max-w-sm">
-                      Les plats les plus recherchés permettent d'ajuster l'offre des prestataires en temps réel pour maximiser les conversions.
-                    </p>
+                    <div className="h-full flex items-center justify-center bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                      <p className="text-gray-500 font-medium">Aucune donnée de recherche.</p>
+                    </div>
                   )}
+                </div>
+                </div>
+
+                {/* PieChart */}
+                <div className="flex flex-col">
+                  <h5 className="font-bold text-gray-700 mb-2 text-sm text-center">Répartition des intéractions</h5>
+                  <div className="h-[300px] flex flex-col justify-center items-center relative">
+                  {pieData.length > 0 ? (
+                    <>
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={pieData}
+                            innerRadius={70}
+                            outerRadius={95}
+                            paddingAngle={5}
+                            dataKey="value"
+                            nameKey="name"
+                            stroke="none"
+                          >
+                            {pieData.map((entry, index) => (
+                              <Cell key={`pie-cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                            ))}
+                          </Pie>
+                          <RechartsTooltip 
+                            contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'}}
+                            formatter={(value) => [`${value} évènements`, 'Volume']}
+                          />
+                          <Legend 
+                            verticalAlign="bottom" 
+                            height={36} 
+                            iconType="circle"
+                            formatter={(value) => <span className="text-gray-700 font-medium text-sm ml-1">{value}</span>}
+                          />
+                        </PieChart>
+                      </ResponsiveContainer>
+                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ marginTop: '-36px' }}>
+                         <div className="text-center">
+                           <span className="block text-3xl font-black text-gray-900">{pieData.reduce((a,b) => a + b.value, 0)}</span>
+                           <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Interactions</span>
+                         </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="h-full w-full flex items-center justify-center bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                      <p className="text-gray-500 font-medium">Aucune donnée</p>
+                    </div>
+                  )}
+                </div>
                 </div>
               </div>
             </div>
@@ -323,7 +387,7 @@ export default function Overview() {
                       </div>
                     </td>
                     <td className="p-4 pr-6 text-right font-black text-gray-900">
-                      {o.totalAmount.toLocaleString('fr-FR')} <span className="text-xs text-gray-500 font-bold ml-1">FCFA</span>
+                      {(o.totalAmount || 0).toLocaleString('fr-FR')} <span className="text-xs text-gray-500 font-bold ml-1">FCFA</span>
                     </td>
                   </tr>
                 );
@@ -344,6 +408,7 @@ export default function Overview() {
     </div>
   );
 }
+
 
 
 

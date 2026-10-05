@@ -1,5 +1,7 @@
+import { API_URL, formatImageUrl } from '../../config';
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import DOMPurify from 'dompurify';
 
 /**
  * ============================================================================
@@ -17,6 +19,7 @@ export default function ClientView() {
   const [plats, setPlats] = useState([]);
   const [allCategories, setAllCategories] = useState([]); // All categories loaded once
   const [allPlats, setAllPlats] = useState([]); // All plats for fallbacks
+  const [recommendations, setRecommendations] = useState([]);
   const [cart, setCart] = useState([]);
   const [isCheckoutOpen, setCheckoutOpen] = useState(false);
   const [isSuccessOpen, setSuccessOpen] = useState(false);
@@ -29,8 +32,25 @@ export default function ClientView() {
   const [momentFilter, setMomentFilter] = useState('');
   
   // Checkout form state
-  const [formData, setFormData] = useState({ clientName: '', clientPhone: '', clientAddress: '', type: 'LIVRAISON', paymentMethod: 'WAVE' });
+  const [formData, setFormData] = useState(() => {
+    const saved = localStorage.getItem('lekkrek_client_profile');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        return { clientName: parsed.name || '', clientPhone: parsed.phone || '', clientAddress: parsed.address || '', type: 'LIVRAISON', paymentMethod: 'WAVE' };
+      } catch (e) {}
+    }
+    return { clientName: '', clientPhone: '', clientAddress: '', type: 'LIVRAISON', paymentMethod: 'WAVE' };
+  });
   const [orderInfo, setOrderInfo] = useState(null);
+  const [toast, setToast] = useState(null);
+
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => {
+      setToast(null);
+    }, 3000);
+  };
 
   // States pour le suivi
   const [isTrackModalOpen, setTrackModalOpen] = useState(false);
@@ -57,30 +77,87 @@ export default function ClientView() {
   const [trackError, setTrackError] = useState('');
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
+  const [isLoginOpen, setLoginOpen] = useState(false);
+  const [loginPhone, setLoginPhone] = useState('');
+  const [loginName, setLoginName] = useState('');
+
+  const openLoginModal = () => {
+    setLoginPhone(formData.clientPhone || '');
+    setLoginName(formData.clientName || '');
+    setLoginOpen(true);
+  };
+
+  const handleLogin = (e) => {
+    e.preventDefault();
+    if (!/^(77|78|76|75|70|33)\d{7}$/.test(loginPhone.replace(/\s/g, ''))) {
+      return alert("Numéro de téléphone invalide.");
+    }
+    const cleanPhone = loginPhone.replace(/\s/g, '');
+    localStorage.setItem('lekkrek_client_profile', JSON.stringify({ 
+      name: loginName || formData.clientName, 
+      phone: cleanPhone, 
+      address: formData.clientAddress 
+    }));
+    setFormData(prev => ({ ...prev, clientPhone: cleanPhone, clientName: loginName || prev.clientName }));
+    
+    // Refresh recommendations
+    fetch(`${API_URL}/api/v1/public/menu/recommendations?phone=${cleanPhone}`)
+      .then(res => res.json())
+      .then(data => setRecommendations(data))
+      .catch(err => console.error(err));
+      
+    setLoginOpen(false);
+    if (formData.clientPhone) {
+      showToast("Profil mis à jour !", "success");
+    } else {
+      showToast("Connecté avec succès ! Vos favoris ont été chargés.", "success");
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('lekkrek_client_profile');
+    setFormData(prev => ({ ...prev, clientPhone: '', clientName: '' }));
+    setRecommendations([]);
+    setLoginOpen(false);
+    showToast("Vous êtes déconnecté.", "info");
+  };
+
   
     
   const handleWhatsappClick = (e) => {
     e.preventDefault();
-    fetch('http://192.168.1.6:8080/api/v1/public/analytics', {
+
+    let message = platformSettings?.whatsappMessageGreeting || "Bonjour l'équipe LekkRek 👋, ";
+    if (formData.clientName && formData.clientName.trim() !== '') {
+      message += "je suis " + formData.clientName + ". ";
+    }
+    
+    if (trackOrderNumber && trackOrderNumber.trim() !== '') {
+      const orderTpl = platformSettings?.whatsappMessageOrder || "Je vous contacte concernant ma commande N° {orderNumber}.";
+      message += orderTpl.replace('{orderNumber}', trackOrderNumber) + " ";
+    } else if (cart.length > 0) {
+      const total = cart.reduce((sum, item) => sum + item.price, 0);
+      const cartTpl = platformSettings?.whatsappMessageCart || "J'ai actuellement {count} plat(s) dans mon panier pour un total de {total} FCFA et j'aimerais avoir de l'aide pour finaliser ma commande.";
+      message += cartTpl.replace('{count}', cart.length).replace('{total}', total) + " ";
+    } else {
+      const defTpl = platformSettings?.whatsappMessageDefault || "j'aimerais avoir de plus amples informations s'il vous plaît.";
+      message += defTpl;
+    }
+
+    const encodedMessage = encodeURIComponent(message);
+    const waUrl = `https://wa.me/221781161910?text=${encodedMessage}`;
+
+    fetch(`${API_URL}/api/v1/public/analytics`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ eventType: 'click_whatsapp', entityId: '781161910', context: 'floating_button' })
     }).catch(err => console.error(err)).finally(() => {
-      window.open('https://wa.me/221781161910', '_blank');
+      window.open(waUrl, '_blank');
     });
   };
 
   
-  const handleSearchSubmit = (e) => {
-    e.preventDefault();
-    if(keyword) {
-      fetch('http://192.168.1.6:8080/api/v1/public/analytics', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ eventType: 'search', entityId: keyword, context: 'search_bar' })
-      }).catch(console.error);
-    }
-  };
+
 
   
   useEffect(() => {
@@ -96,7 +173,7 @@ return () => {
 
   // Fetch ALL plats once to build the full category list (independent of filters)
   useEffect(() => {
-    fetch('http://192.168.1.6:8080/api/v1/public/menu')
+    fetch(`${API_URL}/api/v1/public/menu`)
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data)) {
@@ -113,10 +190,22 @@ return () => {
       });
   }, []);
 
+  useEffect(() => {
+    const saved = localStorage.getItem('lekkrek_client_profile');
+    let phone = '';
+    if (saved) {
+      try { phone = JSON.parse(saved).phone || ''; } catch (e) {}
+    }
+    fetch(`${API_URL}/api/v1/public/menu/recommendations?phone=${phone}`)
+      .then(res => res.json())
+      .then(data => setRecommendations(data))
+      .catch(err => console.error(err));
+  }, []);
+
   // Recharge les plats dès qu'un filtre change
   useEffect(() => {
     // 1. Fetch settings
-    fetch('http://192.168.1.6:8080/api/v1/settings')
+    fetch(`${API_URL}/api/v1/settings`)
       .then(res => res.json())
       .then(data => setPlatformSettings(data))
       .catch(err => console.error("Erreur Settings:", err));
@@ -129,11 +218,24 @@ return () => {
     if (quartier) params.append('quartier', quartier);
     if (momentFilter) params.append('moment', momentFilter);
 
-    fetch(`http://192.168.1.6:8080/api/v1/public/menu?${params.toString()}`)
+    fetch(`${API_URL}/api/v1/public/menu?${params.toString()}`)
       .then(res => res.json())
       .then(data => setPlats(data))
       .catch(err => console.error("Erreur API:", err));
   }, [keyword, resto, budgetMax, quartier, momentFilter]);
+
+  // Analytics logging (debounced)
+  useEffect(() => {
+    if (!keyword || keyword.length < 3) return;
+    const timeoutId = setTimeout(() => {
+      fetch(`${API_URL}/api/v1/public/analytics`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ eventType: 'search', entityId: keyword, context: 'search_bar' })
+      }).catch(console.error);
+    }, 1500); // Wait 1.5 seconds after typing stops before logging
+    return () => clearTimeout(timeoutId);
+  }, [keyword]);
 
   const addToCart = (plat) => setCart([...cart, plat]);
   const total = cart.reduce((sum, item) => sum + item.price, 0);
@@ -151,7 +253,7 @@ return () => {
     if (!phoneRegex.test(formData.clientPhone.replace(/\s/g, ''))) {
       return alert("Numéro de téléphone invalide. Ex: 771234567");
     }
-    if (!formData.clientAddress || formData.clientAddress.trim().length < 5) {
+    if (formData.type === 'LIVRAISON' && (!formData.clientAddress || formData.clientAddress.trim().length < 5)) {
       return alert("Veuillez saisir une adresse de livraison plus précise.");
     }
 
@@ -162,16 +264,27 @@ return () => {
         platIds: cart.map(p => p.id)
       };
 
-      fetch('http://192.168.1.6:8080/api/v1/public/orders', {
+      fetch(`${API_URL}/api/v1/public/orders`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(orderRequest)
       })
       .then(res => {
-        if (!res.ok) throw new Error("Erreur serveur lors de la commande.");
+        if (!res.ok) {
+          return res.json().then(err => {
+            throw new Error(err.message || "Erreur serveur lors de la commande.");
+          }).catch(() => {
+            throw new Error("Erreur serveur lors de la commande.");
+          });
+        }
         return res.json();
       })
       .then(data => {
+        localStorage.setItem('lekkrek_client_profile', JSON.stringify({ 
+          name: formData.clientName, 
+          phone: formData.clientPhone, 
+          address: formData.clientAddress 
+        }));
         setOrderInfo(data);
         setCart([]);
         setCheckoutOpen(false);
@@ -203,8 +316,23 @@ return () => {
 
   const handlePartnerSubmit = (e) => {
     e.preventDefault();
+
+    const phoneRegex = /^(77|78|76|75|70|33)\d{7}$/;
+    if (!partnerForm.nomRestaurant || partnerForm.nomRestaurant.trim().length < 2) {
+      return alert("Le nom du restaurant doit contenir au moins 2 caractères.");
+    }
+    if (!partnerForm.nomContact || partnerForm.nomContact.trim().length < 2) {
+      return alert("Votre nom doit contenir au moins 2 caractères.");
+    }
+    if (!phoneRegex.test(partnerForm.telephone.replace(/\s/g, ''))) {
+      return alert("Numéro de téléphone invalide. Ex: 771234567");
+    }
+    if (!partnerForm.ville || partnerForm.ville.trim().length < 3) {
+      return alert("La ville/quartier doit contenir au moins 3 caractères.");
+    }
+
     setPartnerStatus('loading');
-    fetch('http://192.168.1.6:8080/api/v1/public/partner-requests', {
+    fetch(`${API_URL}/api/v1/public/partner-requests`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(partnerForm)
@@ -229,7 +357,7 @@ return () => {
     setTrackError('');
     setTrackResult(null);
 
-    fetch(`http://192.168.1.6:8080/api/v1/public/orders/track/${trackOrderNumber}`)
+    fetch(`${API_URL}/api/v1/public/orders/track/${trackOrderNumber}`)
       .then(res => {
         if (res.status === 404) throw new Error("Commande introuvable.");
         if (!res.ok) throw new Error("Erreur lors de la recherche.");
@@ -282,7 +410,19 @@ return () => {
               <div className="flex-1 flex items-center px-3 lg:px-5 h-full cursor-text hover:bg-gray-50 transition-colors shrink-0">
                 <div className="flex flex-col w-full text-left justify-center overflow-hidden">
                   <span className="text-[10px] lg:text-[11px] uppercase tracking-wider font-bold text-gray-800 leading-tight">Budget Max</span>
-                  <input type="number" placeholder="ex: 2000" className="bg-transparent border-none outline-none w-full text-gray-500 font-medium text-xs lg:text-sm placeholder-gray-400 truncate leading-tight min-w-[60px]" value={budgetMax} onChange={(e) => setBudgetMax(e.target.value)} />
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="ex: 2000"
+                    className="bg-transparent border-none outline-none w-full text-gray-500 font-medium text-xs lg:text-sm placeholder-gray-400 truncate leading-tight min-w-[60px]"
+                    value={budgetMax}
+                    onChange={(e) => setBudgetMax(e.target.value.replace(/\D/g, ''))}
+                    onKeyDown={(e) => {
+                      if (!/[0-9]/.test(e.key) && !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key)) {
+                        e.preventDefault();
+                      }
+                    }}
+                  />
                 </div>
               </div>
 
@@ -292,6 +432,15 @@ return () => {
               {localStorage.getItem('token') && (
                 <button onClick={() => window.location.href='/dashboard'} className="hidden lg:flex items-center gap-2 bg-red-50 text-red-600 hover:bg-red-100 px-5 py-3 rounded-full font-bold transition-all border border-red-100 text-sm">
                   ⚙️ Dash
+                </button>
+              )}
+              {formData.clientPhone ? (
+                <button onClick={openLoginModal} className="flex items-center gap-2 bg-gray-50 border border-gray-200 hover:bg-gray-100 text-gray-800 px-4 sm:px-5 py-2.5 sm:py-3 rounded-full font-bold transition-all text-xs sm:text-sm" title="Mon Profil">
+                  <span className="truncate max-w-[100px]">👋 {formData.clientName || 'Client'}</span>
+                </button>
+              ) : (
+                <button onClick={openLoginModal} className="flex items-center gap-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 px-4 sm:px-5 py-2.5 sm:py-3 rounded-full font-bold transition-all text-xs sm:text-sm shadow-sm">
+                  👤 Se connecter
                 </button>
               )}
               <button onClick={() => setTrackModalOpen(true)} className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 sm:px-5 py-2.5 sm:py-3 rounded-full font-bold transition-all text-xs sm:text-sm">
@@ -345,10 +494,8 @@ return () => {
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32 flex flex-col items-start text-left pointer-events-none z-10">
           <span className="bg-red-600 text-white font-bold tracking-wider uppercase text-sm px-4 py-1.5 rounded-full mb-6 shadow-lg">Livraison partout à Ziguinchor</span>
-          <h2 className="text-4xl md:text-6xl font-black text-white mb-6 tracking-tight leading-tight max-w-2xl">
-            Vos plats préférés,<br/>livrés très vite.
-          </h2>
-          <p className="text-xl text-gray-200 max-w-xl mb-10 font-medium">Découvrez les meilleurs restaurants de la région. Commandez en quelques clics et suivez votre livreur en temps réel.</p>
+          <h2 className="text-4xl md:text-6xl font-black text-white mb-6 tracking-tight leading-tight max-w-2xl whitespace-pre-line" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(platformSettings?.heroTitle || 'Les menus du jour<br/>à Ziguinchor.') }}></h2>
+          <p className="text-xl text-gray-200 max-w-xl mb-10 font-medium leading-relaxed whitespace-pre-line" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(platformSettings?.heroSubtitle || 'Qui a cuisiné quoi, à quel prix, où le trouver.<br/>Publié du lundi au samedi à 10h30.<br/>Ce qu\'il reste à 13h30.') }}></p>
         </div>
 
         {/* Carousel Indicators */}
@@ -384,11 +531,41 @@ return () => {
         </div>
         <h3 className="text-2xl font-black text-gray-900 mb-8">Au menu aujourd'hui</h3>
         
+        {/* RECOMMENDATIONS SECTION */}
+        {recommendations.length > 0 && !keyword && !resto && !quartier && (
+          <div className="mb-12">
+            <h2 className="text-2xl font-black text-gray-900 mb-6 flex items-center gap-2">
+              <span>🌟</span> Recommandé pour vous
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
+              {recommendations.map(plat => (
+                <div key={`rec-${plat.id}`} className="bg-orange-50/50 rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-orange-100 group flex flex-col relative">
+                  <div className="absolute top-2 right-2 bg-orange-500 text-white text-[10px] font-bold px-2 py-1 rounded-full z-10 shadow-sm">Favori</div>
+                  <div className="relative h-40 overflow-hidden bg-gray-100 shrink-0">
+                    <img src={formatImageUrl(plat.image)} alt={plat.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&q=80&w=800'; }} />
+                  </div>
+                  <div className="p-4 flex flex-col flex-grow">
+                    <h3 className="font-bold text-lg text-gray-900 leading-tight mb-1 truncate">{plat.name}</h3>
+                    <p className="text-gray-500 text-xs mb-3 truncate">{plat.restaurant?.name}</p>
+                    <div className="mt-auto flex items-center justify-between">
+                      <span className="font-black text-red-600 text-lg">{plat.price} {platformSettings?.defaultCurrency || 'FCFA'}</span>
+                      <button onClick={() => addToCart(plat)} disabled={plat.status !== 'DISPO'} className="w-10 h-10 bg-gray-900 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-colors disabled:opacity-50 shadow-md">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-8 border-t border-gray-200"></div>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8 pb-12">
           {Array.isArray(plats) && plats.length > 0 ? plats.map(plat => (
             <div key={plat.id} className="bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 group flex flex-col">
               <div className="relative h-56 overflow-hidden bg-gray-100 shrink-0">
-                <img src={plat.image?.replace('localhost', '192.168.1.6')} alt={plat.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&q=80&w=800'; }} />
+                <img src={formatImageUrl(plat.image)} alt={plat.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&q=80&w=800'; }} />
                 <div className="absolute top-4 left-4">
                   <span className={`px-3 py-1 text-xs font-black uppercase tracking-wider rounded-full shadow-md backdrop-blur-md ${plat.status === 'DISPO' ? 'bg-white/90 text-green-600' : 'bg-red-600/90 text-white'}`}>
                     {plat.status === 'DISPO' ? 'Disponible' : 'Épuisé'}
@@ -433,7 +610,7 @@ return () => {
                 {allPlats.slice(0, 3).map(plat => (
                   <div key={plat.id} className="bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 group flex flex-col">
                     <div className="relative h-56 overflow-hidden bg-gray-100 shrink-0">
-                      <img src={plat.image?.replace('localhost', '192.168.1.6')} alt={plat.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&q=80&w=800'; }} />
+                      <img src={formatImageUrl(plat.image)} alt={plat.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&q=80&w=800'; }} />
                       <div className="absolute top-4 left-4">
                         <span className={`px-3 py-1 text-xs font-black uppercase tracking-wider rounded-full shadow-md backdrop-blur-md ${plat.status === 'DISPO' ? 'bg-white/90 text-green-600' : 'bg-red-600/90 text-white'}`}>
                           {plat.status === 'DISPO' ? 'Disponible' : 'Épuisé'}
@@ -493,7 +670,7 @@ return () => {
                   {cart.map((item, idx) => (
                     <li key={idx} className="flex justify-between items-center bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
                       <div className="flex items-center gap-4">
-                        <img src={item.image?.replace('localhost', '192.168.1.6')} alt={item.name} className="w-16 h-16 rounded-xl object-cover" />
+                        <img src={formatImageUrl(item.image)} alt={item.name} className="w-16 h-16 rounded-xl object-cover" />
                         <div>
                           <p className="font-bold text-gray-900 text-sm">{item.name}</p>
                           <p className="text-red-600 font-bold text-sm">{item.price} FCFA</p>
@@ -527,7 +704,21 @@ return () => {
                     </div>
 
                     <input type="text" placeholder="Votre Nom Complet" required className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-red-600" value={formData.clientName} onChange={e => setFormData({...formData, clientName: e.target.value})} />
-                    <input type="tel" placeholder="Numéro de Téléphone" required className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-red-600" value={formData.clientPhone} onChange={e => setFormData({...formData, clientPhone: e.target.value})} />
+                    <input
+                      type="tel"
+                      inputMode="numeric"
+                      maxLength={9}
+                      placeholder="Numéro de Téléphone (9 chiffres, ex: 771234567)"
+                      required
+                      className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-red-600"
+                      value={formData.clientPhone}
+                      onChange={e => setFormData({...formData, clientPhone: e.target.value.replace(/\D/g, '').slice(0, 9)})}
+                      onKeyDown={e => {
+                        if (!/[0-9]/.test(e.key) && !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key) && !e.ctrlKey && !e.metaKey) {
+                          e.preventDefault();
+                        }
+                      }}
+                    />
                     
                     {formData.type === 'LIVRAISON' && (
                       <textarea placeholder="Adresse de livraison complète (Quartier, Repère)" required className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-red-600" value={formData.clientAddress} onChange={e => setFormData({...formData, clientAddress: e.target.value})} />
@@ -565,6 +756,70 @@ return () => {
             <button onClick={() => setSuccessOpen(false)} className="w-full bg-gray-900 text-white font-bold py-4 rounded-xl hover:bg-black transition-colors">
               Fermer
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* LOGIN/PROFILE MODAL */}
+      {isLoginOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+          <div className="bg-white p-8 sm:p-10 rounded-[2.5rem] shadow-2xl max-w-md w-full relative animate-fade-in-up border border-gray-100">
+            <button onClick={() => setLoginOpen(false)} className="absolute top-6 right-6 w-10 h-10 flex items-center justify-center rounded-full bg-gray-50 hover:bg-red-50 hover:text-red-600 text-gray-400 transition-colors">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            
+            <div className="text-center mb-8">
+              <div className="w-16 h-16 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-inner">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+              </div>
+              <h2 className="text-3xl font-black text-gray-900 mb-2 tracking-tight">
+                {formData.clientPhone ? "Mon Profil" : "Bon retour !"}
+              </h2>
+              <p className="text-gray-500 text-sm px-4">
+                {formData.clientPhone ? "Vérifiez ou modifiez vos informations personnelles." : "Connectez-vous pour retrouver vos favoris et commander en un clic."}
+              </p>
+            </div>
+
+            <form onSubmit={handleLogin} className="flex flex-col gap-5">
+              <div>
+                <label className="block text-[11px] font-extrabold text-gray-500 mb-2 uppercase tracking-widest pl-1">Votre Nom <span className="text-gray-400 font-normal capitalize">(Optionnel)</span></label>
+                <input type="text" placeholder="Ex: Jean Dupont" className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 font-bold text-gray-900 focus:outline-none focus:border-red-500 focus:ring-4 focus:ring-red-500/10 transition-all placeholder:font-medium placeholder:text-gray-400" value={loginName} onChange={(e) => setLoginName(e.target.value)} />
+              </div>
+              <div>
+                <label className="block text-[11px] font-extrabold text-gray-500 mb-2 uppercase tracking-widest pl-1">Numéro de téléphone <span className="text-red-500">*</span></label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
+                    <span className="text-gray-400 font-bold border-r border-gray-200 pr-3">+221</span>
+                  </div>
+                  <input
+                    type="tel"
+                    inputMode="numeric"
+                    maxLength={9}
+                    placeholder="771234567"
+                    required
+                    className="w-full bg-gray-50 border border-gray-200 rounded-2xl pl-20 pr-5 py-4 font-bold text-gray-900 focus:outline-none focus:border-red-500 focus:ring-4 focus:ring-red-500/10 transition-all placeholder:font-medium placeholder:text-gray-400"
+                    value={loginPhone}
+                    onChange={(e) => setLoginPhone(e.target.value.replace(/\D/g, '').slice(0, 9))}
+                    onKeyDown={(e) => {
+                      if (!/[0-9]/.test(e.key) && !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key) && !e.ctrlKey && !e.metaKey) {
+                        e.preventDefault();
+                      }
+                    }}
+                  />
+                </div>
+              </div>
+              <button type="submit" className="w-full bg-red-600 hover:bg-red-700 text-white py-4 rounded-2xl font-black text-lg mt-4 shadow-[0_8px_20px_-6px_rgba(220,38,38,0.5)] hover:shadow-[0_12px_25px_-6px_rgba(220,38,38,0.6)] hover:-translate-y-0.5 transition-all">
+                {formData.clientPhone ? "Mettre à jour" : "Me connecter"}
+              </button>
+            </form>
+            
+            {formData.clientPhone && (
+              <div className="mt-6 text-center">
+                <button type="button" onClick={handleLogout} className="text-red-500 hover:text-red-700 font-bold text-sm underline decoration-red-500/30 hover:decoration-red-500 underline-offset-4 transition-all">
+                  Se déconnecter
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -703,7 +958,21 @@ return () => {
                 </div>
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-1">Téléphone</label>
-                  <input type="tel" required className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 outline-none focus:ring-2 focus:ring-red-500" value={partnerForm.telephone} onChange={(e) => setPartnerForm({...partnerForm, telephone: e.target.value})} placeholder="Ex: 77 123 45 67" />
+                  <input
+                    type="tel"
+                    inputMode="numeric"
+                    maxLength={9}
+                    required
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 outline-none focus:ring-2 focus:ring-red-500"
+                    value={partnerForm.telephone}
+                    onChange={(e) => setPartnerForm({...partnerForm, telephone: e.target.value.replace(/\D/g, '').slice(0, 9)})}
+                    placeholder="Ex: 771234567"
+                    onKeyDown={(e) => {
+                      if (!/[0-9]/.test(e.key) && !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key) && !e.ctrlKey && !e.metaKey) {
+                        e.preventDefault();
+                      }
+                    }}
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-1">Ville / Quartier</label>
@@ -735,6 +1004,17 @@ return () => {
           Besoin d'aide ?
         </span>
       </a>
+
+      {/* TOAST NOTIFICATION */}
+      {toast && (
+        <div className="fixed top-24 right-6 z-[9999] flex items-center gap-3 bg-white/95 backdrop-blur-md px-5 py-3.5 rounded-2xl shadow-xl border border-gray-100 text-sm font-bold text-gray-800 transition-all duration-300 animate-in fade-in slide-in-from-top-4">
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${toast.type === 'success' ? 'bg-green-100 text-green-600' : 'bg-red-50 text-red-600'}`}>
+            {toast.type === 'success' ? '✓' : '👋'}
+          </div>
+          <span>{toast.message}</span>
+        </div>
+      )}
     </div>
   );
 }
+
