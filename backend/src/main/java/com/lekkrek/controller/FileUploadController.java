@@ -4,8 +4,8 @@ package com.lekkrek.controller;
  * ============================================================================
  * 📁 Fichier : FileUploadController.java
  * 📝 Description : Classe métier pour la gestion de FileUploadController dans LekkRek.
- * 🔒 Rôle : Fait partie de l'architecture Backend Spring Boot.
- * 💡 Auteur : Documenté automatiquement (Standard Enterprise)
+ * 🛠 Rôle : Fait partie de l'architecture Backend Spring Boot.
+ * 👨‍💻 Auteur : Documenté automatiquement (Standard Enterprise)
  * ============================================================================
  */
 
@@ -45,8 +45,19 @@ public class FileUploadController {
             // Génération d'un nom de fichier unique sécurisé
             String originalName = file.getOriginalFilename();
             String extension = originalName != null && originalName.contains(".") 
-                               ? originalName.substring(originalName.lastIndexOf(".")) 
-                               : ".jpg";
+                               ? originalName.substring(originalName.lastIndexOf(".")).toLowerCase() 
+                               : "";
+
+            // Validation de l'extension
+            if (!extension.equals(".jpg") && !extension.equals(".jpeg") && !extension.equals(".png") && !extension.equals(".webp")) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Seules les images (.jpg, .jpeg, .png, .webp) sont autorisées."));
+            }
+
+            // Validation de la taille (5 Mo = 5 * 1024 * 1024 octets)
+            if (file.getSize() > 5 * 1024 * 1024) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Le fichier dépasse la taille maximale autorisée (5 Mo)."));
+            }
+
             String uniqueName = UUID.randomUUID().toString() + extension;
 
             // Enregistrement sur le disque local
