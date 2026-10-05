@@ -33,7 +33,7 @@ public class Commande {
     @Column(nullable = false)
     private String clientName;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 9)
     private String clientPhone;
 
     private String clientAddress;

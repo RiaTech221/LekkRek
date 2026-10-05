@@ -14,6 +14,7 @@ import com.lekkrek.entity.Commande;
 import com.lekkrek.dto.OrderRequestDTO;
 import com.lekkrek.dto.OrderTrackingDTO;
 import com.lekkrek.service.OrderService;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -28,7 +29,7 @@ public class OrderController {
     }
 
     @PostMapping
-    public Commande createOrder(@RequestBody OrderRequestDTO request) {
+    public Commande createOrder(@Valid @RequestBody OrderRequestDTO request) {
         return orderService.createOrder(request);
     }
 

@@ -449,7 +449,19 @@ return () => {
                     <span className="text-lg mr-2">💰</span>
                     <div className="flex flex-col w-full">
                       <span className="text-[9px] uppercase tracking-wider font-bold text-gray-500 mb-0.5">Budget max</span>
-                      <input type="number" placeholder="ex: 2000" className="bg-transparent border-none outline-none w-full text-gray-900 font-bold text-xs" value={budgetMax} onChange={(e) => setBudgetMax(e.target.value)} />
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        placeholder="ex: 2000"
+                        className="bg-transparent border-none outline-none w-full text-gray-900 font-bold text-xs"
+                        value={budgetMax}
+                        onChange={(e) => setBudgetMax(e.target.value.replace(/\D/g, ''))}
+                        onKeyDown={(e) => {
+                          if (!/[0-9]/.test(e.key) && !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key)) {
+                            e.preventDefault();
+                          }
+                        }}
+                      />
                     </div>
                   </div>
                 </div>
@@ -660,7 +672,21 @@ return () => {
                     </div>
 
                     <input type="text" placeholder="Votre Nom Complet" required className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-red-600" value={formData.clientName} onChange={e => setFormData({...formData, clientName: e.target.value})} />
-                    <input type="tel" placeholder="Numéro de Téléphone" required className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-red-600" value={formData.clientPhone} onChange={e => setFormData({...formData, clientPhone: e.target.value})} />
+                    <input
+                      type="tel"
+                      inputMode="numeric"
+                      maxLength={9}
+                      placeholder="Numéro de Téléphone (9 chiffres, ex: 771234567)"
+                      required
+                      className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-red-600"
+                      value={formData.clientPhone}
+                      onChange={e => setFormData({...formData, clientPhone: e.target.value.replace(/\D/g, '').slice(0, 9)})}
+                      onKeyDown={e => {
+                        if (!/[0-9]/.test(e.key) && !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key) && !e.ctrlKey && !e.metaKey) {
+                          e.preventDefault();
+                        }
+                      }}
+                    />
                     
                     {formData.type === 'LIVRAISON' && (
                       <textarea placeholder="Adresse de livraison complète (Quartier, Repère)" required className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-red-600" value={formData.clientAddress} onChange={e => setFormData({...formData, clientAddress: e.target.value})} />
@@ -733,7 +759,21 @@ return () => {
                   <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
                     <span className="text-gray-400 font-bold border-r border-gray-200 pr-3">+221</span>
                   </div>
-                  <input type="tel" placeholder="77 123 45 67" required className="w-full bg-gray-50 border border-gray-200 rounded-2xl pl-20 pr-5 py-4 font-bold text-gray-900 focus:outline-none focus:border-red-500 focus:ring-4 focus:ring-red-500/10 transition-all placeholder:font-medium placeholder:text-gray-400" value={loginPhone} onChange={(e) => setLoginPhone(e.target.value)} />
+                  <input
+                    type="tel"
+                    inputMode="numeric"
+                    maxLength={9}
+                    placeholder="771234567"
+                    required
+                    className="w-full bg-gray-50 border border-gray-200 rounded-2xl pl-20 pr-5 py-4 font-bold text-gray-900 focus:outline-none focus:border-red-500 focus:ring-4 focus:ring-red-500/10 transition-all placeholder:font-medium placeholder:text-gray-400"
+                    value={loginPhone}
+                    onChange={(e) => setLoginPhone(e.target.value.replace(/\D/g, '').slice(0, 9))}
+                    onKeyDown={(e) => {
+                      if (!/[0-9]/.test(e.key) && !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key) && !e.ctrlKey && !e.metaKey) {
+                        e.preventDefault();
+                      }
+                    }}
+                  />
                 </div>
               </div>
               <button type="submit" className="w-full bg-red-600 hover:bg-red-700 text-white py-4 rounded-2xl font-black text-lg mt-4 shadow-[0_8px_20px_-6px_rgba(220,38,38,0.5)] hover:shadow-[0_12px_25px_-6px_rgba(220,38,38,0.6)] hover:-translate-y-0.5 transition-all">
@@ -828,7 +868,21 @@ return () => {
                 </div>
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-1">Téléphone</label>
-                  <input type="tel" required className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 outline-none focus:ring-2 focus:ring-red-500" value={partnerForm.telephone} onChange={(e) => setPartnerForm({...partnerForm, telephone: e.target.value})} placeholder="Ex: 77 123 45 67" />
+                  <input
+                    type="tel"
+                    inputMode="numeric"
+                    maxLength={9}
+                    required
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 outline-none focus:ring-2 focus:ring-red-500"
+                    value={partnerForm.telephone}
+                    onChange={(e) => setPartnerForm({...partnerForm, telephone: e.target.value.replace(/\D/g, '').slice(0, 9)})}
+                    placeholder="Ex: 771234567"
+                    onKeyDown={(e) => {
+                      if (!/[0-9]/.test(e.key) && !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key) && !e.ctrlKey && !e.metaKey) {
+                        e.preventDefault();
+                      }
+                    }}
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-1">Ville / Quartier</label>
