@@ -1,6 +1,7 @@
 import { API_URL, formatImageUrl } from '../../config';
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import DOMPurify from 'dompurify';
 
 /**
  * ============================================================================
@@ -387,8 +388,8 @@ return () => {
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32 flex flex-col items-start text-left">
           <span className="bg-red-600 text-white font-bold tracking-wider uppercase text-sm px-4 py-1.5 rounded-full mb-6 shadow-lg">Livraison partout à Ziguinchor</span>
-          <h2 className="text-4xl md:text-6xl font-black text-white mb-6 tracking-tight leading-tight max-w-2xl whitespace-pre-line" dangerouslySetInnerHTML={{ __html: platformSettings?.heroTitle || 'Les menus du jour<br/>à Ziguinchor.' }}></h2>
-          <p className="text-xl text-gray-200 max-w-xl mb-10 font-medium leading-relaxed whitespace-pre-line" dangerouslySetInnerHTML={{ __html: platformSettings?.heroSubtitle || 'Qui a cuisiné quoi, à quel prix, où le trouver.<br/>Publié du lundi au samedi à 10h30.<br/>Ce qu\'il reste à 13h30.' }}></p>
+          <h2 className="text-4xl md:text-6xl font-black text-white mb-6 tracking-tight leading-tight max-w-2xl whitespace-pre-line" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(platformSettings?.heroTitle || 'Les menus du jour<br/>à Ziguinchor.') }}></h2>
+          <p className="text-xl text-gray-200 max-w-xl mb-10 font-medium leading-relaxed whitespace-pre-line" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(platformSettings?.heroSubtitle || 'Qui a cuisiné quoi, à quel prix, où le trouver.<br/>Publié du lundi au samedi à 10h30.<br/>Ce qu\'il reste à 13h30.') }}></p>
           
           {/* SEARCH BAR (Airbnb style - Fixed for all screens) */}
           <div className="w-full bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden mb-4 transition-all duration-300">
