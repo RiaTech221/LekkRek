@@ -1,5 +1,5 @@
 import { API_URL } from '../../config';
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../../index.css';
 import MenuManager from './MenuManager';
@@ -37,8 +37,18 @@ export default function OperatorDashboard() {
   const navigate = useNavigate();
 
   const userStr = localStorage.getItem('user');
-  const user = userStr ? JSON.parse(userStr) : { roles: [] };
-  const isAdmin = user.roles.includes('ROLE_ADMIN');
+  let user = { roles: [] };
+  try {
+    if (userStr) {
+      const parsed = JSON.parse(userStr);
+      if (parsed && typeof parsed === 'object') {
+        user = { ...parsed, roles: Array.isArray(parsed.roles) ? parsed.roles : [] };
+      }
+    }
+  } catch (e) {
+    console.error("Erreur parsing user:", e);
+  }
+  const isAdmin = Array.isArray(user.roles) && user.roles.includes('ROLE_ADMIN');
   const roleLabel = isAdmin ? 'Administrateur' : 'Opérateur';
 
   // Supprime la barre de défilement globale du body (causée par index.css)

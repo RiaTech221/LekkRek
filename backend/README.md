@@ -33,6 +33,15 @@ Une fois le backend lancé (\`mvn spring-boot:run\`), vous pouvez explorer et te
 👉 **http://localhost:8080/swagger-ui.html**
 
 ## 📊 Modules Spécifiques
-- **CMS & Apache Tika :** Le \`DocumentParserController\` permet de recevoir des fichiers MultiparFile (PDF, DOCX) et d'en extraire le texte HTML enrichi pour pré-remplir l'éditeur de l'administration.
-- **Audit Logging :** Toutes les actions sensibles (validation d'une commande, suppression d'un plat) déclenchent le \`AuditService\` qui trace l'email, le rôle, l'action et la date.
-- **Analytics KPI :** Le \`AnalyticsController\` centralise les événements front-end (clics WhatsApp, recherches) pour générer des tableaux de bord en temps réel.
+- **CMS & Apache Tika :** Le `DocumentParserController` permet de recevoir des fichiers MultiparFile (PDF, DOCX) et d'en extraire le texte HTML enrichi pour pré-remplir l'éditeur de l'administration.
+- **Audit Logging :** Toutes les actions sensibles (validation d'une commande, suppression d'un plat) déclenchent le `AuditService` qui trace l'email, le rôle, l'action et la date.
+- **Analytics KPI :** Le `AnalyticsController` centralise les événements front-end (clics WhatsApp, recherches) pour générer des tableaux de bord en temps réel.
+
+## 🔑 Comptes de test par défaut
+
+| Rôle | Nom / Restaurant | Email | Mot de passe |
+|---|---|---|---|
+| **Administrateur** | Admin Principal | `admin@lekkrek.com` | `password123` |
+| **Opérateur** | Awa Ndiaye (La Fourchette) | `awa@lekkrek.com` | `password123` |
+| **Opérateur** | Modou Fall (Chez Loutcha) | `modou@lekkrek.com` | `password123` |
+| **Opérateur** | Fatou Diop (Le Djoloff) | `fatou@lekkrek.com` | `password123` |
