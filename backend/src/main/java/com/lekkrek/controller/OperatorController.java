@@ -15,6 +15,7 @@ import com.lekkrek.entity.Plat;
 import com.lekkrek.dto.PlatRequestDTO;
 import com.lekkrek.service.OrderService;
 import com.lekkrek.service.PlatService;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,6 +23,7 @@ import java.util.List;
 @RestController
 @RequestMapping("${api.prefix.operator:/api/v1/operator}")
 @CrossOrigin(origins = "*")
+@PreAuthorize("hasAnyRole('ADMIN', 'OPERATEUR')")
 public class OperatorController {
 
     private final OrderService orderService;

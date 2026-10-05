@@ -1,3 +1,4 @@
+import { API_URL } from '../../config';
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 
@@ -18,7 +19,7 @@ export default function PublicPage() {
 
   useEffect(() => {
     setLoading(true);
-    fetch(`http://192.168.1.6:8080/api/v1/pages/${slug}`)
+    fetch(`${API_URL}/api/v1/pages/${slug}`)
       .then(res => {
         if (!res.ok) throw new Error('Page introuvable');
         return res.json();
