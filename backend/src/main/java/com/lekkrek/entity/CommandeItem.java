@@ -10,6 +10,7 @@ package com.lekkrek.entity;
  */
 
 
+import java.math.BigDecimal;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -37,5 +38,5 @@ public class CommandeItem {
     private Integer quantity;
 
     @Column(nullable = false)
-    private Double unitPrice;
+    private BigDecimal unitPrice;
 }

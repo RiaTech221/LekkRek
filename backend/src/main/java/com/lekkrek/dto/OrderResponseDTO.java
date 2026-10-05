@@ -12,13 +12,13 @@ public class OrderResponseDTO {
     private String status;
     private String type;
     private String restaurantName;
-    private Double totalAmount;
+    private BigDecimal totalAmount;
     private String message;
 
     public OrderResponseDTO() {}
 
     public OrderResponseDTO(String orderNumber, String status, String type,
-                             String restaurantName, Double totalAmount, String message) {
+                             String restaurantName, BigDecimal totalAmount, String message) {
         this.orderNumber = orderNumber;
         this.status = status;
         this.type = type;
@@ -31,6 +31,6 @@ public class OrderResponseDTO {
     public String getStatus() { return status; }
     public String getType() { return type; }
     public String getRestaurantName() { return restaurantName; }
-    public Double getTotalAmount() { return totalAmount; }
+    public BigDecimal getTotalAmount() { return totalAmount; }
     public String getMessage() { return message; }
 }

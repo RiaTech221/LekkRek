@@ -10,6 +10,7 @@ package com.lekkrek.dto;
  */
 
 
+import java.math.BigDecimal;
 import jakarta.validation.constraints.*;
 
 public record PlatRequestDTO(
@@ -23,7 +24,7 @@ public record PlatRequestDTO(
 
     @NotNull(message = "Le prix est obligatoire")
     @DecimalMin(value = "0.0", inclusive = false, message = "Le prix doit être supérieur à 0")
-    Double price,
+    BigDecimal price,
 
     String image,
     String moment,

@@ -53,7 +53,7 @@ public class OrderServiceImpl implements OrderService {
         commande.setType(Commande.OrderType.valueOf(request.type()));
         commande.setPaymentMethod(Commande.PaymentMethod.valueOf(request.paymentMethod()));
         
-        double total = 0;
+        java.math.BigDecimal total = java.math.BigDecimal.ZERO;
         Restaurant resto = null;
 
         for (Long platId : request.platIds()) {
@@ -67,7 +67,7 @@ public class OrderServiceImpl implements OrderService {
             item.setUnitPrice(plat.getPrice());
             
             commande.getItems().add(item);
-            total += plat.getPrice();
+            total = total.add(plat.getPrice());
         }
 
         commande.setRestaurant(resto);

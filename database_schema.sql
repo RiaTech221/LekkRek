@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS plats (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     description TEXT,
-    price DOUBLE NOT NULL,
+    price DECIMAL(10,2) NOT NULL,
     image VARCHAR(255),
     moment VARCHAR(50), -- petit_dej, dejeuner, diner, fastfood
     status VARCHAR(50) NOT NULL, -- DISPO ou EPUISE
@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS commandes (
     client_address VARCHAR(200),
     payment_method VARCHAR(50) NOT NULL, -- WAVE, ORANGE_MONEY, SAMIR_PAY, ESPECES, SUR_PLACE
     status VARCHAR(50) NOT NULL, -- NOUVELLE, EN_PREPARATION, PRETE, LIVREE, ANNULEE
-    total_amount DOUBLE NOT NULL,
+    total_amount DECIMAL(10,2) NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -60,7 +60,7 @@ CREATE TABLE IF NOT EXISTS commande_items (
     commande_id BIGINT NOT NULL,
     plat_id BIGINT NOT NULL,
     quantity INT NOT NULL,
-    price_at_order DOUBLE NOT NULL,
+    price_at_order DECIMAL(10,2) NOT NULL,
     CONSTRAINT fk_item_commande FOREIGN KEY (commande_id) REFERENCES commandes(id) ON DELETE CASCADE,
     CONSTRAINT fk_item_plat FOREIGN KEY (plat_id) REFERENCES plats(id)
 );

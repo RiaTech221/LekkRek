@@ -12,14 +12,14 @@ public class OrderTrackingDTO {
     private String type;
     private String restaurantName;
     private String restaurantLocation;
-    private Double totalAmount;
+    private BigDecimal totalAmount;
     private String createdAt;
 
     public OrderTrackingDTO() {}
 
     public OrderTrackingDTO(String orderNumber, String status, String type,
                              String restaurantName, String restaurantLocation,
-                             Double totalAmount, String createdAt) {
+                             BigDecimal totalAmount, String createdAt) {
         this.orderNumber = orderNumber;
         this.status = status;
         this.type = type;
@@ -34,6 +34,6 @@ public class OrderTrackingDTO {
     public String getType() { return type; }
     public String getRestaurantName() { return restaurantName; }
     public String getRestaurantLocation() { return restaurantLocation; }
-    public Double getTotalAmount() { return totalAmount; }
+    public BigDecimal getTotalAmount() { return totalAmount; }
     public String getCreatedAt() { return createdAt; }
 }
