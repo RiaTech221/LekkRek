@@ -404,10 +404,12 @@ export default function MenuManager() {
                         if (!file) return;
                         const formDataUpload = new FormData();
                         formDataUpload.append('file', file);
-                        fetch(`${API_URL}/api/v1/upload`, {
+const token = localStorage.getItem('token');
+                          fetch(`${API_URL}/api/v1/upload`, {
                           method: 'POST',
+                          headers: { 'Authorization': `Bearer ${token}` },
                           body: formDataUpload
-                        }).then(res => res.text()).then(url => setFormData({...formData, image: url}));
+                        }).then(res => res.json()).then(data => setFormData({...formData, image: data.url || data}));
                       }} 
                       className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
                     />

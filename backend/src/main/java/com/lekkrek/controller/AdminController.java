@@ -17,6 +17,7 @@ import com.lekkrek.repository.RestaurantRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,6 +25,10 @@ import java.util.List;
 @RestController
 @RequestMapping("${api.prefix.admin:/api/v1/admin}")
 @PreAuthorize("hasRole('ADMIN')")
+<<<<<<< HEAD
+@CrossOrigin(origins = "*")
+=======
+>>>>>>> develop
 public class AdminController {
 
     private final UtilisateurRepository utilisateurRepository;

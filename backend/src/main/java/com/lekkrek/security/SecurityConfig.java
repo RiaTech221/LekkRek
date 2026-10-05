@@ -32,6 +32,8 @@ import org.springframework.beans.factory.annotation.Value;
 import java.util.Arrays;
 import java.util.List;
 
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -93,8 +95,11 @@ public class SecurityConfig {
                 auth.requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll() // IMPORTANT POUR LES PREFLIGHT
                     .requestMatchers("/api/v1/public/**").permitAll()
                     .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/pages/**").permitAll()
-                    .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/settings").permitAll()
+                    .requestMatchers("/api/v1/pages/**").hasRole("ADMIN")
+                    .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/settings", "/api/v1/settings/**").permitAll()
+                    .requestMatchers("/api/v1/settings", "/api/v1/settings/**").hasRole("ADMIN")
                     .requestMatchers("/uploads/**").permitAll()
+                    .requestMatchers("/api/v1/upload", "/api/v1/upload/**").hasRole("ADMIN")
                     .requestMatchers("/api/v1/auth/**").permitAll()
                     .requestMatchers("/error").permitAll()
                     .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
