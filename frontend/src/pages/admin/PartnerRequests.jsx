@@ -1,5 +1,5 @@
 import { API_URL } from '../../config';
-﻿import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 
 /**
  * ============================================================================
@@ -23,11 +23,12 @@ export default function PartnerRequests() {
     })
       .then(res => res.json())
       .then(data => {
-        setRequests(data);
+        setRequests(Array.isArray(data) ? data : []);
         setLoading(false);
       })
       .catch(err => {
         console.error(err);
+        setRequests([]);
         setLoading(false);
       });
   };

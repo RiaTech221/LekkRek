@@ -1,6 +1,7 @@
 import { API_URL, formatImageUrl } from '../../config';
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import DOMPurify from 'dompurify';
 
 /**
  * ============================================================================
@@ -51,6 +52,13 @@ export default function MobileClientView() {
   const [trackError, setTrackError] = useState('');
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
+  // Toast notifications
+  const [toast, setToast] = useState({ visible: false, message: '', type: 'success' });
+  const showToast = (message, type = 'success') => {
+    setToast({ visible: true, message, type });
+    setTimeout(() => setToast(prev => ({ ...prev, visible: false })), 3000);
+  };
+
   const [isLoginOpen, setLoginOpen] = useState(false);
   const [loginPhone, setLoginPhone] = useState('');
   const [loginName, setLoginName] = useState('');
@@ -64,7 +72,7 @@ export default function MobileClientView() {
   const handleLogin = (e) => {
     e.preventDefault();
     if (!/^(77|78|76|75|70|33)\d{7}$/.test(loginPhone.replace(/\s/g, ''))) {
-      return alert("Numéro de téléphone invalide.");
+      return showToast("Numéro de téléphone invalide.", 'error');
     }
     const cleanPhone = loginPhone.replace(/\s/g, '');
     localStorage.setItem('lekkrek_client_profile', JSON.stringify({ 
@@ -82,9 +90,9 @@ export default function MobileClientView() {
       
     setLoginOpen(false);
     if (formData.clientPhone) {
-      alert("Profil mis à jour !");
+      showToast("Profil mis à jour !");
     } else {
-      alert("Connecté avec succès ! Vos favoris ont été chargés.");
+      showToast("Connecté avec succès ! Vos favoris ont été chargés.");
     }
   };
 
@@ -93,7 +101,7 @@ export default function MobileClientView() {
     setFormData(prev => ({ ...prev, clientPhone: '', clientName: '' }));
     setRecommendations([]);
     setLoginOpen(false);
-    alert("Vous êtes déconnecté.");
+    showToast("Vous êtes déconnecté.", 'info');
   };
 
   
@@ -244,7 +252,13 @@ return () => {
         body: JSON.stringify(orderRequest)
       })
       .then(res => {
-        if (!res.ok) throw new Error("Erreur serveur lors de la commande.");
+        if (!res.ok) {
+          return res.json().then(err => {
+            throw new Error(err.message || "Erreur serveur lors de la commande.");
+          }).catch(() => {
+            throw new Error("Erreur serveur lors de la commande.");
+          });
+        }
         return res.json();
       })
       .then(data => {
@@ -337,7 +351,25 @@ return () => {
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
-      
+
+      {/* TOAST NOTIFICATION */}
+      {toast.visible && (
+        <div style={{
+          position: 'fixed', bottom: '24px', left: '50%', transform: 'translateX(-50%)',
+          zIndex: 99999, display: 'flex', alignItems: 'center', gap: '10px',
+          padding: '12px 20px', borderRadius: '12px', fontWeight: '600', fontSize: '14px',
+          boxShadow: '0 8px 30px rgba(0,0,0,0.15)',
+          background: toast.type === 'error' ? '#fff1f0' : toast.type === 'info' ? '#f0f4ff' : '#f0fff4',
+          color: toast.type === 'error' ? '#c0392b' : toast.type === 'info' ? '#2563eb' : '#16a34a',
+          border: `1.5px solid ${toast.type === 'error' ? '#fca5a5' : toast.type === 'info' ? '#93c5fd' : '#86efac'}`,
+          animation: 'slideUp 0.3s ease',
+          whiteSpace: 'nowrap',
+        }}>
+          <span>{toast.type === 'error' ? '❌' : toast.type === 'info' ? 'ℹ️' : '✅'}</span>
+          {toast.message}
+        </div>
+      )}
+
       {/* NAVBAR */}
       <nav className="fixed top-0 left-0 w-full bg-white/90 backdrop-blur-md z-50 border-b border-gray-100 shadow-sm transition-all duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -387,8 +419,8 @@ return () => {
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32 flex flex-col items-start text-left">
           <span className="bg-red-600 text-white font-bold tracking-wider uppercase text-sm px-4 py-1.5 rounded-full mb-6 shadow-lg">Livraison partout à Ziguinchor</span>
-          <h2 className="text-4xl md:text-6xl font-black text-white mb-6 tracking-tight leading-tight max-w-2xl whitespace-pre-line" dangerouslySetInnerHTML={{ __html: platformSettings?.heroTitle || 'Les menus du jour<br/>à Ziguinchor.' }}></h2>
-          <p className="text-xl text-gray-200 max-w-xl mb-10 font-medium leading-relaxed whitespace-pre-line" dangerouslySetInnerHTML={{ __html: platformSettings?.heroSubtitle || 'Qui a cuisiné quoi, à quel prix, où le trouver.<br/>Publié du lundi au samedi à 10h30.<br/>Ce qu\'il reste à 13h30.' }}></p>
+          <h2 className="text-4xl md:text-6xl font-black text-white mb-6 tracking-tight leading-tight max-w-2xl whitespace-pre-line" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(platformSettings?.heroTitle || 'Les menus du jour<br/>à Ziguinchor.') }}></h2>
+          <p className="text-xl text-gray-200 max-w-xl mb-10 font-medium leading-relaxed whitespace-pre-line" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(platformSettings?.heroSubtitle || 'Qui a cuisiné quoi, à quel prix, où le trouver.<br/>Publié du lundi au samedi à 10h30.<br/>Ce qu\'il reste à 13h30.') }}></p>
           
           {/* SEARCH BAR (Airbnb style - Fixed for all screens) */}
           <div className="w-full bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden mb-4 transition-all duration-300">

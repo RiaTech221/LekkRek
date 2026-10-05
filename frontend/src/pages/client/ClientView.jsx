@@ -1,6 +1,7 @@
 import { API_URL, formatImageUrl } from '../../config';
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import DOMPurify from 'dompurify';
 
 /**
  * ============================================================================
@@ -42,6 +43,14 @@ export default function ClientView() {
     return { clientName: '', clientPhone: '', clientAddress: '', type: 'LIVRAISON', paymentMethod: 'WAVE' };
   });
   const [orderInfo, setOrderInfo] = useState(null);
+  const [toast, setToast] = useState(null);
+
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => {
+      setToast(null);
+    }, 3000);
+  };
 
   // States pour le suivi
   const [isTrackModalOpen, setTrackModalOpen] = useState(false);
@@ -99,9 +108,9 @@ export default function ClientView() {
       
     setLoginOpen(false);
     if (formData.clientPhone) {
-      alert("Profil mis à jour !");
+      showToast("Profil mis à jour !", "success");
     } else {
-      alert("Connecté avec succès ! Vos favoris ont été chargés.");
+      showToast("Connecté avec succès ! Vos favoris ont été chargés.", "success");
     }
   };
 
@@ -110,7 +119,7 @@ export default function ClientView() {
     setFormData(prev => ({ ...prev, clientPhone: '', clientName: '' }));
     setRecommendations([]);
     setLoginOpen(false);
-    alert("Vous êtes déconnecté.");
+    showToast("Vous êtes déconnecté.", "info");
   };
 
   
@@ -261,7 +270,13 @@ return () => {
         body: JSON.stringify(orderRequest)
       })
       .then(res => {
-        if (!res.ok) throw new Error("Erreur serveur lors de la commande.");
+        if (!res.ok) {
+          return res.json().then(err => {
+            throw new Error(err.message || "Erreur serveur lors de la commande.");
+          }).catch(() => {
+            throw new Error("Erreur serveur lors de la commande.");
+          });
+        }
         return res.json();
       })
       .then(data => {
@@ -479,8 +494,8 @@ return () => {
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32 flex flex-col items-start text-left pointer-events-none z-10">
           <span className="bg-red-600 text-white font-bold tracking-wider uppercase text-sm px-4 py-1.5 rounded-full mb-6 shadow-lg">Livraison partout à Ziguinchor</span>
-          <h2 className="text-4xl md:text-6xl font-black text-white mb-6 tracking-tight leading-tight max-w-2xl whitespace-pre-line" dangerouslySetInnerHTML={{ __html: platformSettings?.heroTitle || 'Les menus du jour<br/>à Ziguinchor.' }}></h2>
-          <p className="text-xl text-gray-200 max-w-xl mb-10 font-medium leading-relaxed whitespace-pre-line" dangerouslySetInnerHTML={{ __html: platformSettings?.heroSubtitle || 'Qui a cuisiné quoi, à quel prix, où le trouver.<br/>Publié du lundi au samedi à 10h30.<br/>Ce qu\'il reste à 13h30.' }}></p>
+          <h2 className="text-4xl md:text-6xl font-black text-white mb-6 tracking-tight leading-tight max-w-2xl whitespace-pre-line" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(platformSettings?.heroTitle || 'Les menus du jour<br/>à Ziguinchor.') }}></h2>
+          <p className="text-xl text-gray-200 max-w-xl mb-10 font-medium leading-relaxed whitespace-pre-line" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(platformSettings?.heroSubtitle || 'Qui a cuisiné quoi, à quel prix, où le trouver.<br/>Publié du lundi au samedi à 10h30.<br/>Ce qu\'il reste à 13h30.') }}></p>
         </div>
 
         {/* Carousel Indicators */}
@@ -989,6 +1004,16 @@ return () => {
           Besoin d'aide ?
         </span>
       </a>
+
+      {/* TOAST NOTIFICATION */}
+      {toast && (
+        <div className="fixed top-24 right-6 z-[9999] flex items-center gap-3 bg-white/95 backdrop-blur-md px-5 py-3.5 rounded-2xl shadow-xl border border-gray-100 text-sm font-bold text-gray-800 transition-all duration-300 animate-in fade-in slide-in-from-top-4">
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${toast.type === 'success' ? 'bg-green-100 text-green-600' : 'bg-red-50 text-red-600'}`}>
+            {toast.type === 'success' ? '✓' : '👋'}
+          </div>
+          <span>{toast.message}</span>
+        </div>
+      )}
     </div>
   );
 }

@@ -84,8 +84,7 @@ public class Commande {
         WAVE,
         ORANGE_MONEY,
         SAMIR_PAY,
-        ESPECES,
-        SUR_PLACE
+        ESPECES
     }
 
     public enum PaymentStatus {

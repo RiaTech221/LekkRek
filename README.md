@@ -183,12 +183,14 @@ cp frontend/.env.example frontend/.env
 
 ## Accès par défaut
 
-| Rôle | Email | Mot de passe |
-|---|---|---|
-| Administrateur | `admin@lekkrek.com` | `password` |
-| Opérateur | `operator@lekkrek.com` | `password` |
+| Rôle | Nom / Restaurant | Email | Mot de passe |
+|---|---|---|---|
+| **Administrateur** | Admin Principal | `admin@lekkrek.com` | `password123` |
+| **Opérateur** | Awa Ndiaye (La Fourchette) | `awa@lekkrek.com` | `password123` |
+| **Opérateur** | Modou Fall (Chez Loutcha) | `modou@lekkrek.com` | `password123` |
+| **Opérateur** | Fatou Diop (Le Djoloff) | `fatou@lekkrek.com` | `password123` |
 
-> Ces accès sont créés automatiquement au démarrage (Seed Data). **Changer ces mots de passe avant tout déploiement en production.**
+> Ces accès sont créés automatiquement au démarrage (`DataLoader.java`). **Changer ces mots de passe avant tout déploiement en production.**
 
 ---
 

@@ -4,8 +4,8 @@ package com.lekkrek.exception;
  * ============================================================================
  * 📁 Fichier : GlobalExceptionHandler.java
  * 📝 Description : Gestionnaire centralisé des exceptions REST pour LekkRek.
- * 🔒 Rôle : Formate les erreurs de validation, d'authentification et système.
- * 💡 Auteur : Standard Enterprise Security
+ * 🛠 Rôle : Formate les erreurs de validation, d'authentification et système.
+ * 👨‍💻 Auteur : Standard Enterprise Security
  * ============================================================================
  */
 
@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {

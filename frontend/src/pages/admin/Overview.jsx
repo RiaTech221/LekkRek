@@ -28,8 +28,18 @@ export default function Overview() {
   const [analytics, setAnalytics] = useState(null);
   
   const userStr = localStorage.getItem('user');
-  const user = userStr ? JSON.parse(userStr) : { roles: [] };
-  const isAdmin = user.roles.includes('ROLE_ADMIN');
+  let user = { roles: [] };
+  try {
+    if (userStr) {
+      const parsed = JSON.parse(userStr);
+      if (parsed && typeof parsed === 'object') {
+        user = { ...parsed, roles: Array.isArray(parsed.roles) ? parsed.roles : [] };
+      }
+    }
+  } catch (e) {
+    console.error("Erreur parsing user:", e);
+  }
+  const isAdmin = Array.isArray(user.roles) && user.roles.includes('ROLE_ADMIN');
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -66,7 +76,7 @@ export default function Overview() {
         .catch(console.error);
         
       // Fetch des Menus (pour simuler Offres du Jour, dispo, épuisées)
-      fetch(`${API_URL}/api/v1/public/menus`) // Point d'entrée public pour les offres
+      fetch(`${API_URL}/api/v1/public/menu`) // Point d'entrée public pour les offres
         .then(res => res.json())
         .then(data => {
             if (Array.isArray(data)) {
@@ -88,7 +98,7 @@ export default function Overview() {
 
   const totalRevenue = orders
     .filter(o => o.paymentStatus === 'PAYE')
-    .reduce((acc, curr) => acc + curr.totalAmount, 0);
+    .reduce((acc, curr) => acc + (curr.totalAmount || 0), 0);
 
   const pendingOrders = orders.filter(o => o.status === 'NOUVELLE' || o.status === 'EN_PREPARATION').length;
   const completedOrders = orders.filter(o => o.status === 'LIVREE' || o.status === 'PRETE').length;
@@ -377,7 +387,7 @@ export default function Overview() {
                       </div>
                     </td>
                     <td className="p-4 pr-6 text-right font-black text-gray-900">
-                      {o.totalAmount.toLocaleString('fr-FR')} <span className="text-xs text-gray-500 font-bold ml-1">FCFA</span>
+                      {(o.totalAmount || 0).toLocaleString('fr-FR')} <span className="text-xs text-gray-500 font-bold ml-1">FCFA</span>
                     </td>
                   </tr>
                 );
