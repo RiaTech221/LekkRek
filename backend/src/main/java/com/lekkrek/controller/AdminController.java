@@ -23,7 +23,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("${api.prefix.admin:/api/v1/admin}")
-@CrossOrigin(origins = "*")
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminController {
 

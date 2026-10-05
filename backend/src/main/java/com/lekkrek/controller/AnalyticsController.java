@@ -21,7 +21,6 @@ import java.util.Map;
 import java.util.List;
 
 @RestController
-@CrossOrigin(origins = "*")
 public class AnalyticsController {
 
     private final AnalyticsEventRepository analyticsEventRepository;

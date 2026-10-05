@@ -22,7 +22,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("${api.prefix.operator:/api/v1/operator}")
-@CrossOrigin(origins = "*")
 @PreAuthorize("hasAnyRole('ADMIN', 'OPERATEUR')")
 public class OperatorController {
 

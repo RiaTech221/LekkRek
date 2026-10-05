@@ -18,7 +18,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("${api.prefix.public:/api/v1/public}/menu")
-@CrossOrigin(origins = "*")
 public class MenuController {
 
     private final PlatRepository platRepository;

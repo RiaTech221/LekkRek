@@ -28,7 +28,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.beans.factory.annotation.Value;
 import java.util.Arrays;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -37,6 +39,9 @@ public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
     private final JwtUtils jwtUtils;
+
+    @Value("${cors.allowed-origins}")
+    private String allowedOriginsRaw;
 
     public SecurityConfig(CustomUserDetailsService userDetailsService, JwtUtils jwtUtils) {
         this.userDetailsService = userDetailsService;
@@ -64,7 +69,9 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(Arrays.asList("*"));
+        // Origines autorisées lues depuis la variable d'env CORS_ALLOWED_ORIGINS
+        List<String> origins = Arrays.asList(allowedOriginsRaw.split(","));
+        configuration.setAllowedOriginPatterns(origins);
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept"));
         configuration.setAllowCredentials(true);
