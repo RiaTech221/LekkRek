@@ -1,5 +1,7 @@
 package com.lekkrek.dto;
 
+import java.math.BigDecimal;
+
 /**
  * DTO de confirmation de commande retourné au client après un POST /orders.
  * N'expose que les informations nécessaires à la confirmation :

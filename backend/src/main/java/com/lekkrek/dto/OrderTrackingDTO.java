@@ -1,5 +1,7 @@
 package com.lekkrek.dto;
 
+import java.math.BigDecimal;
+
 /**
  * DTO public pour le suivi de commande.
  * N'expose que les informations nécessaires au client :
