@@ -1,3 +1,4 @@
+import { API_URL } from '../../config';
 import React, { useState, useEffect } from 'react';
 
 /**
@@ -35,7 +36,7 @@ export default function OperatorsManager() {
   const fetchOperators = () => {
     setLoading(true);
     const token = localStorage.getItem('token');
-    fetch('http://192.168.1.6:8080/api/v1/admin/operators', {
+    fetch(`${API_URL}/api/v1/admin/operators`, {
       headers: { 'Authorization': `Bearer ${token}` }
     })
       .then(res => res.json())
@@ -51,7 +52,7 @@ export default function OperatorsManager() {
 
   const fetchRestaurants = () => {
     const token = localStorage.getItem('token');
-    fetch('http://192.168.1.6:8080/api/v1/admin/restaurants', {
+    fetch(`${API_URL}/api/v1/admin/restaurants`, {
       headers: { 'Authorization': `Bearer ${token}` }
     })
       .then(res => res.json())
@@ -98,7 +99,7 @@ export default function OperatorsManager() {
       formData.append('file', imageFile);
       
       try {
-        const uploadRes = await fetch('http://192.168.1.6:8080/api/v1/upload', {
+        const uploadRes = await fetch(`${API_URL}/api/v1/upload`, {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${token}` },
           body: formData
@@ -126,7 +127,7 @@ export default function OperatorsManager() {
       restaurantAssigne: restaurantAssigne
     };
 
-    const url = editingId ? `http://192.168.1.6:8080/api/v1/admin/operators/${editingId}` : 'http://192.168.1.6:8080/api/v1/admin/operators';
+    const url = editingId ? `${API_URL}/api/v1/admin/operators/${editingId}` : `${API_URL}/api/v1/admin/operators`;
     
     fetch(url, {
       method: editingId ? 'PUT' : 'POST',
@@ -154,7 +155,7 @@ export default function OperatorsManager() {
   const handleDelete = (id) => {
     if (!window.confirm("Êtes-vous sûr de vouloir désactiver/supprimer cet opérateur ?")) return;
     const token = localStorage.getItem('token');
-    fetch(`http://192.168.1.6:8080/api/v1/admin/operators/${id}`, {
+    fetch(`${API_URL}/api/v1/admin/operators/${id}`, {
       method: 'DELETE',
       headers: { 'Authorization': `Bearer ${token}` }
     })

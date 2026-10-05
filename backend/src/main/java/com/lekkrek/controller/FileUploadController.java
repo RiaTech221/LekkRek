@@ -30,7 +30,7 @@ public class FileUploadController {
     private static final String UPLOAD_DIR = "uploads/";
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'OPERATEUR')")
     public ResponseEntity<?> uploadFile(@RequestParam("file") MultipartFile file) {
         if (file.isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("error", "Le fichier est vide."));

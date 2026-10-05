@@ -1,3 +1,4 @@
+import { API_URL } from '../../config';
 import React, { useState, useEffect } from 'react';
 
 /**
@@ -16,7 +17,7 @@ export default function AuditLogs() {
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    fetch('http://192.168.1.6:8080/api/v1/admin/audit', {
+    fetch(`${API_URL}/api/v1/admin/audit`, {
       headers: { 'Authorization': `Bearer ${token}` }
     })
       .then(res => {
