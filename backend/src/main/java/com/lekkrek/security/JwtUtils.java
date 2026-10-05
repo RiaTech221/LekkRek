@@ -12,19 +12,34 @@ package com.lekkrek.security;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
+import jakarta.annotation.PostConstruct;
 import java.security.Key;
 import java.util.Date;
 
 @Component
 public class JwtUtils {
 
-    // Cle secrete fixe pour le developpement (evite les deconnexions a chaque redemarrage)
-    private final Key jwtSecret = Keys.hmacShaKeyFor("LaCleSecretePourLekkRekDeveloppeParAntigravity2024".getBytes());
-    private final int jwtExpirationMs = 86400000; // 24h
+    @Value("${jwt.secret}")
+    private String jwtSecretString;
+
+    @Value("${jwt.expirationMs}")
+    private int jwtExpirationMs;
+
+    private Key jwtSecret;
+
+    @PostConstruct
+    public void init() {
+        byte[] keyBytes = jwtSecretString.getBytes();
+        if (keyBytes.length < 32) {
+            throw new IllegalStateException("JWT_SECRET doit faire au moins 256 bits (32 caractères).");
+        }
+        this.jwtSecret = Keys.hmacShaKeyFor(keyBytes);
+    }
 
     public String generateJwtToken(Authentication authentication) {
         UserDetails userPrincipal = (UserDetails) authentication.getPrincipal();
