@@ -102,7 +102,7 @@ public class DataLoader {
             // 4. Plats
             // La Fourchette (R1)
             Plat p1 = createPlat("Thieboudienne Penda Mbaye", "Le plat national revisité avec du poisson frais et des légumes.", new java.math.BigDecimal("3500.0"), "https://images.unsplash.com/photo-1548943487-a2e4f43b4850?auto=format&fit=crop&q=80&w=800", "dejeuner", r1);
-            Plat p2 = createPlat("Yassa Poulet", "Poulet mariné au citron et oignons, servi avec du riz blanc.", 3000.0, "https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?auto=format&fit=crop&q=80&w=800", "dejeuner", r1);
+            Plat p2 = createPlat("Yassa Poulet", "Poulet mariné au citron et oignons, servi avec du riz blanc.", new java.math.BigDecimal("3000.0"), "https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?auto=format&fit=crop&q=80&w=800", "dejeuner", r1);
             Plat p3 = createPlat("Pastels au Poisson", "Beignets farcis au poisson avec sauce tomate épicée.", new java.math.BigDecimal("1500.0"), "https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?auto=format&fit=crop&q=80&w=800", "gouter", r1);
             Plat p4 = createPlat("Burger Maison & Frites", "Burger de boeuf savoureux avec frites maison croustillantes.", new java.math.BigDecimal("4000.0"), "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&q=80&w=800", "fast food", r1);
 
@@ -112,9 +112,9 @@ public class DataLoader {
             Plat p7 = createPlat("Thiéboudienne Diaga", "Riz au poisson avec boulettes de poisson.", new java.math.BigDecimal("3000.0"), "https://images.unsplash.com/photo-1512058564366-18510be2db19?auto=format&fit=crop&q=80&w=800", "dejeuner", r2);
 
             // Le Kassa Plage (R3)
-            Plat p8 = createPlat("Grillades de Fruits de Mer", "Assortiment de crevettes, calamars et poisson grillés.", 6000.0, "https://images.unsplash.com/photo-1599084942896-673ec90d0a5a?auto=format&fit=crop&q=80&w=800", "diner", r3);
+            Plat p8 = createPlat("Grillades de Fruits de Mer", "Assortiment de crevettes, calamars et poisson grillés.", new java.math.BigDecimal("6000.0"), "https://images.unsplash.com/photo-1599084942896-673ec90d0a5a?auto=format&fit=crop&q=80&w=800", "diner", r3);
             Plat p9 = createPlat("Jus de Bissap", "Boisson rafraîchissante à la fleur d'hibiscus.", new java.math.BigDecimal("500.0"), "https://images.unsplash.com/photo-1600271886742-f049cd451bba?auto=format&fit=crop&q=80&w=800", "gouter", r3);
-            Plat p10 = createPlat("Brochettes de Lotte", "Lotte marinée et grillée, accompagnée d'attiéké.", 4500.0, "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&q=80&w=800", "diner", r3);
+            Plat p10 = createPlat("Brochettes de Lotte", "Lotte marinée et grillée, accompagnée d'attiéké.", new java.math.BigDecimal("4500.0"), "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&q=80&w=800", "diner", r3);
 
             // Chez Loutcha (R4)
             Plat p11 = createPlat("Mafé Viande", "Sauce à la pâte d'arachide avec viande de bœuf tendre et légumes.", new java.math.BigDecimal("2800.0"), "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&q=80&w=800", "dejeuner", r4);
@@ -222,13 +222,13 @@ public class DataLoader {
 
         // 10 nouveaux plats répartis dans les nouveaux restaurants
         platRepo.saveAll(java.util.Arrays.asList(
-            createPlat("Poulet DG", "Poulet sauté avec plantains frits, carottes et champignons.", 4500.0, "https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?auto=format&fit=crop&q=80&w=800", "dejeuner", r5),
+            createPlat("Poulet DG", "Poulet sauté avec plantains frits, carottes et champignons.", new java.math.BigDecimal("4500.0"), "https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?auto=format&fit=crop&q=80&w=800", "dejeuner", r5),
             createPlat("Ceebu Yapp", "Riz à la viande façon sénégalaise avec légumes frais.", new java.math.BigDecimal("3200.0"), "https://images.unsplash.com/photo-1512058564366-18510be2db19?auto=format&fit=crop&q=80&w=800", "dejeuner", r5),
-            createPlat("Thiébou Guinar", "Riz au poulet savamment épicé, servi avec des légumes.", 3000.0, "https://images.unsplash.com/photo-1587765387771-e0f6b14a3b81?auto=format&fit=crop&q=80&w=800", "dejeuner", r6),
+            createPlat("Thiébou Guinar", "Riz au poulet savamment épicé, servi avec des légumes.", new java.math.BigDecimal("3000.0"), "https://images.unsplash.com/photo-1587765387771-e0f6b14a3b81?auto=format&fit=crop&q=80&w=800", "dejeuner", r6),
             createPlat("Domoda Arachide", "Riz gras accompagné d'une riche sauce à l'arachide.", new java.math.BigDecimal("2800.0"), "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&q=80&w=800", "diner", r6),
             createPlat("Attiéké Poisson Braisé", "Semoule de manioc avec poisson braisé et sauce tomate.", new java.math.BigDecimal("2500.0"), "https://images.unsplash.com/photo-1580476262798-bddd9f4b7369?auto=format&fit=crop&q=80&w=800", "dejeuner", r7),
-            createPlat("Salade de Fruits Tropicaux", "Mangue, ananas, papaye et goyave fraîchement coupés.", 1200.0, "https://images.unsplash.com/photo-1567306301408-9b74779a11af?auto=format&fit=crop&q=80&w=800", "dessert", r7),
-            createPlat("Pizza Africaine", "Base tomate, poulet grillé, poivrons et fromage fondu.", 5000.0, "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&q=80&w=800", "diner", r8),
+            createPlat("Salade de Fruits Tropicaux", "Mangue, ananas, papaye et goyave fraîchement coupés.", new java.math.BigDecimal("1200.0"), "https://images.unsplash.com/photo-1567306301408-9b74779a11af?auto=format&fit=crop&q=80&w=800", "dessert", r7),
+            createPlat("Pizza Africaine", "Base tomate, poulet grillé, poivrons et fromage fondu.", new java.math.BigDecimal("5000.0"), "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&q=80&w=800", "diner", r8),
             createPlat("Bissap Glacé Spécial", "Infusion d'hibiscus fraîche avec menthe et gingembre.", new java.math.BigDecimal("600.0"), "https://images.unsplash.com/photo-1600271886742-f049cd451bba?auto=format&fit=crop&q=80&w=800", "boisson", r8),
             createPlat("Ndolé Crevettes", "Feuilles de ndolé mijotées avec crevettes et bœuf grillé.", new java.math.BigDecimal("3800.0"), "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&q=80&w=800", "diner", r9),
             createPlat("Tarte Caramel Beurre Salé", "Tarte maison au caramel salé avec noix de cajou.", new java.math.BigDecimal("1500.0"), "https://images.unsplash.com/photo-1559620192-032c4bc4674e?auto=format&fit=crop&q=80&w=800", "dessert", r9)
