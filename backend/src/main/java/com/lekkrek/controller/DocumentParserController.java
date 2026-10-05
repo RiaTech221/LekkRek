@@ -19,7 +19,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("${api.prefix.admin:/api/v1/admin}/documents")
-@CrossOrigin(origins = "*")
 public class DocumentParserController {
 
     @PostMapping("/parse")

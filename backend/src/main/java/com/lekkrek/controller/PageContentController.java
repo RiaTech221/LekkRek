@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/pages")
-@CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 public class PageContentController {
 
