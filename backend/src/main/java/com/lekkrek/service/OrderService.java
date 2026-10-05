@@ -12,6 +12,7 @@ package com.lekkrek.service;
 
 import com.lekkrek.entity.Commande;
 import com.lekkrek.dto.OrderRequestDTO;
+import com.lekkrek.dto.OrderTrackingDTO;
 
 import java.util.List;
 
@@ -20,6 +21,7 @@ public interface OrderService {
     List<Commande> getAllOrders();
     Commande updateOrderStatus(Long id, String status);
     Commande getOrderByNumber(String orderNumber);
+    OrderTrackingDTO getOrderTrackingByNumber(String orderNumber);
     Commande updatePaymentStatus(Long id, String paymentStatus);
 }
 

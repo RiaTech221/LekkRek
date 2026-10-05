@@ -12,6 +12,7 @@ package com.lekkrek.controller;
 
 import com.lekkrek.entity.Commande;
 import com.lekkrek.dto.OrderRequestDTO;
+import com.lekkrek.dto.OrderTrackingDTO;
 import com.lekkrek.service.OrderService;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,7 +33,7 @@ public class OrderController {
     }
 
     @GetMapping("/track/{orderNumber}")
-    public Commande trackOrder(@PathVariable String orderNumber) {
-        return orderService.getOrderByNumber(orderNumber);
+    public OrderTrackingDTO trackOrder(@PathVariable String orderNumber) {
+        return orderService.getOrderTrackingByNumber(orderNumber);
     }
 }

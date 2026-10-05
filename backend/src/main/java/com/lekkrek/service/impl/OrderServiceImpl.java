@@ -15,6 +15,7 @@ import com.lekkrek.entity.CommandeItem;
 import com.lekkrek.entity.Plat;
 import com.lekkrek.entity.Restaurant;
 import com.lekkrek.dto.OrderRequestDTO;
+import com.lekkrek.dto.OrderTrackingDTO;
 import com.lekkrek.repository.CommandeRepository;
 import com.lekkrek.repository.PlatRepository;
 import com.lekkrek.service.OrderService;
@@ -123,6 +124,22 @@ public class OrderServiceImpl implements OrderService {
         return commandeRepository.findByOrderNumber(orderNumber)
                 .orElseThrow(() -> new RuntimeException("Commande introuvable"));
     }
+
+    @Override
+    public OrderTrackingDTO getOrderTrackingByNumber(String orderNumber) {
+        Commande c = commandeRepository.findByOrderNumber(orderNumber)
+                .orElseThrow(() -> new RuntimeException("Commande introuvable"));
+        return new OrderTrackingDTO(
+                c.getOrderNumber(),
+                c.getStatus().name(),
+                c.getType().name(),
+                c.getRestaurant() != null ? c.getRestaurant().getName() : null,
+                c.getRestaurant() != null ? c.getRestaurant().getLocation() : null,
+                c.getTotalAmount(),
+                c.getCreatedAt() != null ? c.getCreatedAt().toString() : null
+        );
+    }
+
     @Override
     public Commande updatePaymentStatus(Long id, String paymentStatus) {
         Commande commande = commandeRepository.findById(id)
