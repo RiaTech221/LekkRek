@@ -24,6 +24,7 @@ public class RateLimiterService {
     public enum BucketType {
         LOGIN(5, 60),          // 5 requêtes par minute (protection brute-force login)
         ORDERS(10, 60),        // 10 commandes par minute (protection spam commandes)
+        ANALYTICS(30, 60),     // 30 requêtes par minute (protection flood analytics public)
         GENERAL(120, 60);      // 120 requêtes par minute (protection globale)
 
         private final int maxRequests;
