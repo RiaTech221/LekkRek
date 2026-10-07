@@ -6,10 +6,11 @@ services:
     image: mysql:8.0
     container_name: lekkrek_mysql
     environment:
-      MYSQL_DATABASE: lekkrek_db
-      MYSQL_ROOT_PASSWORD: root
-    ports:
-      - "3306:3306"
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-lekkrek_db}
+      MYSQL_USER: ${DB_USER:-lekkrek_app}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-lekkrek_app_password}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root_change_me_in_prod}
+    # Port 3306 non exposé sur l'hôte : accès réservé au réseau interne Docker
     volumes:
       - db_data:/var/lib/mysql
     restart: unless-stopped
@@ -25,8 +26,8 @@ services:
       - db
     environment:
       - DB_URL=jdbc:mysql://db:3306/lekkrek_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-      - DB_USER=root
-      - DB_PASSWORD=root
+      - DB_USER=${DB_USER:-lekkrek_app}
+      - DB_PASSWORD=${DB_PASSWORD:-lekkrek_app_password}
     restart: unless-stopped
 
   # Frontend React (Vite)
