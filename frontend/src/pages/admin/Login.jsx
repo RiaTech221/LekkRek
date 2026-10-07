@@ -24,7 +24,8 @@ export default function Login() {
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify({ email: data.email, roles: data.roles }));
       localStorage.setItem('lekkrek_admin_tab', 'overview');
-      navigate('/admin');
+      const isAdmin = Array.isArray(data.roles) && data.roles.includes('ROLE_ADMIN');
+      navigate(isAdmin ? '/admin' : '/dashboard');
     })
     .catch(err => setError(err.message));
   };
