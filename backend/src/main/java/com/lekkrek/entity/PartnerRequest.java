@@ -32,7 +32,7 @@ public class PartnerRequest {
     private String nomContact;
     
     @NotBlank(message = "Le téléphone est obligatoire")
-    @Pattern(regexp = "^(77|78|76|75|70|33)\\d{7}$", message = "Format de téléphone invalide")
+    @Pattern(regexp = "^(?:(?:\\+|00)?221)?[\\s.-]?(70|75|76|77|78|33)[\\s.-]?[0-9]{3}[\\s.-]?[0-9]{2}[\\s.-]?[0-9]{2}$", message = "Format de téléphone sénégalais invalide")
     @Column(nullable = false, length = 9)
     private String telephone;
     

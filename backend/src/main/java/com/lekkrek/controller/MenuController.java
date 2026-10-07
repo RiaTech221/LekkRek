@@ -49,7 +49,8 @@ public class MenuController {
         org.springframework.data.domain.Pageable top4 = org.springframework.data.domain.PageRequest.of(0, 4);
         
         if (phone != null && !phone.isBlank()) {
-            List<Plat> recommended = platRepository.findMostOrderedByPhone(phone, top4);
+            String cleanPhone = com.lekkrek.util.PhoneNumberUtil.normalize(phone);
+            List<Plat> recommended = platRepository.findMostOrderedByPhone(cleanPhone, top4);
             if (!recommended.isEmpty()) {
                 return recommended;
             }

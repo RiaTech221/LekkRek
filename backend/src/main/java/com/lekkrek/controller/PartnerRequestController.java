@@ -28,6 +28,7 @@ public class PartnerRequestController {
 
     @PostMapping("/api/v1/public/partner-requests")
     public PartnerRequest createRequest(@Valid @RequestBody PartnerRequest request) {
+        request.setTelephone(com.lekkrek.util.PhoneNumberUtil.normalize(request.getTelephone()));
         return repository.save(request);
     }
 
