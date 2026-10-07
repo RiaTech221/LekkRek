@@ -64,8 +64,8 @@ public class FileUploadController {
             Path path = Paths.get(UPLOAD_DIR + uniqueName);
             Files.write(path, file.getBytes());
 
-            // L'URL publique pour accéder à l'image
-            String fileUrl = "http://localhost:8080/uploads/" + uniqueName;
+            // L'URL publique pour accéder à l'image (chemin relatif universel)
+            String fileUrl = "/uploads/" + uniqueName;
 
             return ResponseEntity.ok(Map.of("url", fileUrl));
 

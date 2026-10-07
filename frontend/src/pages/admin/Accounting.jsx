@@ -1,4 +1,4 @@
-import { API_URL } from '../../config';
+import { API_URL, formatImageUrl } from '../../config';
 import React, { useState, useEffect } from 'react';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
@@ -322,7 +322,7 @@ export default function Accounting() {
             {filteredRestaurants.map(resto => (
               <div key={resto.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col group hover:shadow-md transition-shadow">
                 <div className="h-32 relative">
-                  <img src={resto.image || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=500&q=80'} alt={resto.name} className="w-full h-full object-cover" />
+                  <img src={formatImageUrl(resto.image) || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=500&q=80'} alt={resto.name} className="w-full h-full object-cover" />
                   <div className="absolute inset-0 bg-gradient-to-t from-gray-900/90 to-transparent"></div>
                   <div className="absolute top-4 right-4 bg-red-600 text-white px-2 py-1 rounded text-xs font-bold shadow-lg">
                     Com: {resto.commissionRate}%
