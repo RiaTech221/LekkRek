@@ -48,7 +48,7 @@ public class OrderServiceImpl implements OrderService {
         Commande commande = new Commande();
         commande.setOrderNumber("CMD-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
         commande.setClientName(request.clientName());
-        commande.setClientPhone(request.clientPhone());
+        commande.setClientPhone(com.lekkrek.util.PhoneNumberUtil.normalize(request.clientPhone()));
         commande.setClientAddress(request.clientAddress());
         commande.setType(Commande.OrderType.valueOf(request.type()));
         commande.setPaymentMethod(Commande.PaymentMethod.valueOf(request.paymentMethod()));

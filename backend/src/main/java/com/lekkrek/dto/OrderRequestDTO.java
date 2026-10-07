@@ -21,8 +21,8 @@ public record OrderRequestDTO(
 
     @NotBlank(message = "Le numéro de téléphone est obligatoire")
     @Pattern(
-        regexp = "^(77|78|76|75|70|33)[0-9]{7}$",
-        message = "Le numéro de téléphone doit être un numéro sénégalais valide à 9 chiffres (ex: 771234567)"
+        regexp = "^(?:(?:\\+|00)?221)?[\\s.-]?(70|75|76|77|78|33)[\\s.-]?[0-9]{3}[\\s.-]?[0-9]{2}[\\s.-]?[0-9]{2}$",
+        message = "Le numéro de téléphone doit être un numéro sénégalais valide (ex: 771234567 ou +221 77 123 45 67)"
     )
     String clientPhone,
 

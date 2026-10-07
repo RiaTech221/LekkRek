@@ -2,6 +2,7 @@ import { API_URL, formatImageUrl } from '../../config';
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import DOMPurify from 'dompurify';
+import { validateSenegalPhone, normalizeSenegalPhone } from '../../utils/phoneUtils';
 
 /**
  * ============================================================================
@@ -71,10 +72,10 @@ export default function MobileClientView() {
 
   const handleLogin = (e) => {
     e.preventDefault();
-    if (!/^(77|78|76|75|70|33)\d{7}$/.test(loginPhone.replace(/\s/g, ''))) {
-      return showToast("Numéro de téléphone invalide.", 'error');
+    if (!validateSenegalPhone(loginPhone)) {
+      return showToast("Numéro de téléphone sénégalais invalide (ex: 771234567 ou +221 77 123 45 67).", 'error');
     }
-    const cleanPhone = loginPhone.replace(/\s/g, '');
+    const cleanPhone = normalizeSenegalPhone(loginPhone);
     localStorage.setItem('lekkrek_client_profile', JSON.stringify({ 
       name: loginName || formData.clientName, 
       phone: cleanPhone, 
@@ -228,12 +229,11 @@ return () => {
     if (cart.length === 0) return alert("Panier vide !");
     
     // Contrôles de saisie (Validation)
-    const phoneRegex = /^(77|78|76|75|70|33)\d{7}$/;
     if (!formData.clientName || formData.clientName.trim().length < 2) {
       return alert("Veuillez saisir un nom valide.");
     }
-    if (!phoneRegex.test(formData.clientPhone.replace(/\s/g, ''))) {
-      return alert("Numéro de téléphone invalide. Ex: 771234567");
+    if (!validateSenegalPhone(formData.clientPhone)) {
+      return alert("Numéro de téléphone sénégalais invalide (ex: 771234567 ou +221 77 123 45 67).");
     }
     if (formData.type === 'LIVRAISON' && (!formData.clientAddress || formData.clientAddress.trim().length < 5)) {
       return alert("Veuillez saisir une adresse de livraison plus précise.");
@@ -242,7 +242,7 @@ return () => {
     const processOrder = () => {
       const orderRequest = {
         ...formData,
-        clientPhone: formData.clientPhone.replace(/\s/g, ''),
+        clientPhone: normalizeSenegalPhone(formData.clientPhone),
         platIds: cart.map(p => p.id)
       };
 
@@ -299,15 +299,14 @@ return () => {
   const handlePartnerSubmit = (e) => {
     e.preventDefault();
 
-    const phoneRegex = /^(77|78|76|75|70|33)\d{7}$/;
     if (!partnerForm.nomRestaurant || partnerForm.nomRestaurant.trim().length < 2) {
       return alert("Le nom du restaurant doit contenir au moins 2 caractères.");
     }
     if (!partnerForm.nomContact || partnerForm.nomContact.trim().length < 2) {
       return alert("Votre nom doit contenir au moins 2 caractères.");
     }
-    if (!phoneRegex.test(partnerForm.telephone.replace(/\s/g, ''))) {
-      return alert("Numéro de téléphone invalide. Ex: 771234567");
+    if (!validateSenegalPhone(partnerForm.telephone)) {
+      return alert("Numéro de téléphone sénégalais invalide (ex: 771234567 ou +221 77 123 45 67).");
     }
     if (!partnerForm.ville || partnerForm.ville.trim().length < 3) {
       return alert("La ville/quartier doit contenir au moins 3 caractères.");
@@ -317,7 +316,10 @@ return () => {
     fetch(`${API_URL}/api/v1/public/partner-requests`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(partnerForm)
+      body: JSON.stringify({
+        ...partnerForm,
+        telephone: normalizeSenegalPhone(partnerForm.telephone)
+      })
     })
     .then(res => {
       if (res.ok) {
@@ -706,15 +708,15 @@ return () => {
                     <input type="text" placeholder="Votre Nom Complet" required className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-red-600" value={formData.clientName} onChange={e => setFormData({...formData, clientName: e.target.value})} />
                     <input
                       type="tel"
-                      inputMode="numeric"
-                      maxLength={9}
-                      placeholder="Numéro de Téléphone (9 chiffres, ex: 771234567)"
+                      inputMode="tel"
+                      maxLength={16}
+                      placeholder="Numéro de Téléphone (ex: 771234567 ou +221 77...)"
                       required
                       className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-red-600"
                       value={formData.clientPhone}
-                      onChange={e => setFormData({...formData, clientPhone: e.target.value.replace(/\D/g, '').slice(0, 9)})}
+                      onChange={e => setFormData({...formData, clientPhone: e.target.value.slice(0, 16)})}
                       onKeyDown={e => {
-                        if (!/[0-9]/.test(e.key) && !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key) && !e.ctrlKey && !e.metaKey) {
+                        if (!/[0-9+\s]/.test(e.key) && !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key) && !e.ctrlKey && !e.metaKey) {
                           e.preventDefault();
                         }
                       }}
@@ -793,15 +795,15 @@ return () => {
                   </div>
                   <input
                     type="tel"
-                    inputMode="numeric"
-                    maxLength={9}
+                    inputMode="tel"
+                    maxLength={16}
                     placeholder="771234567"
                     required
                     className="w-full bg-gray-50 border border-gray-200 rounded-2xl pl-20 pr-5 py-4 font-bold text-gray-900 focus:outline-none focus:border-red-500 focus:ring-4 focus:ring-red-500/10 transition-all placeholder:font-medium placeholder:text-gray-400"
                     value={loginPhone}
-                    onChange={(e) => setLoginPhone(e.target.value.replace(/\D/g, '').slice(0, 9))}
+                    onChange={(e) => setLoginPhone(e.target.value.slice(0, 16))}
                     onKeyDown={(e) => {
-                      if (!/[0-9]/.test(e.key) && !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key) && !e.ctrlKey && !e.metaKey) {
+                      if (!/[0-9+\s]/.test(e.key) && !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key) && !e.ctrlKey && !e.metaKey) {
                         e.preventDefault();
                       }
                     }}
@@ -902,15 +904,15 @@ return () => {
                   <label className="block text-sm font-bold text-gray-700 mb-1">Téléphone</label>
                   <input
                     type="tel"
-                    inputMode="numeric"
-                    maxLength={9}
+                    inputMode="tel"
+                    maxLength={16}
                     required
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 outline-none focus:ring-2 focus:ring-red-500"
                     value={partnerForm.telephone}
-                    onChange={(e) => setPartnerForm({...partnerForm, telephone: e.target.value.replace(/\D/g, '').slice(0, 9)})}
-                    placeholder="Ex: 771234567"
+                    onChange={(e) => setPartnerForm({...partnerForm, telephone: e.target.value.slice(0, 16)})}
+                    placeholder="Ex: 771234567 ou +221 77..."
                     onKeyDown={(e) => {
-                      if (!/[0-9]/.test(e.key) && !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key) && !e.ctrlKey && !e.metaKey) {
+                      if (!/[0-9+\s]/.test(e.key) && !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key) && !e.ctrlKey && !e.metaKey) {
                         e.preventDefault();
                       }
                     }}
