@@ -14,6 +14,24 @@ export default function ProtectedRoute({ children, allowedRoles = [] }) {
     return <Navigate to="/login" replace />;
   }
 
+  // Vérification de la durée de vie du token JWT côté client
+  try {
+    const payloadBase64 = token.split('.')[1];
+    if (payloadBase64) {
+      const decodedPayload = JSON.parse(atob(payloadBase64));
+      if (decodedPayload.exp && decodedPayload.exp * 1000 < Date.now()) {
+        console.warn("Session expirée (token JWT expiré)");
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        return <Navigate to="/login" replace />;
+      }
+    }
+  } catch (err) {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    return <Navigate to="/login" replace />;
+  }
+
   const userStr = localStorage.getItem('user');
   let user = { roles: [] };
 
