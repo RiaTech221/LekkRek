@@ -147,7 +147,7 @@ public class ImageDownloaderRunner implements CommandLineRunner {
                 }
             }
 
-            return "http://localhost:8080/uploads/" + uniqueName;
+            return "/uploads/" + uniqueName;
         } catch (Exception e) {
             log.error("Failed to download image safely [{}]: {}", imageUrl, e.getMessage());
             if (dest != null) {

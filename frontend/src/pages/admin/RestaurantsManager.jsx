@@ -1,4 +1,4 @@
-import { API_URL } from '../../config';
+import { API_URL, formatImageUrl } from '../../config';
 import React, { useState, useEffect } from 'react';
 
 /**
@@ -215,7 +215,7 @@ export default function RestaurantsManager() {
         {restaurants.filter(r => (r.name || "").toLowerCase().includes(searchTerm.toLowerCase()) || (r.location || "").toLowerCase().includes(searchTerm.toLowerCase()) || (r.operatorName || "").toLowerCase().includes(searchTerm.toLowerCase())).map(resto => (
           <div key={resto.id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-0 flex flex-col overflow-hidden">
             <div className="h-32 bg-gray-200 relative">
-              <img src={resto.image} alt={resto.name} className="w-full h-full object-cover" />
+              <img src={formatImageUrl(resto.image)} alt={resto.name} className="w-full h-full object-cover" />
               <div className="absolute top-3 right-3 flex gap-2">
                 {resto.subscriptionEndDate ? (
                    new Date(resto.subscriptionEndDate) >= new Date() 
