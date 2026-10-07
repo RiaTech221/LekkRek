@@ -21,9 +21,11 @@ import java.util.List;
 public class PartnerRequestController {
 
     private final PartnerRequestRepository repository;
+    private final com.lekkrek.service.AuditService auditService;
 
-    public PartnerRequestController(PartnerRequestRepository repository) {
+    public PartnerRequestController(PartnerRequestRepository repository, com.lekkrek.service.AuditService auditService) {
         this.repository = repository;
+        this.auditService = auditService;
     }
 
     @PostMapping("/api/v1/public/partner-requests")
@@ -43,6 +45,8 @@ public class PartnerRequestController {
     public PartnerRequest updateStatus(@PathVariable Long id, @RequestParam String status) {
         PartnerRequest req = repository.findById(id).orElseThrow(() -> new RuntimeException("Not found"));
         req.setStatus(status);
-        return repository.save(req);
+        PartnerRequest saved = repository.save(req);
+        auditService.logCurrentAction("UPDATE_PARTNER_STATUS", "PartnerRequest", id.toString(), null, "Demande partenaire " + req.getNomRestaurant() + " -> statut: " + status);
+        return saved;
     }
 }
