@@ -1,4 +1,4 @@
-import { API_URL } from '../../config';
+import { API_URL, formatImageUrl } from '../../config';
 import React, { useState, useEffect } from 'react';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
@@ -6,97 +6,95 @@ import 'jspdf-autotable';
 /**
  * ============================================================================
  * 📁 Fichier : Accounting.jsx
- * 📝 Description : Composant React gérant l'interface utilisateur pour Accounting.
- * 🎨 Rôle : Vue Frontend (Vite/Tailwind) pour l'expérience client/admin LekkRek.
- * 💡 Auteur : Documenté automatiquement (Standard Enterprise)
+ * 📝 Description : Composant React gérant la comptabilité administrateur.
+ * 🔒 Sécurité : Chiffre d'affaires, commissions et reversements calculés côté serveur.
  * ============================================================================
  */
 
-
 export default function Accounting() {
-  const [commandes, setCommandes] = useState([]);
-  const [restaurants, setRestaurants] = useState([]);
+  const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // States pour la vue détaillée
+  // States pour la vue détaillée d'un restaurant
   const [selectedResto, setSelectedResto] = useState(null);
+  const [restaurantReport, setRestaurantReport] = useState(null);
+  const [reportLoading, setReportLoading] = useState(false);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
+  // 1. Chargement du résumé global depuis le backend
   useEffect(() => {
-    fetchData();
+    fetchSummary();
   }, []);
 
-  const fetchData = async () => {
+  const fetchSummary = async () => {
     setLoading(true);
     const token = localStorage.getItem('token');
     try {
-      const resOrders = await fetch(`${API_URL}/api/v1/operator/orders`, {
+      const res = await fetch(`${API_URL}/api/v1/admin/accounting/summary`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      const dataOrders = await resOrders.json();
-      
-      const resRestos = await fetch(`${API_URL}/api/v1/admin/restaurants`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const dataRestos = await resRestos.json();
-
-      setCommandes(Array.isArray(dataOrders) ? dataOrders : []);
-      setRestaurants(Array.isArray(dataRestos) ? dataRestos : []);
+      if (!res.ok) throw new Error("Erreur chargement comptabilité");
+      const data = await res.json();
+      setSummary(data);
     } catch (err) {
-      console.error("Erreur", err);
+      console.error("Erreur comptabilité globale:", err);
     } finally {
       setLoading(false);
     }
   };
 
-  // --- CALCUL DES STATISTIQUES ---
-  const statsParRestaurant = restaurants.map(resto => {
-    const cmds = commandes.filter(c => c.restaurant && c.restaurant.id === resto.id && c.status !== 'ANNULEE');
-    const caTotal = cmds.reduce((acc, curr) => acc + (curr.totalAmount || 0), 0);
-    const nbCommandes = cmds.length;
-    const commissionRate = resto.commissionRate != null ? resto.commissionRate : 10.0;
-    const beneficeLekkRek = caTotal * (commissionRate / 100);
-    const aReverser = caTotal - beneficeLekkRek;
-    
-    return { ...resto, caTotal, nbCommandes, commissionRate, beneficeLekkRek, aReverser };
-  });
-
-  const globalCa = statsParRestaurant.reduce((acc, r) => acc + r.caTotal, 0);
-  const globalBenefice = statsParRestaurant.reduce((acc, r) => acc + r.beneficeLekkRek, 0);
-
-  // --- FILTRES ---
-  const getFilteredTransactions = () => {
-    if (!selectedResto) return [];
-    let filtered = commandes.filter(c => c.restaurant && c.restaurant.id === selectedResto.id);
-    if (startDate) filtered = filtered.filter(c => new Date(c.createdAt) >= new Date(startDate));
-    if (endDate) {
-      const end = new Date(endDate);
-      end.setHours(23, 59, 59);
-      filtered = filtered.filter(c => new Date(c.createdAt) <= end);
+  // 2. Chargement du rapport détaillé certifié par le serveur pour le restaurant sélectionné
+  useEffect(() => {
+    if (!selectedResto) {
+      setRestaurantReport(null);
+      return;
     }
-    filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-    return filtered;
+    fetchRestaurantReport(selectedResto.id, startDate, endDate);
+  }, [selectedResto, startDate, endDate]);
+
+  const fetchRestaurantReport = async (restoId, start, end) => {
+    setReportLoading(true);
+    const token = localStorage.getItem('token');
+    try {
+      let url = `${API_URL}/api/v1/admin/accounting/restaurants/${restoId}`;
+      const params = new URLSearchParams();
+      if (start) params.append('startDate', start);
+      if (end) params.append('endDate', end);
+      if (params.toString()) url += `?${params.toString()}`;
+
+      const res = await fetch(url, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!res.ok) throw new Error("Erreur chargement rapport restaurant");
+      const data = await res.json();
+      setRestaurantReport(data);
+    } catch (err) {
+      console.error("Erreur rapport restaurant:", err);
+    } finally {
+      setReportLoading(false);
+    }
   };
 
-  const getFilteredStats = () => {
-    const transactions = getFilteredTransactions();
-    const caTotal = transactions.reduce((acc, curr) => acc + (curr.status !== 'ANNULEE' ? curr.totalAmount : 0), 0);
-    const commissionRate = selectedResto?.commissionRate || 10;
-    const beneficeLekkRek = caTotal * (commissionRate / 100);
-    return { caTotal, beneficeLekkRek, aReverser: caTotal - beneficeLekkRek };
-  };
+  // Données dérivées du résumé serveur
+  const globalCa = summary?.globalCa || 0;
+  const globalBenefice = summary?.globalBenefice || 0;
+  const restaurants = summary?.restaurants || [];
 
-  // --- EXPORT CSV ---
-  
+  const filteredRestaurants = restaurants.filter(r =>
+    (r.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (r.location || "").toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   // --- EXPORT PDF ---
   const exportPDF = () => {
-    const transactions = getFilteredTransactions();
-    if (transactions.length === 0) return alert("Aucune transaction a exporter.");
+    if (!restaurantReport || !restaurantReport.transactions || restaurantReport.transactions.length === 0) {
+      return alert("Aucune transaction à exporter.");
+    }
 
     const doc = new jsPDF();
-    const rate = selectedResto.commissionRate || 10;
+    const rate = restaurantReport.commissionRate || 10;
     
     // Header
     doc.setFontSize(22);
@@ -105,7 +103,7 @@ export default function Accounting() {
     
     doc.setFontSize(12);
     doc.setTextColor(50, 50, 50);
-    doc.text(`Restaurant : ${selectedResto.name}`, 14, 30);
+    doc.text(`Restaurant : ${restaurantReport.restaurantName}`, 14, 30);
     doc.text(`Commission LekkRek : ${rate}%`, 14, 37);
     doc.text(`Edité le : ${new Date().toLocaleDateString('fr-FR')}`, 14, 44);
 
@@ -114,27 +112,14 @@ export default function Accounting() {
 
     // Table
     const tableColumn = ["N° Cmd", "Date", "Statut", "Total Brut", "Com. LekkRek", "A Reverser"];
-    const tableRows = [];
-    
-    transactions.forEach(c => {
-      const montant = c.status !== 'ANNULEE' ? c.totalAmount : 0;
-      const benef = montant * (rate / 100);
-      const reverser = montant - benef;
-      const date = new Date(c.createdAt).toLocaleDateString('fr-FR');
-      
-      const orderData = [
-        c.orderNumber.substring(0,8),
-        date,
-        c.status,
-        `${montant} F`,
-        `${benef} F`,
-        `${reverser} F`
-      ];
-      tableRows.push(orderData);
-    });
-
-    // Stats
-    const stats = getFilteredStats();
+    const tableRows = restaurantReport.transactions.map(c => [
+      (c.orderNumber || "").substring(0, 8),
+      new Date(c.createdAt).toLocaleDateString('fr-FR'),
+      c.status,
+      `${Number(c.totalAmount || 0).toLocaleString('fr-FR')} F`,
+      `${Number(c.beneficeLekkRek || 0).toLocaleString('fr-FR')} F`,
+      `${Number(c.aReverser || 0).toLocaleString('fr-FR')} F`
+    ]);
 
     doc.autoTable({
       head: [tableColumn],
@@ -147,63 +132,75 @@ export default function Accounting() {
     const finalY = doc.lastAutoTable.finalY || 55;
     doc.setFontSize(14);
     doc.setTextColor(0, 0, 0);
-    doc.text(`Total Brut : ${stats.caTotal.toLocaleString('fr-FR')} FCFA`, 14, finalY + 15);
+    doc.text(`Total Brut : ${Number(restaurantReport.caTotal || 0).toLocaleString('fr-FR')} FCFA`, 14, finalY + 15);
     doc.setTextColor(211, 58, 48);
-    doc.text(`Part LekkRek : ${stats.beneficeLekkRek.toLocaleString('fr-FR')} FCFA`, 14, finalY + 25);
+    doc.text(`Part LekkRek : ${Number(restaurantReport.beneficeLekkRek || 0).toLocaleString('fr-FR')} FCFA`, 14, finalY + 25);
     doc.setTextColor(22, 163, 74);
-    doc.text(`Montant à reverser au Restaurant : ${stats.aReverser.toLocaleString('fr-FR')} FCFA`, 14, finalY + 35);
+    doc.text(`Montant à reverser : ${Number(restaurantReport.aReverser || 0).toLocaleString('fr-FR')} FCFA`, 14, finalY + 35);
 
-    doc.save(`Compta_${selectedResto.name.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`);
+    doc.save(`Compta_${(restaurantReport.restaurantName || "resto").replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`);
   };
 
-
+  // --- EXPORT CSV ---
   const exportCSV = () => {
-    const transactions = getFilteredTransactions();
-    if (transactions.length === 0) return alert("Aucune transaction à exporter.");
+    if (!restaurantReport || !restaurantReport.transactions || restaurantReport.transactions.length === 0) {
+      return alert("Aucune transaction à exporter.");
+    }
 
     let csvContent = "data:text/csv;charset=utf-8,";
-    csvContent += "Num_Commande,Date,Heure,Client,Statut,Paiement,Montant_Total,Commission_LekkRek,A_Reverser\n";
+    csvContent += "Num_Commande,Date,Statut,Paiement,Montant_Total,Commission_LekkRek,A_Reverser\n";
 
-    const rate = selectedResto.commissionRate || 10;
-
-    transactions.forEach(c => {
-      const montant = c.status !== 'ANNULEE' ? c.totalAmount : 0;
-      const date = new Date(c.createdAt).toLocaleDateString();
-      const time = new Date(c.createdAt).toLocaleTimeString();
-      const benef = montant * (rate / 100);
-      const reverser = montant - benef;
-      
-      const row = `${c.orderNumber},${date},${time},"${c.clientName}",${c.status},${c.paymentStatus},${montant},${benef},${reverser}`;
-      csvContent += row + "\n";
+    restaurantReport.transactions.forEach(c => {
+      const date = new Date(c.createdAt).toLocaleDateString('fr-FR');
+      const row = [
+        c.orderNumber,
+        date,
+        c.status,
+        c.paymentMethod,
+        c.totalAmount,
+        c.beneficeLekkRek,
+        c.aReverser
+      ];
+      csvContent += row.join(",") + "\n";
     });
 
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `Export_${selectedResto.name.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute("download", `Transactions_${(restaurantReport.restaurantName || "resto").replace(/\s+/g, '_')}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
-  if (loading) return <div className="p-8 text-center text-gray-500 font-bold">Chargement...</div>;
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-8 w-full h-full overflow-y-auto" style={{ background: '#f4f6f8' }}>
-      <header className="mb-10 flex justify-between items-end">
+    <div className="p-8 max-w-7xl mx-auto space-y-8">
+      {/* Header */}
+      <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-b border-gray-100 pb-8">
         <div>
-          <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">Comptabilité & Statistiques</h2>
-          <p className="text-gray-500 text-sm mt-2 font-medium">Revenus, commissions et versements par restaurant.</p>
+          <span className="text-red-600 text-xs font-bold uppercase tracking-wider">Dashboard Administrateur</span>
+          <h1 className="text-3xl font-black text-gray-900 mt-1">Comptabilité & Commissions</h1>
+          <p className="text-gray-500 text-sm mt-1">
+            Calculs financiers certifiés côté serveur (Spring Boot BigDecimal)
+          </p>
         </div>
-        
+
         <div className="flex gap-4">
           <div className="bg-white border border-gray-200 px-6 py-3 rounded-xl shadow-sm text-right">
              <p className="text-xs text-gray-500 font-bold uppercase tracking-wider mb-1">Total Généré Brut</p>
-             <p className="text-2xl font-black text-gray-900">{globalCa.toLocaleString()} FCFA</p>
+             <p className="text-2xl font-black text-gray-900">{Number(globalCa).toLocaleString('fr-FR')} FCFA</p>
           </div>
           <div className="bg-red-600 text-white px-6 py-3 rounded-xl shadow-lg text-right">
              <p className="text-xs text-red-200 font-bold uppercase tracking-wider mb-1">Bénéfice Net LekkRek</p>
-             <p className="text-2xl font-black">{globalBenefice.toLocaleString()} FCFA</p>
+             <p className="text-2xl font-black">{Number(globalBenefice).toLocaleString('fr-FR')} FCFA</p>
           </div>
         </div>
       </header>
@@ -214,7 +211,7 @@ export default function Accounting() {
           <div className="p-6 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
             <div className="flex items-center gap-4">
               <button 
-                onClick={() => setSelectedResto(null)}
+                onClick={() => { setSelectedResto(null); setRestaurantReport(null); }}
                 className="bg-white border border-gray-200 text-gray-700 w-10 h-10 rounded-full font-bold flex items-center justify-center hover:bg-gray-100 hover:text-black transition-colors"
                 title="Retour"
               >
@@ -226,11 +223,6 @@ export default function Accounting() {
                    <span className="text-[10px] font-bold uppercase tracking-wider bg-red-100 text-red-700 px-2 py-0.5 rounded border border-red-200">
                      Commission: {selectedResto.commissionRate || 10}%
                    </span>
-                   {selectedResto.subscriptionPlan && (
-                     <span className="text-[10px] font-bold uppercase tracking-wider bg-purple-100 text-purple-700 px-2 py-0.5 rounded border border-purple-200">
-                       Plan {selectedResto.subscriptionPlan}
-                     </span>
-                   )}
                 </div>
               </div>
             </div>
@@ -243,137 +235,131 @@ export default function Accounting() {
                 <input type="date" className="bg-white border border-gray-200 rounded-lg p-2 text-sm focus:outline-none focus:border-red-500" value={endDate} onChange={e => setEndDate(e.target.value)} />
               </div>
               
-                <div className="flex gap-2">
-                  <button onClick={exportCSV} className="bg-gray-100 text-gray-700 border border-gray-200 font-bold text-sm px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-2">
-                    <span>📄</span> CSV
-                  </button>
-                  <button onClick={exportPDF} className="bg-gray-900 text-white font-bold text-sm px-4 py-2 rounded-lg hover:bg-black transition-colors flex items-center gap-2">
-                    <span>📑</span> Exporter PDF
-                  </button>
-                </div>
-
-            </div>
-          </div>
-
-          <div className="p-0 overflow-x-auto">
-            <table className="w-full text-left border-collapse min-w-max">
-              <thead>
-                <tr className="bg-gray-50 text-xs text-gray-400 uppercase tracking-wider">
-                  <th className="p-4 font-bold">N° Cmd</th>
-                  <th className="p-4 font-bold">Date & Heure</th>
-                  <th className="p-4 font-bold">Statut</th>
-                  <th className="p-4 font-bold text-right">Total Brut</th>
-                  <th className="p-4 font-bold text-right text-red-600">Com. LekkRek</th>
-                  <th className="p-4 font-bold text-right text-green-600">À Reverser</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {getFilteredTransactions().map(c => {
-                  const isValid = c.status !== 'ANNULEE';
-                  const montant = isValid ? c.totalAmount : 0;
-                  const rate = selectedResto.commissionRate || 10;
-                  const benef = montant * (rate / 100);
-                  const reverser = montant - benef;
-                  
-                  return (
-                  <tr key={c.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="p-4"><span className="bg-gray-100 text-gray-800 font-mono text-xs px-2 py-1 rounded border border-gray-200">{c.orderNumber.substring(0,6).toUpperCase()}</span></td>
-                    <td className="p-4 text-sm text-gray-600">
-                      {new Date(c.createdAt).toLocaleDateString()} à {new Date(c.createdAt).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
-                    </td>
-                    <td className="p-4">
-                      <span className={`px-2.5 py-1 rounded-md text-[11px] font-bold inline-flex items-center gap-1 ${
-                        c.status === 'LIVREE' ? 'bg-green-50 text-green-700 border border-green-200' :
-                        c.status === 'ANNULEE' ? 'bg-red-50 text-red-700 border border-red-200' : 
-                        c.status === 'EN_PREPARATION' ? 'bg-orange-50 text-orange-700 border border-orange-200' :
-                        c.status === 'PRETE' ? 'bg-purple-50 text-purple-700 border border-purple-200' :
-                        'bg-blue-50 text-blue-700 border border-blue-200'
-                      }`}>
-                        {c.status === 'LIVREE' && '✅ Livrée'}
-                        {c.status === 'ANNULEE' && '❌ Annulée'}
-                        {c.status === 'EN_PREPARATION' && '👨‍🍳 En préparation'}
-                        {c.status === 'PRETE' && '🍱 Prête'}
-                        {c.status === 'NOUVELLE' && '🆕 Nouvelle'}
-                        {!['LIVREE', 'ANNULEE', 'EN_PREPARATION', 'PRETE', 'NOUVELLE'].includes(c.status) && c.status}
-                      </span>
-                    </td>
-                    <td className="p-4 text-right font-bold text-gray-900">{montant.toLocaleString()} F</td>
-                    <td className="p-4 text-right font-bold text-red-600">+{benef.toLocaleString()} F</td>
-                    <td className="p-4 text-right font-black text-green-600">{reverser.toLocaleString()} F</td>
-                  </tr>
-                )})}
-                {getFilteredTransactions().length === 0 && (
-                  <tr><td colSpan="6" className="p-8 text-center text-gray-400 font-medium">Aucune transaction trouvée.</td></tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-          
-          {/* Footer Totaux Période */}
-          {(() => {
-            const stats = getFilteredStats();
-            return (
-              <div className="bg-gray-900 p-6 flex flex-wrap justify-end gap-8 md:gap-12 text-white items-center">
-                <div className="text-right">
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 flex items-center justify-end gap-1"><span className="text-sm">💶</span> Total Brut Période</p>
-                  <p className="text-xl font-bold text-gray-100">{stats.caTotal.toLocaleString()} <span className="text-sm font-normal text-gray-500">FCFA</span></p>
-                </div>
-                <div className="w-px h-10 bg-gray-700 hidden md:block"></div>
-                <div className="text-right">
-                  <p className="text-[10px] font-bold text-red-400 uppercase tracking-widest mb-1 flex items-center justify-end gap-1"><span className="text-sm">📈</span> Part LekkRek ({selectedResto.commissionRate || 10}%)</p>
-                  <p className="text-xl font-bold text-red-400">+{stats.beneficeLekkRek.toLocaleString()} <span className="text-sm font-normal text-red-900/50">FCFA</span></p>
-                </div>
-                <div className="w-px h-10 bg-gray-700 hidden md:block"></div>
-                <div className="text-right bg-green-500/10 px-6 py-3 rounded-xl border border-green-500/20">
-                  <p className="text-[10px] font-bold text-green-400 uppercase tracking-widest mb-1 flex items-center justify-end gap-1"><span className="text-sm">🏦</span> À Reverser au Restaurant</p>
-                  <p className="text-2xl font-black text-green-400">{stats.aReverser.toLocaleString()} <span className="text-sm font-bold text-green-700">FCFA</span></p>
-                </div>
-              </div>
-            );
-          })()}
-        </div>
-      ) : (
-        /* VUE MAITRE */
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {statsParRestaurant.map(resto => (
-            <div key={resto.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col group hover:shadow-md transition-shadow">
-              <div className="h-32 relative">
-                <img src={resto.image} alt={resto.name} className="w-full h-full object-cover" />
-                <div className="absolute inset-0 bg-gradient-to-t from-gray-900/90 to-transparent"></div>
-                <div className="absolute top-4 right-4 bg-red-600 text-white px-2 py-1 rounded text-xs font-bold shadow-lg">
-                  Com: {resto.commissionRate}%
-                </div>
-                <div className="absolute bottom-4 left-4 text-white">
-                  <h3 className="font-bold text-xl">{resto.name}</h3>
-                </div>
-              </div>
-              
-              <div className="p-6 flex-1 flex flex-col">
-                <div className="flex justify-between items-center mb-6">
-                  <div>
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">CA Brut</p>
-                    <p className="text-lg font-black text-gray-900">{resto.caTotal.toLocaleString()} F</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-xs font-bold text-green-600 uppercase tracking-wider mb-1">À reverser</p>
-                    <p className="text-lg font-black text-green-600">{resto.aReverser.toLocaleString()} F</p>
-                  </div>
-                </div>
-                
-                <div className="bg-red-50 rounded-lg p-3 mb-6 flex justify-between items-center border border-red-100">
-                  <span className="text-xs font-bold text-red-600 uppercase">Part LekkRek</span>
-                  <span className="font-black text-red-600">+{resto.beneficeLekkRek.toLocaleString()} F</span>
-                </div>
-                
-                <button 
-                  onClick={() => { setSelectedResto(resto); setStartDate(''); setEndDate(''); }}
-                  className="mt-auto w-full bg-gray-50 text-gray-900 border border-gray-200 font-bold py-3 rounded-xl hover:bg-gray-900 hover:text-white transition-colors flex justify-center items-center gap-2"
-                >
-                  <span>📊</span> Voir le détail
+              <div className="flex gap-2">
+                <button onClick={exportCSV} className="bg-gray-100 text-gray-700 border border-gray-200 font-bold text-sm px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-2">
+                  <span>📄</span> CSV
+                </button>
+                <button onClick={exportPDF} className="bg-gray-900 text-white font-bold text-sm px-4 py-2 rounded-lg hover:bg-black transition-colors flex items-center gap-2">
+                  <span>📑</span> Exporter PDF
                 </button>
               </div>
             </div>
-          ))}
+          </div>
+
+          {reportLoading ? (
+            <div className="flex justify-center items-center h-48">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600"></div>
+            </div>
+          ) : (
+            <>
+              <div className="p-0 overflow-x-auto">
+                <table className="w-full text-left border-collapse min-w-max">
+                  <thead>
+                    <tr className="bg-gray-50 text-xs text-gray-400 uppercase tracking-wider">
+                      <th className="p-4 font-bold">N° Cmd</th>
+                      <th className="p-4 font-bold">Date & Heure</th>
+                      <th className="p-4 font-bold">Statut</th>
+                      <th className="p-4 font-bold text-right">Total Brut</th>
+                      <th className="p-4 font-bold text-right text-red-600">Com. LekkRek</th>
+                      <th className="p-4 font-bold text-right text-green-600">À Reverser</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {(restaurantReport?.transactions || []).map(c => {
+                      return (
+                        <tr key={c.id} className="hover:bg-gray-50 transition-colors">
+                          <td className="p-4"><span className="bg-gray-100 text-gray-800 font-mono text-xs px-2 py-1 rounded border border-gray-200">{(c.orderNumber || "").substring(0,6).toUpperCase()}</span></td>
+                          <td className="p-4 text-sm text-gray-600">{new Date(c.createdAt).toLocaleDateString('fr-FR')} {new Date(c.createdAt).toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'})}</td>
+                          <td className="p-4"><span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider ${c.status === 'LIVREE' ? 'bg-green-100 text-green-700' : c.status === 'ANNULEE' ? 'bg-gray-100 text-gray-400 line-through' : 'bg-blue-100 text-blue-700'}`}>{c.status}</span></td>
+                          <td className="p-4 text-sm font-bold text-gray-900 text-right">{Number(c.totalAmount || 0).toLocaleString('fr-FR')} F</td>
+                          <td className="p-4 text-sm font-bold text-red-600 text-right">+{Number(c.beneficeLekkRek || 0).toLocaleString('fr-FR')} F</td>
+                          <td className="p-4 text-sm font-bold text-green-600 text-right">{Number(c.aReverser || 0).toLocaleString('fr-FR')} F</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Totaux calculés par le serveur */}
+              <div className="p-6 bg-gray-50 border-t border-gray-100 flex justify-between items-center">
+                <div className="text-sm text-gray-500 font-medium">
+                  {restaurantReport?.nbCommandes || 0} commandes validées
+                </div>
+                <div className="flex gap-6">
+                  <div className="text-right">
+                    <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">CA Période</p>
+                    <p className="text-lg font-black text-gray-900">{Number(restaurantReport?.caTotal || 0).toLocaleString('fr-FR')} FCFA</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs text-red-600 font-bold uppercase tracking-wider">Part LekkRek</p>
+                    <p className="text-lg font-black text-red-600">+{Number(restaurantReport?.beneficeLekkRek || 0).toLocaleString('fr-FR')} FCFA</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs text-green-600 font-bold uppercase tracking-wider">À Reverser</p>
+                    <p className="text-lg font-black text-green-600">{Number(restaurantReport?.aReverser || 0).toLocaleString('fr-FR')} FCFA</p>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      ) : (
+        /* VUE MAITRE */
+        <div className="space-y-6">
+          <div className="flex justify-between items-center">
+            <input 
+              type="text" 
+              placeholder="Rechercher un restaurant par nom ou localisation..." 
+              value={searchTerm} 
+              onChange={e => setSearchTerm(e.target.value)}
+              className="bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm w-80 focus:outline-none focus:border-red-500"
+            />
+            <span className="text-xs text-gray-400 font-medium">{filteredRestaurants.length} restaurants</span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredRestaurants.map(resto => (
+              <div key={resto.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col group hover:shadow-md transition-shadow">
+                <div className="h-32 relative">
+                  <img src={formatImageUrl(resto.image) || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=500&q=80'} alt={resto.name} className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-gray-900/90 to-transparent"></div>
+                  <div className="absolute top-4 right-4 bg-red-600 text-white px-2 py-1 rounded text-xs font-bold shadow-lg">
+                    Com: {resto.commissionRate}%
+                  </div>
+                  <div className="absolute bottom-4 left-4 text-white">
+                    <h3 className="font-bold text-xl">{resto.name}</h3>
+                    <p className="text-xs text-gray-300">{resto.location}</p>
+                  </div>
+                </div>
+                
+                <div className="p-6 flex-1 flex flex-col">
+                  <div className="flex justify-between items-center mb-6">
+                    <div>
+                      <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">CA Brut ({resto.nbCommandes} cmd)</p>
+                      <p className="text-lg font-black text-gray-900">{Number(resto.caTotal || 0).toLocaleString('fr-FR')} F</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs font-bold text-green-600 uppercase tracking-wider mb-1">À reverser</p>
+                      <p className="text-lg font-black text-green-600">{Number(resto.aReverser || 0).toLocaleString('fr-FR')} F</p>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-red-50 rounded-lg p-3 mb-6 flex justify-between items-center border border-red-100">
+                    <span className="text-xs font-bold text-red-600 uppercase">Part LekkRek</span>
+                    <span className="font-black text-red-600">+{Number(resto.beneficeLekkRek || 0).toLocaleString('fr-FR')} F</span>
+                  </div>
+                  
+                  <button 
+                    onClick={() => { setSelectedResto(resto); setStartDate(''); setEndDate(''); }}
+                    className="mt-auto w-full bg-gray-50 text-gray-900 border border-gray-200 font-bold py-3 rounded-xl hover:bg-gray-900 hover:text-white transition-colors flex justify-center items-center gap-2"
+                  >
+                    <span>📊</span> Voir le détail & exporter
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>

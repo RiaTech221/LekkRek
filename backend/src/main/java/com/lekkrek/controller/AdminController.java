@@ -22,20 +22,23 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import com.lekkrek.service.AuditService;
+
 @RestController
 @RequestMapping("${api.prefix.admin:/api/v1/admin}")
 @PreAuthorize("hasRole('ADMIN')")
-
 public class AdminController {
 
     private final UtilisateurRepository utilisateurRepository;
     private final RestaurantRepository restaurantRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AuditService auditService;
 
-    public AdminController(UtilisateurRepository utilisateurRepository, RestaurantRepository restaurantRepository, PasswordEncoder passwordEncoder) {
+    public AdminController(UtilisateurRepository utilisateurRepository, RestaurantRepository restaurantRepository, PasswordEncoder passwordEncoder, AuditService auditService) {
         this.utilisateurRepository = utilisateurRepository;
         this.restaurantRepository = restaurantRepository;
         this.passwordEncoder = passwordEncoder;
+        this.auditService = auditService;
     }
 
     // ==========================================
@@ -58,6 +61,7 @@ public class AdminController {
         operator.setActif(true);
         
         Utilisateur saved = utilisateurRepository.save(operator);
+        auditService.logCurrentAction("CREATE_OPERATOR", "Utilisateur", saved.getId().toString(), null, "Création opérateur: " + saved.getEmail() + " (" + saved.getNomComplet() + ")");
         return ResponseEntity.ok(saved);
     }
 
@@ -76,7 +80,9 @@ public class AdminController {
             if (operatorDetails.getRestaurantAssigne() != null) {
                 op.setRestaurantAssigne(operatorDetails.getRestaurantAssigne());
             }
-            return ResponseEntity.ok(utilisateurRepository.save(op));
+            Utilisateur updated = utilisateurRepository.save(op);
+            auditService.logCurrentAction("UPDATE_OPERATOR", "Utilisateur", id.toString(), null, "Modification opérateur: " + op.getEmail());
+            return ResponseEntity.ok(updated);
         }).orElse(ResponseEntity.notFound().build());
     }
 
@@ -84,6 +90,7 @@ public class AdminController {
     public ResponseEntity<?> deleteOperator(@PathVariable Long id) {
         return utilisateurRepository.findById(id).map(op -> {
             utilisateurRepository.delete(op);
+            auditService.logCurrentAction("DELETE_OPERATOR", "Utilisateur", id.toString(), op.getEmail(), "Suppression opérateur: " + op.getEmail());
             return ResponseEntity.ok().build();
         }).orElse(ResponseEntity.notFound().build());
     }
@@ -100,7 +107,9 @@ public class AdminController {
     @PostMapping("/restaurants")
     public ResponseEntity<Restaurant> createRestaurant(@RequestBody Restaurant restaurant) {
         restaurant.setActive(true);
-        return ResponseEntity.ok(restaurantRepository.save(restaurant));
+        Restaurant saved = restaurantRepository.save(restaurant);
+        auditService.logCurrentAction("CREATE_RESTAURANT", "Restaurant", saved.getId().toString(), null, "Création restaurant: " + saved.getName());
+        return ResponseEntity.ok(saved);
     }
 
     @PutMapping("/restaurants/{id}")
@@ -114,7 +123,9 @@ public class AdminController {
                 resto.setCommissionRate(restaurantDetails.getCommissionRate());
             }
             resto.setActive(restaurantDetails.isActive());
-            return ResponseEntity.ok(restaurantRepository.save(resto));
+            Restaurant updated = restaurantRepository.save(resto);
+            auditService.logCurrentAction("UPDATE_RESTAURANT", "Restaurant", id.toString(), null, "Modification restaurant: " + resto.getName() + " (Commission: " + resto.getCommissionRate() + "%)");
+            return ResponseEntity.ok(updated);
         }).orElse(ResponseEntity.notFound().build());
     }
 
@@ -122,6 +133,7 @@ public class AdminController {
     public ResponseEntity<?> deleteRestaurant(@PathVariable Long id) {
         return restaurantRepository.findById(id).map(resto -> {
             restaurantRepository.delete(resto);
+            auditService.logCurrentAction("DELETE_RESTAURANT", "Restaurant", id.toString(), resto.getName(), "Suppression restaurant: " + resto.getName());
             return ResponseEntity.ok().build();
         }).orElse(ResponseEntity.notFound().build());
     }

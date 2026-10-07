@@ -99,7 +99,7 @@ public class SecurityConfig {
                     .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/settings", "/api/v1/settings/**").permitAll()
                     .requestMatchers("/api/v1/settings", "/api/v1/settings/**").hasRole("ADMIN")
                     .requestMatchers("/uploads/**").permitAll()
-                    .requestMatchers("/api/v1/upload", "/api/v1/upload/**").hasRole("ADMIN")
+                    .requestMatchers("/api/v1/upload", "/api/v1/upload/**").hasAnyRole("ADMIN", "OPERATEUR")
                     .requestMatchers("/api/v1/auth/**").permitAll()
                     .requestMatchers("/error").permitAll()
                     .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()

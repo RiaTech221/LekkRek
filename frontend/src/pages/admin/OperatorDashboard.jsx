@@ -51,6 +51,14 @@ export default function OperatorDashboard() {
   const isAdmin = Array.isArray(user.roles) && user.roles.includes('ROLE_ADMIN');
   const roleLabel = isAdmin ? 'Administrateur' : 'Opérateur';
 
+  // Sécurité : Un opérateur ne peut pas accéder aux onglets réservés à l'administrateur
+  const adminOnlyTabs = ['restaurants', 'operateurs', 'partners', 'comptabilite', 'content', 'audit', 'parametres'];
+  useEffect(() => {
+    if (!isAdmin && adminOnlyTabs.includes(activeTab)) {
+      setActiveTab('overview');
+    }
+  }, [isAdmin, activeTab]);
+
   // Supprime la barre de défilement globale du body (causée par index.css)
   useEffect(() => {
     document.body.classList.add('admin-mode');

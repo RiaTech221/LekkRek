@@ -1,4 +1,4 @@
-import { API_URL } from '../../config';
+import { API_URL, formatImageUrl } from '../../config';
 import React, { useState, useEffect } from 'react';
 
 /**
@@ -185,7 +185,7 @@ export default function MenuManager() {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-xl bg-gray-100 border border-gray-200 overflow-hidden flex-shrink-0">
-                        <img src={resto.image || "https://placehold.co/100x100?text=R"} alt={resto.name} className="w-full h-full object-cover" />
+                        <img src={formatImageUrl(resto.image) || "https://placehold.co/100x100?text=R"} alt={resto.name} className="w-full h-full object-cover" />
                       </div>
                       <div>
                         <p className="font-bold text-gray-900 group-hover:text-red-600 transition-colors">{resto.name}</p>
@@ -285,7 +285,7 @@ export default function MenuManager() {
                   <tr key={plat.id} className="hover:bg-gray-50/80 transition-colors group">
                     <td className="p-4">
                       <div className="w-14 h-14 rounded-xl overflow-hidden shadow-sm border border-gray-100 shrink-0 relative">
-                        <img src={plat.image} alt={plat.name} className="w-full h-full object-cover" onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/150x150?text=Plat'; }} />
+                        <img src={formatImageUrl(plat.image)} alt={plat.name} className="w-full h-full object-cover" onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/150x150?text=Plat'; }} />
                         {plat.status !== 'DISPO' && (
                           <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px]"></div>
                         )}

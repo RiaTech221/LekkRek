@@ -18,14 +18,10 @@ import Login from './pages/admin/Login';
  */
 
 
+import ProtectedRoute from './components/ProtectedRoute';
+
 // Style global
 import './index.css';
-
-// Composant pour protéger les routes Admin
-const PrivateRoute = ({ children }) => {
-  const token = localStorage.getItem('token');
-  return token ? children : <Navigate to="/login" replace />;
-};
 
 function App() {
   return (
@@ -36,14 +32,21 @@ function App() {
         <Route path="/mobile" element={<MobileClientView />} />
         <Route path="/pages/:slug" element={<PublicPage />} />
         
-        {/* Connexion Opérateur */}
+        {/* Connexion Opérateur / Admin */}
         <Route path="/login" element={<Login />} />
         
-        {/* Espace Administration (Opérateur) - Protégé */}
+        {/* Espace Administration Globale - Réservé aux Administrateurs */}
         <Route path="/admin" element={
-          <PrivateRoute>
+          <ProtectedRoute allowedRoles={['ROLE_ADMIN']}>
             <OperatorDashboard />
-          </PrivateRoute>
+          </ProtectedRoute>
+        } />
+
+        {/* Espace Opérateur / Dashboard - Accessible aux Opérateurs et Administrateurs */}
+        <Route path="/dashboard" element={
+          <ProtectedRoute allowedRoles={['ROLE_ADMIN', 'ROLE_OPERATEUR']}>
+            <OperatorDashboard />
+          </ProtectedRoute>
         } />
 
         {/* Fallback : Redirection vers l'accueil si route introuvable */}

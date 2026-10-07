@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 public class PlatformSettingsController {
 
     private final PlatformSettingsService service;
+    private final com.lekkrek.service.AuditService auditService;
 
     // Public : pour que la vitrine puisse afficher les liens sociaux et le tel
     @GetMapping
@@ -34,6 +35,8 @@ public class PlatformSettingsController {
     @PutMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<PlatformSettings> updateSettings(@RequestBody PlatformSettings settings) {
-        return ResponseEntity.ok(service.updateSettings(settings));
+        PlatformSettings updated = service.updateSettings(settings);
+        auditService.logCurrentAction("UPDATE_SETTINGS", "PlatformSettings", "1", null, "Mise à jour des paramètres de la plateforme");
+        return ResponseEntity.ok(updated);
     }
 }

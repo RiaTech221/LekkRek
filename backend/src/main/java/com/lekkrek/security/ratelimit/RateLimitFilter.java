@@ -58,7 +58,12 @@ public class RateLimitFilter extends OncePerRequestFilter {
             bucketType = RateLimiterService.BucketType.ORDERS;
             errorMessage = "Trop de commandes soumises en peu de temps. Veuillez patienter 1 minute.";
         }
-        // 3. Protection globale sur les endpoints API (120 req / min)
+        // 3. Protection Anti-Flood sur l'enregistrement d'analytics public (30 req / min)
+        else if (uri.endsWith("/api/v1/public/analytics") && "POST".equalsIgnoreCase(method)) {
+            bucketType = RateLimiterService.BucketType.ANALYTICS;
+            errorMessage = "Trop d'événements analytics envoyés. Veuillez patienter 1 minute.";
+        }
+        // 4. Protection globale sur les endpoints API (120 req / min)
         else if (uri.contains("/api/v1/")) {
             bucketType = RateLimiterService.BucketType.GENERAL;
         }

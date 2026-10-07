@@ -13,6 +13,7 @@ package com.lekkrek.controller;
 import com.lekkrek.dto.AnalyticsRequestDTO;
 import com.lekkrek.entity.AnalyticsEvent;
 import com.lekkrek.repository.AnalyticsEventRepository;
+import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,7 +32,7 @@ public class AnalyticsController {
 
     // Public endpoint to record an event
     @PostMapping("${api.prefix.public:/api/v1/public}/analytics")
-    public void recordEvent(@RequestBody AnalyticsRequestDTO request) {
+    public void recordEvent(@Valid @RequestBody AnalyticsRequestDTO request) {
         AnalyticsEvent event = new AnalyticsEvent(request.eventType(), request.entityId(), request.context());
         analyticsEventRepository.save(event);
     }

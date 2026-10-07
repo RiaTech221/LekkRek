@@ -56,7 +56,9 @@ public class PlatServiceImpl implements PlatService {
         plat.setStatus(Plat.DishStatus.valueOf(request.status()));
         plat.setRestaurant(restaurant);
 
-        return platRepository.save(plat);
+        Plat saved = platRepository.save(plat);
+        auditService.logCurrentAction("CREATE_PLAT", "Plat", saved.getId().toString(), null, "Création plat: " + saved.getName() + " (" + saved.getPrice() + " F)");
+        return saved;
     }
 
     @Override
@@ -76,12 +78,15 @@ public class PlatServiceImpl implements PlatService {
         plat.setStatus(Plat.DishStatus.valueOf(request.status()));
         plat.setRestaurant(restaurant);
 
-        return platRepository.save(plat);
+        Plat updated = platRepository.save(plat);
+        auditService.logCurrentAction("UPDATE_PLAT", "Plat", id.toString(), null, "Modification plat: " + updated.getName() + " (" + updated.getPrice() + " F)");
+        return updated;
     }
 
     @Override
     public void deletePlat(Long id) {
         platRepository.deleteById(id);
+        auditService.logCurrentAction("DELETE_PLAT", "Plat", id.toString(), null, "Suppression plat ID: " + id);
     }
 
     @Override
@@ -94,6 +99,8 @@ public class PlatServiceImpl implements PlatService {
         Plat plat = platRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Plat non trouvé"));
         plat.setStatus(Plat.DishStatus.valueOf(status));
-        return platRepository.save(plat);
+        Plat updated = platRepository.save(plat);
+        auditService.logCurrentAction("UPDATE_PLAT_STATUS", "Plat", id.toString(), null, "Changement statut plat " + updated.getName() + " -> " + status);
+        return updated;
     }
 }
