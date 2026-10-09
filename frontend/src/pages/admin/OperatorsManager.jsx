@@ -25,7 +25,7 @@ export default function OperatorsManager() {
   const [imageFile, setImageFile] = useState(null);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [restaurantAssigne, setRestaurantAssigne] = useState('');
-  const [role, setRole] = useState('OPERATOR');
+  const [role, setRole] = useState('OPERATEUR');
   const [restaurants, setRestaurants] = useState([]);
 
   useEffect(() => {
@@ -71,8 +71,29 @@ export default function OperatorsManager() {
     setImage('');
     setImageFile(null);
     setRestaurantAssigne('');
-    setRole('OPERATOR');
+    setRole('OPERATEUR');
     setIsModalOpen(true);
+  };
+
+  // SOL-195 : Réinitialiser l'accès d'un utilisateur
+  const handleResetPassword = async (op) => {
+    const newPassword = window.prompt(`Nouveau mot de passe pour ${op.nomComplet} :`);
+    if (!newPassword) return;
+    if (newPassword.length < 6) {
+      alert('Le mot de passe doit contenir au moins 6 caractères.');
+      return;
+    }
+    const token = localStorage.getItem('token');
+    const res = await fetch(`${API_URL}/api/v1/admin/users/${op.id}/reset-password`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ newPassword })
+    });
+    if (res.ok) {
+      alert(`Mot de passe de ${op.nomComplet} réinitialisé avec succès.`);
+    } else {
+      alert('Erreur lors de la réinitialisation.');
+    }
   };
 
   const handleEdit = (op) => {
@@ -124,7 +145,8 @@ export default function OperatorsManager() {
       motDePasse: password, 
       actif: isActive,
       photoUrl: finalImageUrl,
-      restaurantAssigne: restaurantAssigne
+      restaurantAssigne: restaurantAssigne,
+      role: role  // SOL-194 : inclure le rôle dans le payload
     };
 
     const url = editingId ? `${API_URL}/api/v1/admin/operators/${editingId}` : `${API_URL}/api/v1/admin/operators`;
@@ -257,12 +279,18 @@ export default function OperatorsManager() {
                   </td>
                   <td className="p-4 pr-6 text-right">
                     <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button onClick={() => handleEdit(op)} className="p-2 text-gray-400 hover:text-blue-600 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow transition-all">
+                      <button onClick={() => handleEdit(op)} title="Modifier" className="p-2 text-gray-400 hover:text-blue-600 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow transition-all">
                         <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                         </svg>
                       </button>
-                      <button onClick={() => handleDelete(op.id)} className="p-2 text-gray-400 hover:text-red-600 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow transition-all">
+                      {/* SOL-195 : Réinitialiser l'accès */}
+                      <button onClick={() => handleResetPassword(op)} title="Réinitialiser le mot de passe" className="p-2 text-gray-400 hover:text-yellow-600 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow transition-all">
+                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                        </svg>
+                      </button>
+                      <button onClick={() => handleDelete(op.id)} title="Supprimer" className="p-2 text-gray-400 hover:text-red-600 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow transition-all">
                         <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                         </svg>
@@ -368,7 +396,7 @@ export default function OperatorsManager() {
                     value={role}
                     onChange={(e) => setRole(e.target.value)}
                   >
-                    <option value="OPERATOR">Opérateur LekkRek (Commandes)</option>
+                    <option value="OPERATEUR">Opérateur LekkRek (Commandes)</option>
                     <option value="ADMIN">Administrateur Global (Full accès)</option>
                     
                     

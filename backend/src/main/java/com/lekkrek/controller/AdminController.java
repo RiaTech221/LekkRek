@@ -21,6 +21,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 import com.lekkrek.service.AuditService;
 
@@ -92,6 +93,37 @@ public class AdminController {
             utilisateurRepository.delete(op);
             auditService.logCurrentAction("DELETE_OPERATOR", "Utilisateur", id.toString(), op.getEmail(), "Suppression opérateur: " + op.getEmail());
             return ResponseEntity.ok().build();
+        }).orElse(ResponseEntity.notFound().build());
+    }
+
+    // SOL-195 : Réinitialiser l'accès d'un utilisateur interne
+    @PatchMapping("/users/{id}/reset-password")
+    public ResponseEntity<?> resetUserPassword(@PathVariable Long id, @RequestBody Map<String, String> body) {
+        String newPassword = body.get("newPassword");
+        if (newPassword == null || newPassword.length() < 6) {
+            return ResponseEntity.badRequest().body("Le mot de passe doit contenir au moins 6 caractères.");
+        }
+        return utilisateurRepository.findById(id).map(user -> {
+            user.setMotDePasse(passwordEncoder.encode(newPassword));
+            utilisateurRepository.save(user);
+            auditService.logCurrentAction("RESET_PASSWORD", "Utilisateur", id.toString(), null, "Réinitialisation mot de passe: " + user.getEmail());
+            return ResponseEntity.ok().build();
+        }).orElse(ResponseEntity.notFound().build());
+    }
+
+    // SOL-196 : Toggle actif/inactif d'un utilisateur
+    @PatchMapping("/users/{id}/toggle-active")
+    public ResponseEntity<Utilisateur> toggleUserActive(@PathVariable Long id) {
+        return utilisateurRepository.findById(id).map(user -> {
+            boolean newState = !Boolean.TRUE.equals(user.getActif());
+            user.setActif(newState);
+            utilisateurRepository.save(user);
+            auditService.logCurrentAction(
+                newState ? "ACTIVATE_USER" : "DEACTIVATE_USER",
+                "Utilisateur", id.toString(), null,
+                (newState ? "Activation" : "Désactivation") + " utilisateur: " + user.getEmail()
+            );
+            return ResponseEntity.ok(user);
         }).orElse(ResponseEntity.notFound().build());
     }
 

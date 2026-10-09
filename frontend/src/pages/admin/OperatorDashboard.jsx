@@ -11,6 +11,7 @@ import ContentManager from './ContentManager';
 import Overview from './Overview';
 import AuditLogs from './AuditLogs';
 import PartnerRequests from './PartnerRequests';
+import ReferenceManager from './ReferenceManager';
 import OrderDetailsModal from './OrderDetailsModal';
 
 /**
@@ -52,7 +53,7 @@ export default function OperatorDashboard() {
   const roleLabel = isAdmin ? 'Administrateur' : 'Opérateur';
 
   // Sécurité : Un opérateur ne peut pas accéder aux onglets réservés à l'administrateur
-  const adminOnlyTabs = ['restaurants', 'operateurs', 'partners', 'comptabilite', 'content', 'audit', 'parametres'];
+  const adminOnlyTabs = ['restaurants', 'operateurs', 'partners', 'referentiel', 'comptabilite', 'content', 'audit', 'parametres'];
   useEffect(() => {
     if (!isAdmin && adminOnlyTabs.includes(activeTab)) {
       setActiveTab('overview');
@@ -198,6 +199,10 @@ export default function OperatorDashboard() {
                 <button onClick={() => setActiveTab('partners')} className={`w-full flex items-center px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'partners' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
                   <span className="text-xl flex-shrink-0">🤝</span>
                   <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${isSidebarOpen ? "w-auto opacity-100 ml-3" : "w-0 opacity-0 ml-0"}`}>Partenariats</span>
+              </button>
+                <button onClick={() => setActiveTab('referentiel')} className={`w-full flex items-center px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'referentiel' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
+                  <span className="text-xl flex-shrink-0">📍</span>
+                  <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${isSidebarOpen ? "w-auto opacity-100 ml-3" : "w-0 opacity-0 ml-0"}`}>Données de référence</span>
               </button>
                 <button onClick={() => setActiveTab('comptabilite')} className={`w-full flex items-center px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'comptabilite' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
                   <span className="text-xl flex-shrink-0">📈</span>
@@ -429,6 +434,8 @@ export default function OperatorDashboard() {
           <RestaurantsManager />
         ) : activeTab === 'partners' && isAdmin ? (
           <PartnerRequests />
+        ) : activeTab === 'referentiel' && isAdmin ? (
+          <ReferenceManager />
         ) : activeTab === 'content' && isAdmin ? (
           <ContentManager />
         ) : activeTab === 'audit' && isAdmin ? (
