@@ -39,6 +39,7 @@ public class Restaurant {
     private String image;
 
     private String operatorName; // The person managing it
+    private String telephone; // Numéro de contact direct du restaurant / gérant
 
     private boolean active = true;
 
@@ -51,4 +52,17 @@ public class Restaurant {
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    public Restaurant(Long id, String name, String location, String image, String operatorName, boolean active, BigDecimal commissionRate, String subscriptionPlan, LocalDate subscriptionEndDate, LocalDateTime createdAt) {
+        this.id = id;
+        this.name = name;
+        this.location = location;
+        this.image = image;
+        this.operatorName = operatorName;
+        this.active = active;
+        this.commissionRate = commissionRate;
+        this.subscriptionPlan = subscriptionPlan;
+        this.subscriptionEndDate = subscriptionEndDate;
+        this.createdAt = createdAt;
+    }
 }

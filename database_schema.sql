@@ -161,9 +161,47 @@ CREATE TABLE IF NOT EXISTS audit_logs (
     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ============================================================================
--- JEU DE DONNÉES INITIAL (SEEDS)
--- ============================================================================
+-- ----------------------------------------------------------------------------
+-- 11. Table des Données de Référence (Quartiers, Créneaux, Catégories) - SOL-192/193
+-- ----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS reference_data (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    type VARCHAR(50) NOT NULL, -- QUARTIER, CRENEAU, CATEGORIE
+    valeur VARCHAR(255) NOT NULL,
+    description VARCHAR(500),
+    actif BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uk_type_valeur (type, valeur)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Créneaux par défaut
+INSERT IGNORE INTO reference_data (type, valeur, description) VALUES
+  ('CRENEAU', 'petit_dej', 'Petit-déjeuner (matin)'),
+  ('CRENEAU', 'dejeuner', 'Déjeuner (midi)'),
+  ('CRENEAU', 'gouter', 'Goûter (après-midi)'),
+  ('CRENEAU', 'diner', 'Dîner (soir)'),
+  ('CRENEAU', 'fastfood', 'Fast-food (toute la journée)');
+
+-- Quartiers par défaut (Ziguinchor)
+INSERT IGNORE INTO reference_data (type, valeur, description) VALUES
+  ('QUARTIER', 'Boucotte', 'Quartier Boucotte'),
+  ('QUARTIER', 'Kandialang', 'Quartier Kandialang'),
+  ('QUARTIER', 'Lyndiane', 'Quartier Lyndiane'),
+  ('QUARTIER', 'Tilène', 'Quartier Tilène'),
+  ('QUARTIER', 'Santhiaba', 'Quartier Santhiaba'),
+  ('QUARTIER', 'Kansanar', 'Quartier Kansanar'),
+  ('QUARTIER', 'Colobane', 'Quartier Colobane');
+
+-- Catégories par défaut
+INSERT IGNORE INTO reference_data (type, valeur, description) VALUES
+  ('CATEGORIE', 'Plats locaux', 'Cuisine locale sénégalaise'),
+  ('CATEGORIE', 'Riz', 'Plats à base de riz'),
+  ('CATEGORIE', 'Sandwichs', 'Sandwichs et snacks'),
+  ('CATEGORIE', 'Boissons', 'Boissons et jus'),
+  ('CATEGORIE', 'Desserts', 'Desserts et pâtisseries'),
+  ('CATEGORIE', 'Grillades', 'Viandes et poissons grillés');
+
+
 
 -- Administrateur initial (Mot de passe: password123)
 INSERT INTO utilisateurs (nom_complet, email, mot_de_passe, role, actif) 

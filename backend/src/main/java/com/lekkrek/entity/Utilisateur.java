@@ -32,6 +32,9 @@ public class Utilisateur {
     @Column(nullable = false, unique = true)
     private String email;
 
+    @Column(length = 20)
+    private String telephone;
+
     @Column(nullable = false)
     @JsonIgnore
     private String motDePasse;
