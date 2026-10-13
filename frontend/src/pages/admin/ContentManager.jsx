@@ -1,5 +1,6 @@
 import { API_URL } from '../../config';
 import React, { useState, useEffect, useRef } from 'react';
+import { TbFileText, TbScale, TbLock, TbCookie, TbUsers, TbFileImport, TbDeviceFloppy, TbCircleCheck, TbCircleX, TbClock } from 'react-icons/tb';
 import ReactQuill from 'react-quill';
 
 /**
@@ -26,11 +27,11 @@ export default function ContentManager() {
   const fileInputRef = useRef(null);
 
   const pages = [
-    { value: 'about', label: '📄 Page : À propos' },
-    { value: 'terms', label: '⚖️ Page : Conditions Générales' },
-    { value: 'privacy', label: '🔒 Page : Confidentialité' },
-    { value: 'cookies', label: '🍪 Page : Politique de Cookies' },
-    { value: 'team', label: '👥 Bloc : Équipe' }
+    { value: 'about', label: 'Page : À propos' },
+    { value: 'terms', label: 'Page : Conditions Générales' },
+    { value: 'privacy', label: 'Page : Confidentialité' },
+    { value: 'cookies', label: 'Page : Politique de Cookies' },
+    { value: 'team', label: 'Bloc : Équipe' }
   ];
 
   const fetchPageContent = async (slug) => {
@@ -75,13 +76,13 @@ export default function ContentManager() {
       });
 
       if (response.ok) {
-        setMessage({ text: '✅ Page sauvegardée avec succès !', type: 'success' });
+        setMessage({ text: 'Page sauvegardée avec succès !', type: 'success' });
         setTimeout(() => setMessage({ text: '', type: '' }), 4000);
       } else {
-        setMessage({ text: '❌ Erreur lors de la sauvegarde.', type: 'error' });
+        setMessage({ text: 'Erreur lors de la sauvegarde.', type: 'error' });
       }
     } catch (error) {
-      setMessage({ text: '❌ Impossible de contacter le serveur.', type: 'error' });
+      setMessage({ text: 'Impossible de contacter le serveur.', type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -92,7 +93,7 @@ export default function ContentManager() {
     if (!file) return;
 
     setIsUploading(true);
-    setMessage({ text: '⏳ Extraction du texte en cours (PDF/Word)...', type: 'info' });
+    setMessage({ text: 'Extraction du texte en cours (PDF/Word)...', type: 'info' });
 
     const formData = new FormData();
     formData.append('file', file);
@@ -111,17 +112,17 @@ export default function ContentManager() {
         const data = await response.json();
         if (data.status === 'success') {
           setContent(prev => prev + (prev ? '<br/><br/>' : '') + data.text);
-          setMessage({ text: '✅ Texte extrait et ajouté à l\'éditeur !', type: 'success' });
+          setMessage({ text: 'Texte extrait et ajouté à l\'éditeur !', type: 'success' });
           setTimeout(() => setMessage({ text: '', type: '' }), 5000);
         } else {
-          setMessage({ text: '❌ ' + data.message, type: 'error' });
+          setMessage({ text: data.message, type: 'error' });
         }
       } else {
-        setMessage({ text: '❌ Erreur lors de l\'extraction du document.', type: 'error' });
+        setMessage({ text: 'Erreur lors de l\'extraction du document.', type: 'error' });
       }
     } catch (error) {
       console.error(error);
-      setMessage({ text: '❌ Impossible de contacter le serveur pour l\'extraction.', type: 'error' });
+      setMessage({ text: 'Impossible de contacter le serveur pour l\'extraction.', type: 'error' });
     } finally {
       setIsUploading(false);
       e.target.value = null; // reset
@@ -144,7 +145,7 @@ export default function ContentManager() {
     <div className="p-8 w-full h-full overflow-y-auto text-left" style={{ background: '#f9fafb' }}>
       <header className="mb-8">
         <h2 className="text-3xl font-black text-gray-900 tracking-tight flex items-center gap-3">
-          <span className="text-red-600">📝</span> Éditeur Visuel (CMS)
+          <TbFileText className="w-7 h-7 text-red-600" aria-hidden="true" /> Éditeur Visuel (CMS)
         </h2>
         <p className="text-gray-500 text-sm mt-2 font-medium">Gérez le contenu des pages publiques et extrayez du texte depuis vos documents Word ou PDF.</p>
       </header>
@@ -179,7 +180,7 @@ export default function ContentManager() {
               disabled={isUploading}
               className="flex-none flex items-center justify-center gap-2 bg-white border-2 border-gray-200 text-gray-700 font-bold py-2.5 px-5 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all text-sm disabled:opacity-50"
             >
-              <span className="text-lg">📄</span> 
+              <TbFileImport className="w-5 h-5" aria-hidden="true" />
               {isUploading ? 'Extraction...' : 'Importer Word / PDF'}
             </button>
             <button 
@@ -187,17 +188,21 @@ export default function ContentManager() {
               disabled={loading || isUploading}
               className="flex-none flex items-center justify-center gap-2 bg-red-600 text-white font-bold py-2.5 px-6 rounded-xl hover:bg-red-700 hover:shadow-lg hover:shadow-red-600/20 transition-all text-sm disabled:opacity-50"
             >
-              {loading && !isUploading ? 'Sauvegarde...' : '💾 Enregistrer'}
+              <TbDeviceFloppy className="w-5 h-5" aria-hidden="true" />
+              {loading && !isUploading ? 'Sauvegarde...' : 'Enregistrer'}
             </button>
           </div>
         </div>
 
         {message.text && (
-          <div className={`mx-6 mt-6 p-4 rounded-xl font-medium text-sm flex items-center gap-3 \${
+          <div className={`mx-6 mt-6 p-4 rounded-xl font-medium text-sm flex items-center gap-3 ${
             message.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 
             message.type === 'info' ? 'bg-blue-50 text-blue-700 border border-blue-200' :
             'bg-red-50 text-red-700 border border-red-200'
           }`}>
+            {message.type === 'success' && <TbCircleCheck className="w-5 h-5 shrink-0" aria-hidden="true" />}
+            {message.type === 'error' && <TbCircleX className="w-5 h-5 shrink-0" aria-hidden="true" />}
+            {message.type === 'info' && <TbClock className="w-5 h-5 shrink-0" aria-hidden="true" />}
             {message.text}
           </div>
         )}

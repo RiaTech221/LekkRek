@@ -226,17 +226,17 @@ return () => {
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
   const handleCheckout = () => {
-    if (cart.length === 0) return alert("Panier vide !");
+    if (cart.length === 0) return showToast("Votre panier est vide !", 'error');
     
     // Contrôles de saisie (Validation)
     if (!formData.clientName || formData.clientName.trim().length < 2) {
-      return alert("Veuillez saisir un nom valide.");
+      return showToast("Veuillez saisir un nom valide (minimum 2 caractères).", 'error');
     }
     if (!validateSenegalPhone(formData.clientPhone)) {
-      return alert("Numéro de téléphone sénégalais invalide (ex: 771234567 ou +221 77 123 45 67).");
+      return showToast("Numéro de téléphone sénégalais invalide (ex: 771234567 ou +221 77 123 45 67).", 'error');
     }
     if (formData.type === 'LIVRAISON' && (!formData.clientAddress || formData.clientAddress.trim().length < 5)) {
-      return alert("Veuillez saisir une adresse de livraison plus précise.");
+      return showToast("Veuillez saisir une adresse de livraison plus précise (minimum 5 caractères).", 'error');
     }
 
     const processOrder = () => {
@@ -274,7 +274,7 @@ return () => {
         setSuccessOpen(true);
       })
       .catch(err => {
-        alert(err.message);
+        showToast(err.message || "Erreur lors de la commande. Veuillez réessayer.", 'error');
         setIsProcessingPayment(false);
       });
     };
@@ -300,16 +300,16 @@ return () => {
     e.preventDefault();
 
     if (!partnerForm.nomRestaurant || partnerForm.nomRestaurant.trim().length < 2) {
-      return alert("Le nom du restaurant doit contenir au moins 2 caractères.");
+      return showToast("Le nom du restaurant doit contenir au moins 2 caractères.", 'error');
     }
     if (!partnerForm.nomContact || partnerForm.nomContact.trim().length < 2) {
-      return alert("Votre nom doit contenir au moins 2 caractères.");
+      return showToast("Votre nom doit contenir au moins 2 caractères.", 'error');
     }
     if (!validateSenegalPhone(partnerForm.telephone)) {
-      return alert("Numéro de téléphone sénégalais invalide (ex: 771234567 ou +221 77 123 45 67).");
+      return showToast("Numéro de téléphone sénégalais invalide (ex: 771234567 ou +221 77 123 45 67).", 'error');
     }
     if (!partnerForm.ville || partnerForm.ville.trim().length < 3) {
-      return alert("La ville/quartier doit contenir au moins 3 caractères.");
+      return showToast("La ville/quartier doit contenir au moins 3 caractères.", 'error');
     }
 
     setPartnerStatus('loading');
@@ -376,9 +376,7 @@ return () => {
       <nav className="fixed top-0 left-0 w-full bg-white/90 backdrop-blur-md z-50 border-b border-gray-100 shadow-sm transition-all duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-20 items-center">
-            <h1 className="text-3xl font-black tracking-tighter text-red-600">
-              Lekk<span className="text-gray-900">Rek</span>
-            </h1>
+            <img src="/logo_lekkrek.png" alt="LekkRek Logo" className="h-12 w-auto object-contain cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} />
             <div className="flex gap-4">
               {localStorage.getItem('token') && (
                 <button onClick={() => window.location.href='/dashboard'} className="flex items-center gap-2 bg-red-50 text-red-600 hover:bg-red-100 px-5 py-2.5 rounded-full font-bold transition-all border border-red-100">
@@ -708,15 +706,15 @@ return () => {
                     <input type="text" placeholder="Votre Nom Complet" required className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-red-600" value={formData.clientName} onChange={e => setFormData({...formData, clientName: e.target.value})} />
                     <input
                       type="tel"
-                      inputMode="tel"
-                      maxLength={16}
-                      placeholder="Numéro de Téléphone (ex: 771234567 ou +221 77...)"
+                      inputMode="numeric"
+                      maxLength={9}
+                      placeholder="Ex: 771234567"
                       required
                       className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-red-600"
                       value={formData.clientPhone}
-                      onChange={e => setFormData({...formData, clientPhone: e.target.value.slice(0, 16)})}
+                      onChange={e => setFormData({...formData, clientPhone: e.target.value.replace(/\D/g, '').slice(0, 9)})}
                       onKeyDown={e => {
-                        if (!/[0-9+\s]/.test(e.key) && !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key) && !e.ctrlKey && !e.metaKey) {
+                        if (!/[0-9]/.test(e.key) && !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key) && !e.ctrlKey && !e.metaKey) {
                           e.preventDefault();
                         }
                       }}
@@ -795,15 +793,15 @@ return () => {
                   </div>
                   <input
                     type="tel"
-                    inputMode="tel"
-                    maxLength={16}
+                    inputMode="numeric"
+                    maxLength={9}
                     placeholder="771234567"
                     required
                     className="w-full bg-gray-50 border border-gray-200 rounded-2xl pl-20 pr-5 py-4 font-bold text-gray-900 focus:outline-none focus:border-red-500 focus:ring-4 focus:ring-red-500/10 transition-all placeholder:font-medium placeholder:text-gray-400"
                     value={loginPhone}
-                    onChange={(e) => setLoginPhone(e.target.value.slice(0, 16))}
+                    onChange={(e) => setLoginPhone(e.target.value.replace(/\D/g, '').slice(0, 9))}
                     onKeyDown={(e) => {
-                      if (!/[0-9+\s]/.test(e.key) && !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key) && !e.ctrlKey && !e.metaKey) {
+                      if (!/[0-9]/.test(e.key) && !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key) && !e.ctrlKey && !e.metaKey) {
                         e.preventDefault();
                       }
                     }}
@@ -904,15 +902,15 @@ return () => {
                   <label className="block text-sm font-bold text-gray-700 mb-1">Téléphone</label>
                   <input
                     type="tel"
-                    inputMode="tel"
-                    maxLength={16}
+                    inputMode="numeric"
+                    maxLength={9}
                     required
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 outline-none focus:ring-2 focus:ring-red-500"
                     value={partnerForm.telephone}
-                    onChange={(e) => setPartnerForm({...partnerForm, telephone: e.target.value.slice(0, 16)})}
-                    placeholder="Ex: 771234567 ou +221 77..."
+                    onChange={(e) => setPartnerForm({...partnerForm, telephone: e.target.value.replace(/\D/g, '').slice(0, 9)})}
+                    placeholder="Ex: 771234567"
                     onKeyDown={(e) => {
-                      if (!/[0-9+\s]/.test(e.key) && !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key) && !e.ctrlKey && !e.metaKey) {
+                      if (!/[0-9]/.test(e.key) && !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key) && !e.ctrlKey && !e.metaKey) {
                         e.preventDefault();
                       }
                     }}
@@ -937,9 +935,12 @@ return () => {
       <footer className="bg-gray-900 text-white pt-10 pb-24 border-t border-gray-800 mt-12">
         <div className="px-6">
           <div className="mb-6">
-            <h1 className="text-2xl font-black tracking-tighter text-red-600 mb-2">
-              Lekk<span className="text-white">Rek</span>
-            </h1>
+            <div className="flex items-center gap-3 mb-2">
+              <img src="/logo_lekkrek.png" alt="LekkRek Logo" className="h-10 w-10 object-contain rounded-full bg-white p-1" />
+              <h1 className="text-2xl font-black tracking-tighter text-red-600">
+                Lekk<span className="text-white">Rek</span>
+              </h1>
+            </div>
             <p className="text-gray-400 text-sm">
               Découvrez les meilleurs restaurants de la région. Commandez et suivez votre livreur en temps réel.
             </p>

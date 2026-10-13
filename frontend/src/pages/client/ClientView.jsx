@@ -81,18 +81,22 @@ export default function ClientView() {
   const [isLoginOpen, setLoginOpen] = useState(false);
   const [loginPhone, setLoginPhone] = useState('');
   const [loginName, setLoginName] = useState('');
+  const [loginError, setLoginError] = useState('');
 
   const openLoginModal = () => {
     setLoginPhone(formData.clientPhone || '');
     setLoginName(formData.clientName || '');
+    setLoginError('');
     setLoginOpen(true);
   };
 
   const handleLogin = (e) => {
     e.preventDefault();
     if (!validateSenegalPhone(loginPhone)) {
-      return alert("Numéro de téléphone sénégalais invalide (ex: 771234567 ou +221 77 123 45 67).");
+      setLoginError("Numéro de téléphone sénégalais invalide (ex: 771234567 ou +221 77 123 45 67).");
+      return;
     }
+    setLoginError('');
     const cleanPhone = normalizeSenegalPhone(loginPhone);
     localStorage.setItem('lekkrek_client_profile', JSON.stringify({ 
       name: loginName || formData.clientName, 
@@ -244,17 +248,17 @@ return () => {
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
   const handleCheckout = () => {
-    if (cart.length === 0) return alert("Panier vide !");
+    if (cart.length === 0) return showToast("Votre panier est vide !", "error");
     
     // Contrôles de saisie (Validation)
     if (!formData.clientName || formData.clientName.trim().length < 2) {
-      return alert("Veuillez saisir un nom valide.");
+      return showToast("Veuillez saisir votre nom complet (au moins 2 caractères).", "error");
     }
     if (!validateSenegalPhone(formData.clientPhone)) {
-      return alert("Numéro de téléphone sénégalais invalide (ex: 771234567 ou +221 77 123 45 67).");
+      return showToast("Numéro de téléphone sénégalais invalide (ex: 771234567 ou +221 77 123 45 67).", "error");
     }
     if (formData.type === 'LIVRAISON' && (!formData.clientAddress || formData.clientAddress.trim().length < 5)) {
-      return alert("Veuillez saisir une adresse de livraison plus précise.");
+      return showToast("Veuillez saisir une adresse de livraison plus précise.", "error");
     }
 
     const processOrder = () => {
@@ -292,7 +296,7 @@ return () => {
         setSuccessOpen(true);
       })
       .catch(err => {
-        alert(err.message);
+        showToast(err.message || "Erreur lors de la commande.", "error");
         setIsProcessingPayment(false);
       });
     };
@@ -318,16 +322,16 @@ return () => {
     e.preventDefault();
 
     if (!partnerForm.nomRestaurant || partnerForm.nomRestaurant.trim().length < 2) {
-      return alert("Le nom du restaurant doit contenir au moins 2 caractères.");
+      return showToast("Le nom du restaurant doit contenir au moins 2 caractères.", "error");
     }
     if (!partnerForm.nomContact || partnerForm.nomContact.trim().length < 2) {
-      return alert("Votre nom doit contenir au moins 2 caractères.");
+      return showToast("Votre nom doit contenir au moins 2 caractères.", "error");
     }
     if (!validateSenegalPhone(partnerForm.telephone)) {
-      return alert("Numéro de téléphone sénégalais invalide (ex: 771234567 ou +221 77 123 45 67).");
+      return showToast("Numéro de téléphone sénégalais invalide (ex: 771234567 ou +221 77 123 45 67).", "error");
     }
     if (!partnerForm.ville || partnerForm.ville.trim().length < 3) {
-      return alert("La ville/quartier doit contenir au moins 3 caractères.");
+      return showToast("La ville/quartier doit contenir au moins 3 caractères.", "error");
     }
 
     setPartnerStatus('loading');
@@ -377,7 +381,7 @@ return () => {
         <div className="w-full px-2 sm:px-4 lg:px-6 mx-auto">
           <div className="flex justify-between h-20 items-center gap-2">
             
-            <img src="/logo.png" alt="LekkRek Logo" className="h-14 sm:h-16 w-auto object-contain shrink-0 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} />
+            <img src="/logo_lekkrek.png" alt="LekkRek Logo" className="h-14 sm:h-16 w-auto object-contain shrink-0 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} />
             
             {/* BIG SEARCH BAR IN NAVBAR */}
             <div className="flex w-full max-w-[50rem] mx-2 lg:mx-6 bg-white rounded-full border border-gray-200 shadow-sm hover:shadow-md items-center divide-x divide-gray-100 transition-all h-14 overflow-x-auto [&::-webkit-scrollbar]:hidden">
@@ -799,9 +803,16 @@ return () => {
                     maxLength={16}
                     placeholder="771234567"
                     required
-                    className="w-full bg-gray-50 border border-gray-200 rounded-2xl pl-20 pr-5 py-4 font-bold text-gray-900 focus:outline-none focus:border-red-500 focus:ring-4 focus:ring-red-500/10 transition-all placeholder:font-medium placeholder:text-gray-400"
+                    className={`w-full bg-gray-50 border rounded-2xl pl-20 pr-5 py-4 font-bold text-gray-900 focus:outline-none transition-all placeholder:font-medium placeholder:text-gray-400 ${
+                      loginError
+                        ? 'border-red-400 focus:border-red-500 focus:ring-4 focus:ring-red-500/20'
+                        : 'border border-gray-200 focus:border-red-500 focus:ring-4 focus:ring-red-500/10'
+                    }`}
                     value={loginPhone}
-                    onChange={(e) => setLoginPhone(e.target.value.slice(0, 16))}
+                    onChange={(e) => {
+                      setLoginPhone(e.target.value.slice(0, 16));
+                      if (loginError) setLoginError('');
+                    }}
                     onKeyDown={(e) => {
                       if (!/[0-9+\s]/.test(e.key) && !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key) && !e.ctrlKey && !e.metaKey) {
                         e.preventDefault();
@@ -809,6 +820,14 @@ return () => {
                     }}
                   />
                 </div>
+                {loginError && (
+                  <p className="flex items-center gap-1.5 text-red-500 text-xs font-bold mt-2 pl-1 animate-in fade-in slide-in-from-top-1">
+                    <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <span>{loginError}</span>
+                  </p>
+                )}
               </div>
               <button type="submit" className="w-full bg-red-600 hover:bg-red-700 text-white py-4 rounded-2xl font-black text-lg mt-4 shadow-[0_8px_20px_-6px_rgba(220,38,38,0.5)] hover:shadow-[0_12px_25px_-6px_rgba(220,38,38,0.6)] hover:-translate-y-0.5 transition-all">
                 {formData.clientPhone ? "Mettre à jour" : "Me connecter"}
@@ -875,9 +894,12 @@ return () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
             <div className="md:col-span-1">
-              <h2 className="text-3xl font-black tracking-tighter text-red-600 mb-4">
-                {platformSettings?.platformName || 'LekkRek'}
-              </h2>
+              <div className="flex items-center gap-3 mb-4">
+                <img src="/logo_lekkrek.png" alt="LekkRek Logo" className="h-10 w-10 object-contain rounded-full bg-white p-1" />
+                <h2 className="text-3xl font-black tracking-tighter text-red-600">
+                  {platformSettings?.platformName || 'LekkRek'}
+                </h2>
+              </div>
               <p className="text-gray-400 text-sm leading-relaxed mb-4">
                 La plateforme n°1 de livraison partout à Ziguinchor. Vos plats préférés, livrés rapidement et encore chauds.
               </p>

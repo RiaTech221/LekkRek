@@ -2,6 +2,7 @@ import { API_URL } from '../../config';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
+import { TbInbox } from 'react-icons/tb';
 
 const COLORS = ['#ef4444', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#ec4899', '#06b6d4'];
 
@@ -125,7 +126,7 @@ export default function Overview() {
   return (
     <div className="p-8 w-full min-h-screen text-left" style={{ background: '#f8fafc' }}>
       <header className="mb-8">
-        <h2 className="text-3xl font-black text-gray-900 tracking-tight">Bonjour, {user.email?.split('@')[0] || 'Admin'} 👋</h2>
+        <h2 className="text-3xl font-black text-gray-900 tracking-tight">Bonjour, {user.email?.split('@')[0] || 'Admin'}</h2>
         <p className="text-gray-500 text-sm mt-1 font-medium">Voici ce qui se passe sur LekkRek aujourd'hui.</p>
       </header>
 
@@ -395,7 +396,7 @@ export default function Overview() {
               {orders.length === 0 && (
                 <tr>
                   <td colSpan="4" className="p-12 text-center">
-                    <div className="text-4xl mb-3">📭</div>
+                    <TbInbox className="w-12 h-12 mb-3 mx-auto text-gray-300 stroke-1" aria-hidden="true" />
                     <div className="text-gray-900 font-bold mb-1">Aucune activité</div>
                     <div className="text-gray-500 text-sm">Les nouvelles commandes apparaîtront ici.</div>
                   </td>

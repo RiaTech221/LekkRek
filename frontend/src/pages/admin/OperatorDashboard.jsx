@@ -13,27 +13,30 @@ import AuditLogs from './AuditLogs';
 import PartnerRequests from './PartnerRequests';
 import ReferenceManager from './ReferenceManager';
 import OrderDetailsModal from './OrderDetailsModal';
-
-/**
- * ============================================================================
- * 📁 Fichier : OperatorDashboard.jsx
- * 📝 Description : Composant React gérant l'interface utilisateur pour OperatorDashboard.
- * 🎨 Rôle : Vue Frontend (Vite/Tailwind) pour l'expérience client/admin LekkRek.
- * 💡 Auteur : Documenté automatiquement (Standard Enterprise)
- * ============================================================================
- */
+import ToastNotification from '../../components/ToastNotification';
+import {
+  TbHome, TbChartBar, TbToolsKitchen2, TbBuildingStore, TbUsers, TbHeartHandshake,
+  TbMapPin, TbTrendingUp, TbFileText, TbShieldSearch, TbSettings, TbLogout,
+  TbMotorbike, TbShoppingBag, TbCircleCheck, TbAlertTriangle, TbCircleX
+} from 'react-icons/tb';
 
 
 export default function OperatorDashboard() {
   const [activeTab, setActiveTab] = useState(() => localStorage.getItem('lekkrek_admin_tab') || 'overview');
   useEffect(() => { localStorage.setItem('lekkrek_admin_tab', activeTab); }, [activeTab]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-    const [selectedOrder, setSelectedOrder] = useState(null);
+  const [selectedOrder, setSelectedOrder] = useState(null);
   const [commandes, setCommandes] = useState({
     nouvelles: [],
     preparation: [],
     pretes: []
   });
+  const [toast, setToast] = useState(null);
+
+  const showToast = (msg, type = 'success') => {
+    setToast({ message: msg, type });
+    setTimeout(() => setToast(null), 3500);
+  };
 
   const navigate = useNavigate();
 
@@ -118,12 +121,12 @@ export default function OperatorDashboard() {
 
   const getPaymentBadge = (cmd) => {
     if (cmd.paymentStatus === 'PAYE') {
-      return <span className="flex items-center gap-1 text-green-700 bg-green-50 px-2 py-1 rounded border border-green-100 text-[10px] font-black uppercase"><span className="text-[12px]">✅</span> Payé ({cmd.paymentMethod})</span>;
+      return <span className="flex items-center gap-1 text-green-700 bg-green-50 px-2 py-1 rounded border border-green-100 text-[10px] font-black uppercase"><TbCircleCheck className="w-3.5 h-3.5" aria-hidden="true" /> Payé ({cmd.paymentMethod})</span>;
     }
     if (cmd.paymentStatus === 'ATTENTE') {
-      return <span className="flex items-center gap-1 text-amber-700 bg-amber-50 px-2 py-1 rounded border border-amber-100 text-[10px] font-black uppercase"><span className="text-[12px]">⚠️</span> À encaisser ({cmd.paymentMethod})</span>;
+      return <span className="flex items-center gap-1 text-amber-700 bg-amber-50 px-2 py-1 rounded border border-amber-100 text-[10px] font-black uppercase"><TbAlertTriangle className="w-3.5 h-3.5" aria-hidden="true" /> À encaisser ({cmd.paymentMethod})</span>;
     }
-    return <span className="flex items-center gap-1 text-red-700 bg-red-50 px-2 py-1 rounded border border-red-100 text-[10px] font-black uppercase"><span className="text-[12px]">❌</span> Échoué</span>;
+    return <span className="flex items-center gap-1 text-red-700 bg-red-50 px-2 py-1 rounded border border-red-100 text-[10px] font-black uppercase"><TbCircleX className="w-3.5 h-3.5" aria-hidden="true" /> Échoué</span>;
   };
 
     const updatePaymentStatus = (id, newStatus) => {
@@ -132,9 +135,9 @@ export default function OperatorDashboard() {
       method: 'PUT',
       headers: { 'Authorization': `Bearer ${token}` }
     })
-      .then(res => res.json())
+      .then(res => { if (!res.ok) throw new Error("Erreur mise à jour paiement"); return res.json(); })
       .then(() => fetchCommandes())
-      .catch(err => alert("Erreur maj paiement"));
+      .catch(err => showToast(err.message, "error"));
   };
 
   const updateStatus = (id, newStatus) => {
@@ -143,9 +146,9 @@ export default function OperatorDashboard() {
       method: 'PUT',
       headers: { 'Authorization': `Bearer ${token}` }
     })
-      .then(res => res.json())
+      .then(res => { if (!res.ok) throw new Error("Erreur mise à jour du statut"); return res.json(); })
       .then(() => fetchCommandes())
-      .catch(err => alert("Erreur maj statut"));
+      .catch(err => showToast(err.message, "error"));
   };
 
   const handleLogout = () => {
@@ -156,6 +159,7 @@ export default function OperatorDashboard() {
 
   return (
     <div id="desktop-dashboard" className="flex bg-gray-50 font-sans" style={{ position: "fixed", top: 0, left: 0, width: "100%", height: "100vh", zIndex: 50 }}>
+      <ToastNotification toast={toast} onClose={() => setToast(null)} />
       
       {/* Sidebar */}
       <div className={`bg-white border-r border-gray-200 flex flex-col h-full flex-shrink-0 transition-all duration-300 relative overflow-x-hidden`} style={{ width: isSidebarOpen ? "256px" : "80px" }}>
@@ -164,22 +168,22 @@ export default function OperatorDashboard() {
           </button>
         <div className="px-5 pt-8 pb-4 shrink-0">
             <div className="flex items-center justify-center h-16 overflow-hidden transition-all duration-300">
-              <img src="/logo-square.png" alt="Logo LekkRek" className={`object-contain transition-all duration-300 cursor-default ${isSidebarOpen ? "h-14 w-auto" : "h-10 w-10"}`} />
+              <img src="/logo_lekkrek.png" alt="Logo LekkRek" className={`object-contain transition-all duration-300 cursor-default ${isSidebarOpen ? "h-14 w-auto" : "h-10 w-10"}`} />
             </div>
           </div>
         
         <div className="flex-1 overflow-y-auto px-4 pb-4">
           <nav className="space-y-2">
             <button onClick={() => setActiveTab('overview')} className={`w-full flex items-center px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'overview' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
-                  <span className="text-xl flex-shrink-0">🏠</span>
+                  <TbHome className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
                   <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${isSidebarOpen ? "w-auto opacity-100 ml-3" : "w-0 opacity-0 ml-0"}`}>Vue d'ensemble</span>
               </button>
             <button onClick={() => setActiveTab('kanban')} className={`w-full flex items-center px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'kanban' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
-                  <span className="text-xl flex-shrink-0">📊</span>
+                  <TbChartBar className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
                   <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${isSidebarOpen ? "w-auto opacity-100 ml-3" : "w-0 opacity-0 ml-0"}`}>Kanban en direct</span>
               </button>
             <button onClick={() => setActiveTab('menu')} className={`w-full flex items-center px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'menu' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
-                  <span className="text-xl flex-shrink-0">🍽️</span>
+                  <TbToolsKitchen2 className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
                   <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${isSidebarOpen ? "w-auto opacity-100 ml-3" : "w-0 opacity-0 ml-0"}`}>Menu & Plats</span>
               </button>
             
@@ -189,36 +193,37 @@ export default function OperatorDashboard() {
                 <div className={`pt-6 pb-2 transition-all duration-300 ${isSidebarOpen ? "opacity-100 h-auto" : "opacity-0 h-0 overflow-hidden"}`}><p className="text-xs font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">Administration</p></div>
 
                 <button onClick={() => setActiveTab('restaurants')} className={`w-full flex items-center px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'restaurants' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
-                  <span className="text-xl flex-shrink-0">🏪</span>
+                  <TbBuildingStore className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
                   <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${isSidebarOpen ? "w-auto opacity-100 ml-3" : "w-0 opacity-0 ml-0"}`}>Restaurants</span>
               </button>
                 <button onClick={() => setActiveTab('operateurs')} className={`w-full flex items-center px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'operateurs' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
-                  <span className="text-xl flex-shrink-0">👥</span>
+                  <TbUsers className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
                   <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${isSidebarOpen ? "w-auto opacity-100 ml-3" : "w-0 opacity-0 ml-0"}`}>Équipe & Rôles</span>
               </button>
                 <button onClick={() => setActiveTab('partners')} className={`w-full flex items-center px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'partners' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
-                  <span className="text-xl flex-shrink-0">🤝</span>
+                  <TbHeartHandshake className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
                   <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${isSidebarOpen ? "w-auto opacity-100 ml-3" : "w-0 opacity-0 ml-0"}`}>Partenariats</span>
               </button>
                 <button onClick={() => setActiveTab('referentiel')} className={`w-full flex items-center px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'referentiel' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
-                  <span className="text-xl flex-shrink-0">📍</span>
+                  <TbMapPin className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
                   <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${isSidebarOpen ? "w-auto opacity-100 ml-3" : "w-0 opacity-0 ml-0"}`}>Données de référence</span>
               </button>
                 <button onClick={() => setActiveTab('comptabilite')} className={`w-full flex items-center px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'comptabilite' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
-                  <span className="text-xl flex-shrink-0">📈</span>
+                  <TbTrendingUp className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
                   <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${isSidebarOpen ? "w-auto opacity-100 ml-3" : "w-0 opacity-0 ml-0"}`}>Comptabilité</span>
               </button>
                 <button onClick={() => setActiveTab('content')} className={`w-full flex items-center px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'content' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
-                  <span className="text-xl flex-shrink-0">📝</span>
+                  <TbFileText className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
                   <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${isSidebarOpen ? "w-auto opacity-100 ml-3" : "w-0 opacity-0 ml-0"}`}>Pages & Contenu (CMS)</span>
               </button>
   
   <button onClick={() => setActiveTab('audit')} className={`w-full flex items-center px-4 py-3 rounded-xl font-medium transition-colors ${activeTab === 'audit' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
-                  <span className="text-xl flex-shrink-0">🕵️‍♂️</span>
+                  <TbShieldSearch className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
                   <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${isSidebarOpen ? "w-auto opacity-100 ml-3" : "w-0 opacity-0 ml-0"}`}>Audit & Sécurité</span>
               </button>
+
 <button onClick={() => setActiveTab('parametres')} className={`w-full flex items-center px-4 py-3 rounded-xl font-medium transition-colors mt-8 ${activeTab === 'parametres' ? 'bg-red-600 text-white shadow-sm shadow-red-600/20' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}>
-                  <span className="text-xl flex-shrink-0">⚙️</span>
+                  <TbSettings className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
                   <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${isSidebarOpen ? "w-auto opacity-100 ml-3" : "w-0 opacity-0 ml-0"}`}>Paramètres</span>
               </button>
               </>
@@ -239,8 +244,8 @@ export default function OperatorDashboard() {
                     <p className="text-xs text-gray-500">{roleLabel}</p>
                   </div>
                 </div>
-                <button onClick={handleLogout} className="text-gray-400 hover:text-red-600 transition-colors shrink-0 ml-2" title="Se d�connecter">
-                  🚪
+                <button onClick={handleLogout} className="text-gray-400 hover:text-red-600 transition-colors shrink-0 ml-2" title="Se déconnecter" aria-label="Se déconnecter">
+                  <TbLogout className="w-5 h-5" aria-hidden="true" />
                 </button>
               </div>
             ) : (
@@ -248,8 +253,8 @@ export default function OperatorDashboard() {
                 <div className="w-10 h-10 shrink-0 bg-red-100 rounded-full flex items-center justify-center text-red-600 font-bold" title={user.email}>
                   {user.email ? user.email.charAt(0).toUpperCase() : 'U'}
                 </div>
-                <button onClick={handleLogout} className="text-gray-400 hover:text-red-600 transition-colors" title="Se d�connecter">
-                  🚪
+                <button onClick={handleLogout} className="text-gray-400 hover:text-red-600 transition-colors" title="Se déconnecter" aria-label="Se déconnecter">
+                  <TbLogout className="w-5 h-5" aria-hidden="true" />
                 </button>
               </>
             )}
@@ -294,7 +299,7 @@ export default function OperatorDashboard() {
                     <div key={cmd.id} className="bg-white p-5 rounded-2xl shadow-sm hover:shadow-md transition-shadow border-l-4 border-l-blue-500 border-t border-r border-b border-gray-100 flex flex-col gap-3 group relative cursor-pointer" onClick={() => setSelectedOrder(cmd)}>
                       <div className="flex justify-between items-start">
                         <div>
-                          <div className="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">#{cmd.id.substring(0,5)}</div>
+                          <div className="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">{cmd.id.substring(0,5)}</div>
                           <h4 className="font-black text-gray-900 text-lg leading-none">{cmd.client.split(' ')[0]}</h4>
                         </div>
                         <span className="text-[10px] font-bold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-full whitespace-nowrap">A l'instant</span>
@@ -313,9 +318,9 @@ export default function OperatorDashboard() {
                       <div className="flex items-center gap-2 text-xs font-bold text-gray-500">
 
                          {cmd.type === 'LIVRAISON' ? (
-                           <span className="flex items-center gap-1.5 bg-gray-100 px-2 py-1 rounded-md"><span className="text-sm">🛵</span> Livraison</span>
+                           <span className="flex items-center gap-1.5 bg-gray-100 px-2 py-1 rounded-md"><TbMotorbike className="w-4 h-4" aria-hidden="true" /> Livraison</span>
                          ) : (
-                           <span className="flex items-center gap-1.5 bg-gray-100 px-2 py-1 rounded-md"><span className="text-sm">🛍️</span> À emporter</span>
+                           <span className="flex items-center gap-1.5 bg-gray-100 px-2 py-1 rounded-md"><TbShoppingBag className="w-4 h-4" aria-hidden="true" /> À emporter</span>
                          )}
                       </div>
                       {getPaymentBadge(cmd)}
@@ -344,7 +349,7 @@ export default function OperatorDashboard() {
                     <div key={cmd.id} className="bg-white p-5 rounded-2xl shadow-sm hover:shadow-md transition-shadow border-l-4 border-l-orange-500 border-t border-r border-b border-gray-100 flex flex-col gap-3 group relative cursor-pointer" onClick={() => setSelectedOrder(cmd)}>
                       <div className="flex justify-between items-start">
                         <div>
-                          <div className="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">#{cmd.id.substring(0,5)}</div>
+                          <div className="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">{cmd.id.substring(0,5)}</div>
                           <h4 className="font-black text-gray-900 text-lg leading-none">{cmd.client.split(' ')[0]}</h4>
                         </div>
                         <span className="text-[10px] font-bold text-orange-700 bg-orange-50 px-2.5 py-1 rounded-full whitespace-nowrap animate-pulse">En cuisine</span>
@@ -363,9 +368,9 @@ export default function OperatorDashboard() {
                       <div className="flex items-center gap-2 text-xs font-bold text-gray-500">
 
                          {cmd.type === 'LIVRAISON' ? (
-                           <span className="flex items-center gap-1.5 bg-gray-100 px-2 py-1 rounded-md"><span className="text-sm">🛵</span> Livraison</span>
+                           <span className="flex items-center gap-1.5 bg-gray-100 px-2 py-1 rounded-md"><TbMotorbike className="w-4 h-4" aria-hidden="true" /> Livraison</span>
                          ) : (
-                           <span className="flex items-center gap-1.5 bg-gray-100 px-2 py-1 rounded-md"><span className="text-sm">🛍️</span> À emporter</span>
+                           <span className="flex items-center gap-1.5 bg-gray-100 px-2 py-1 rounded-md"><TbShoppingBag className="w-4 h-4" aria-hidden="true" /> À emporter</span>
                          )}
                       </div>
                       {getPaymentBadge(cmd)}
@@ -394,7 +399,7 @@ export default function OperatorDashboard() {
                     <div key={cmd.id} className="bg-white p-5 rounded-2xl shadow-sm opacity-80 border-l-4 border-l-green-500 border-t border-r border-b border-gray-100 flex flex-col gap-3 cursor-pointer hover:shadow-md transition-shadow" onClick={() => setSelectedOrder(cmd)}>
                       <div className="flex justify-between items-start">
                         <div>
-                          <div className="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">#{cmd.id.substring(0,5)}</div>
+                          <div className="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">{cmd.id.substring(0,5)}</div>
                           <h4 className="font-black text-gray-900 text-lg leading-none line-through decoration-green-500/30">{cmd.client.split(' ')[0]}</h4>
                         </div>
                         <span className="text-[10px] font-bold text-green-700 bg-green-50 px-2.5 py-1 rounded-full whitespace-nowrap flex items-center gap-1">
@@ -414,9 +419,9 @@ export default function OperatorDashboard() {
                       
                       <div className="flex items-center gap-2 text-xs font-bold text-gray-400">
                          {cmd.type === 'LIVRAISON' ? (
-                           <span className="flex items-center gap-1.5"><span className="text-sm grayscale opacity-70">🛵</span> En livraison</span>
+                           <span className="flex items-center gap-1.5"><TbMotorbike className="w-4 h-4 opacity-70" aria-hidden="true" /> En livraison</span>
                          ) : (
-                           <span className="flex items-center gap-1.5"><span className="text-sm grayscale opacity-70">🛍️</span> Remis au client</span>
+                           <span className="flex items-center gap-1.5"><TbShoppingBag className="w-4 h-4 opacity-70" aria-hidden="true" /> Remis au client</span>
                          )}
                       </div>
                     </div>

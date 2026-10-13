@@ -95,14 +95,20 @@ S'assurer que MySQL est actif sur le port `3306`, puis créer la base :
 
 ```sql
 CREATE DATABASE lekkrek_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- Créer l'utilisateur par défaut utilisé par l'application :
+CREATE USER IF NOT EXISTS 'lekkrek_app'@'localhost' IDENTIFIED BY 'lekkrek_app_password';
+GRANT ALL PRIVILEGES ON lekkrek_db.* TO 'lekkrek_app'@'localhost';
+FLUSH PRIVILEGES;
 ```
 
 Importer le schéma initial et les données de démarrage :
 ```bash
-mysql -u root -p lekkrek_db < database_schema.sql
+mysql -u lekkrek_app -plekkrek_app_password lekkrek_db < database_schema.sql
 ```
 
 > Hibernate gère aussi le schéma automatiquement (`ddl-auto=update`) au premier lancement si vous préférez ne pas importer manuellement.
+> *Note : si vous utilisez `root` ou un autre compte existant, surchargez simplement `DB_USER` et `DB_PASSWORD` dans vos variables d'environnement.*
 
 ---
 
@@ -129,9 +135,11 @@ Le fichier `.env` par défaut pointe vers `http://localhost:8080`. Modifier `VIT
 ---
 
 ### 4. Lancement du Backend
+*(Requiert Java 21)*
 
 ```bash
 cd backend
+# S'assurer que JAVA_HOME pointe sur Java 21 (ex: export JAVA_HOME=$(/usr/libexec/java_home -v 21))
 mvn clean install -DskipTests
 mvn spring-boot:run
 ```

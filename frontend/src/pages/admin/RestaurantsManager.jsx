@@ -1,15 +1,10 @@
 import { API_URL, formatImageUrl } from '../../config';
 import React, { useState, useEffect } from 'react';
-
-/**
- * ============================================================================
- * 📁 Fichier : RestaurantsManager.jsx
- * 📝 Description : Composant React gérant l'interface utilisateur pour RestaurantsManager.
- * 🎨 Rôle : Vue Frontend (Vite/Tailwind) pour l'expérience client/admin LekkRek.
- * 💡 Auteur : Documenté automatiquement (Standard Enterprise)
- * ============================================================================
- */
-
+import { validateSenegalPhone, normalizeSenegalPhone } from '../../utils/phoneUtils';
+import ConfirmModal from '../../components/ConfirmModal';
+import ToastNotification from '../../components/ToastNotification';
+import { handleApiResponse } from '../../utils/apiHelper';
+import { TbPhone } from 'react-icons/tb';
 
 export default function RestaurantsManager() {
   const [restaurants, setRestaurants] = useState([]);
@@ -17,10 +12,28 @@ export default function RestaurantsManager() {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
 
+  // Notifications et Confirmation
+  const [toast, setToast] = useState(null);
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    confirmText: 'Confirmer',
+    isDestructive: true,
+    isLoading: false,
+    onConfirm: null
+  });
+
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3500);
+  };
+
   // Form State
   const [name, setName] = useState('');
   const [location, setLocation] = useState('');
   const [operatorName, setOperatorName] = useState('');
+  const [telephone, setTelephone] = useState('');
   const [image, setImage] = useState('');
   const [imageFile, setImageFile] = useState(null);
   const [commissionRate, setCommissionRate] = useState(10);
@@ -39,6 +52,7 @@ export default function RestaurantsManager() {
     setName(resto.name);
     setLocation(resto.location);
     setOperatorName(resto.operatorName || '');
+    setTelephone(resto.telephone || '');
     
     setCommissionRate(resto.commissionRate || 10);
     setSubscriptionPlan(resto.subscriptionPlan || 'Basic');
@@ -92,16 +106,22 @@ export default function RestaurantsManager() {
           throw new Error("Erreur lors de l'upload de l'image");
         }
       } catch (err) {
-        alert(err.message);
+        showToast(err.message, "error");
         setUploadingImage(false);
         return;
       }
+    }
+
+    if (telephone && !validateSenegalPhone(telephone)) {
+      showToast("Numéro du restaurant invalide. Format attendu : 771234567 ou +221 77 123 45 67.", "error");
+      return;
     }
 
     const payload = { 
       name, 
       location, 
       operatorName, 
+      telephone: telephone ? normalizeSenegalPhone(telephone) : null,
       image: finalImageUrl, 
       commissionRate: parseFloat(commissionRate), 
       active: isActive, 
@@ -122,16 +142,14 @@ export default function RestaurantsManager() {
       },
       body: JSON.stringify(payload)
     })
-      .then(res => {
-        if (!res.ok) throw new Error("Erreur lors de l'enregistrement.");
-        return res.json();
-      })
+      .then(res => handleApiResponse(res, "Erreur lors de l'enregistrement."))
       .then(() => {
         setIsModalOpen(false);
         setEditingId(null);
         setName('');
         setLocation('');
         setOperatorName('');
+        setTelephone('');
         setImage('');
         setImageFile(null);
         setCommissionRate(10);
@@ -139,23 +157,42 @@ export default function RestaurantsManager() {
         setSubscriptionEndDate('');
         setIsActive(true);
         setUploadingImage(false);
+        showToast(editingId ? "Restaurant modifié avec succès !" : "Restaurant créé avec succès !");
         fetchRestaurants();
       })
       .catch(err => {
-        alert(err.message);
+        showToast(err.message, "error");
         setUploadingImage(false);
       });
   };
 
-  const handleDelete = (id) => {
-    if (!window.confirm("Êtes-vous sûr de vouloir supprimer ce restaurant et TOUS ses plats associés ?")) return;
-    const token = localStorage.getItem('token');
-    fetch(`${API_URL}/api/v1/admin/restaurants/${id}`, {
-      method: 'DELETE',
-      headers: { 'Authorization': `Bearer ${token}` }
-    })
-      .then(() => fetchRestaurants())
-      .catch(err => alert("Erreur lors de la suppression. Ce restaurant a probablement des commandes liées."));
+  const handleDelete = (id, restoName = "ce restaurant") => {
+    setConfirmModal({
+      isOpen: true,
+      title: "Supprimer ce restaurant ?",
+      message: `Êtes-vous sûr de vouloir supprimer "${restoName}" et TOUS ses plats associés ? Cette action est irréversible.`,
+      confirmText: "Supprimer définitivement",
+      isDestructive: true,
+      isLoading: false,
+      onConfirm: () => {
+        setConfirmModal(prev => ({ ...prev, isLoading: true }));
+        const token = localStorage.getItem('token');
+        fetch(`${API_URL}/api/v1/admin/restaurants/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+          .then(res => handleApiResponse(res, "Impossible de supprimer ce restaurant (commandes liées ou droits insuffisants)."))
+          .then(() => {
+            setConfirmModal({ isOpen: false });
+            showToast("Restaurant et plats associés supprimés !");
+            fetchRestaurants();
+          })
+          .catch(err => {
+            setConfirmModal({ isOpen: false });
+            showToast(err.message, "error");
+          });
+      }
+    });
   };
 
   const toggleActive = (resto) => {
@@ -247,6 +284,12 @@ export default function RestaurantsManager() {
                   <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                   Gérant : <span className="font-medium text-gray-700">{resto.operatorName || 'Non assigné'}</span>
                 </p>
+                {resto.telephone && (
+                  <p className="text-sm text-gray-500 flex items-center gap-2">
+                    <TbPhone className="w-4 h-4 text-gray-400" aria-hidden="true" />
+                    Tél : <span className="font-medium text-gray-700">{resto.telephone}</span>
+                  </p>
+                )}
                 <p className="text-sm font-bold text-red-600 flex items-center gap-2">
                   <svg className="w-4 h-4 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                   Commission : {resto.commissionRate}%
@@ -262,7 +305,7 @@ export default function RestaurantsManager() {
                   Modifier
                 </button>
                 <button 
-                  onClick={() => handleDelete(resto.id)}
+                  onClick={() => handleDelete(resto.id, resto.name)}
                   className="text-red-600 hover:text-white font-bold text-sm bg-red-50 hover:bg-red-600 px-4 py-2 rounded-xl transition-colors"
                 >
                   Supprimer
@@ -325,6 +368,24 @@ export default function RestaurantsManager() {
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm font-medium focus:bg-white focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors"
                     value={operatorName}
                     onChange={(e) => setOperatorName(e.target.value)}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Téléphone de Contact (Optionnel, 9 chiffres)</label>
+                  <input 
+                    type="tel" 
+                    inputMode="numeric"
+                    maxLength={9}
+                    placeholder="Ex: 771234567"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm font-medium focus:bg-white focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors"
+                    value={telephone}
+                    onChange={(e) => setTelephone(e.target.value.replace(/\D/g, '').slice(0, 9))}
+                    onKeyDown={(e) => {
+                      if (!/[0-9]/.test(e.key) && !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key) && !e.ctrlKey && !e.metaKey) {
+                        e.preventDefault();
+                      }
+                    }}
                   />
                 </div>
 
@@ -408,6 +469,21 @@ export default function RestaurantsManager() {
           </div>
         </div>
       )}
+
+      {/* MODALE DE CONFIRMATION DESIGNÉE */}
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        confirmText={confirmModal.confirmText}
+        isDestructive={confirmModal.isDestructive}
+        isLoading={confirmModal.isLoading}
+        onConfirm={confirmModal.onConfirm}
+        onClose={() => setConfirmModal({ isOpen: false })}
+      />
+
+      {/* TOAST DE NOTIFICATION DESIGNÉ */}
+      <ToastNotification toast={toast} onClose={() => setToast(null)} />
     </div>
   );
 }
