@@ -1,5 +1,6 @@
 import { API_URL } from '../../config';
 import React, { useState, useEffect } from 'react';
+import { validateSenegalPhone, normalizeSenegalPhone } from '../../utils/phoneUtils';
 
 /**
  * ============================================================================
@@ -69,17 +70,28 @@ export default function Settings() {
 
   const handleSaveGlobal = async (e) => {
     e.preventDefault();
+    if (settings.supportPhone && !validateSenegalPhone(settings.supportPhone)) {
+      alert("Le numéro de téléphone de support doit être un numéro sénégalais valide à 9 chiffres (ex: 771234567 ou +221 77 123 45 67).");
+      return;
+    }
+    const cleanSettings = {
+      ...settings,
+      supportPhone: settings.supportPhone ? normalizeSenegalPhone(settings.supportPhone) : ''
+    };
     setLoading(true);
     const token = localStorage.getItem('token');
     try {
       const response = await fetch(`${API_URL}/api/v1/settings`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify(settings)
+        body: JSON.stringify(cleanSettings)
       });
       if (response.ok) {
         setMessage('Paramètres enregistrés avec succès.');
         setTimeout(() => setMessage(''), 3000);
+      } else {
+        const errText = await response.text();
+        alert(errText || 'Erreur lors de la sauvegarde des paramètres.');
       }
     } catch (error) {
       console.error(error);
@@ -122,8 +134,22 @@ export default function Settings() {
               <input type="email" name="supportEmail" value={settings.supportEmail} onChange={handleChange} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm font-medium focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500" />
             </div>
             <div>
-              <label className="block text-[10px] font-bold text-gray-500 mb-1.5 uppercase">Téléphone</label>
-              <input type="tel" name="supportPhone" value={settings.supportPhone} onChange={handleChange} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm font-medium focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500" />
+              <label className="block text-[10px] font-bold text-gray-500 mb-1.5 uppercase">Téléphone (9 chiffres)</label>
+              <input
+                type="tel"
+                name="supportPhone"
+                inputMode="numeric"
+                maxLength={9}
+                placeholder="Ex: 771234567"
+                value={settings.supportPhone || ''}
+                onChange={(e) => setSettings({ ...settings, supportPhone: e.target.value.replace(/\D/g, '').slice(0, 9) })}
+                onKeyDown={(e) => {
+                  if (!/[0-9]/.test(e.key) && !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key) && !e.ctrlKey && !e.metaKey) {
+                    e.preventDefault();
+                  }
+                }}
+                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm font-medium focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
+              />
             </div>
             <div>
               <label className="block text-[10px] font-bold text-gray-500 mb-1.5 uppercase">Devise</label>

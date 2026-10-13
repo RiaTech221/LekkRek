@@ -1,5 +1,6 @@
 import { API_URL, formatImageUrl } from '../../config';
 import React, { useState, useEffect } from 'react';
+import { validateSenegalPhone, normalizeSenegalPhone } from '../../utils/phoneUtils';
 
 /**
  * ============================================================================
@@ -21,6 +22,7 @@ export default function RestaurantsManager() {
   const [name, setName] = useState('');
   const [location, setLocation] = useState('');
   const [operatorName, setOperatorName] = useState('');
+  const [telephone, setTelephone] = useState('');
   const [image, setImage] = useState('');
   const [imageFile, setImageFile] = useState(null);
   const [commissionRate, setCommissionRate] = useState(10);
@@ -39,6 +41,7 @@ export default function RestaurantsManager() {
     setName(resto.name);
     setLocation(resto.location);
     setOperatorName(resto.operatorName || '');
+    setTelephone(resto.telephone || '');
     
     setCommissionRate(resto.commissionRate || 10);
     setSubscriptionPlan(resto.subscriptionPlan || 'Basic');
@@ -98,10 +101,16 @@ export default function RestaurantsManager() {
       }
     }
 
+    if (telephone && !validateSenegalPhone(telephone)) {
+      alert("Le numéro de téléphone du restaurant doit être un numéro sénégalais valide à 9 chiffres (ex: 771234567 ou +221 77 123 45 67).");
+      return;
+    }
+
     const payload = { 
       name, 
       location, 
       operatorName, 
+      telephone: telephone ? normalizeSenegalPhone(telephone) : null,
       image: finalImageUrl, 
       commissionRate: parseFloat(commissionRate), 
       active: isActive, 
@@ -132,6 +141,7 @@ export default function RestaurantsManager() {
         setName('');
         setLocation('');
         setOperatorName('');
+        setTelephone('');
         setImage('');
         setImageFile(null);
         setCommissionRate(10);
@@ -247,6 +257,12 @@ export default function RestaurantsManager() {
                   <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                   Gérant : <span className="font-medium text-gray-700">{resto.operatorName || 'Non assigné'}</span>
                 </p>
+                {resto.telephone && (
+                  <p className="text-sm text-gray-500 flex items-center gap-2">
+                    <span className="text-xs">📞</span>
+                    Tél : <span className="font-medium text-gray-700">{resto.telephone}</span>
+                  </p>
+                )}
                 <p className="text-sm font-bold text-red-600 flex items-center gap-2">
                   <svg className="w-4 h-4 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                   Commission : {resto.commissionRate}%
@@ -325,6 +341,24 @@ export default function RestaurantsManager() {
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm font-medium focus:bg-white focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors"
                     value={operatorName}
                     onChange={(e) => setOperatorName(e.target.value)}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Téléphone de Contact (Optionnel, 9 chiffres)</label>
+                  <input 
+                    type="tel" 
+                    inputMode="numeric"
+                    maxLength={9}
+                    placeholder="Ex: 771234567"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm font-medium focus:bg-white focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors"
+                    value={telephone}
+                    onChange={(e) => setTelephone(e.target.value.replace(/\D/g, '').slice(0, 9))}
+                    onKeyDown={(e) => {
+                      if (!/[0-9]/.test(e.key) && !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key) && !e.ctrlKey && !e.metaKey) {
+                        e.preventDefault();
+                      }
+                    }}
                   />
                 </div>
 

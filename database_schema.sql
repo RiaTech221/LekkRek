@@ -15,6 +15,8 @@ CREATE TABLE IF NOT EXISTS utilisateurs (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     nom_complet VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
+    telephone VARCHAR(9),
+        CONSTRAINT chk_user_telephone CHECK (telephone IS NULL OR telephone REGEXP '^(77|78|76|75|70|33)[0-9]{7}$'),
     mot_de_passe VARCHAR(255) NOT NULL,
     role VARCHAR(50) NOT NULL, -- ADMIN, OPERATEUR
     actif BOOLEAN NOT NULL DEFAULT TRUE,
@@ -30,6 +32,8 @@ CREATE TABLE IF NOT EXISTS restaurants (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     location VARCHAR(255) NOT NULL,
+    telephone VARCHAR(9),
+        CONSTRAINT chk_restaurant_telephone CHECK (telephone IS NULL OR telephone REGEXP '^(77|78|76|75|70|33)[0-9]{7}$'),
     image VARCHAR(255),
     operator_name VARCHAR(255),
     active BOOLEAN NOT NULL DEFAULT TRUE,
@@ -122,7 +126,8 @@ CREATE TABLE IF NOT EXISTS platform_settings (
     id BIGINT PRIMARY KEY, -- Toujours 1 (configuration globale unique)
     platform_name VARCHAR(255) NOT NULL,
     support_email VARCHAR(255),
-    support_phone VARCHAR(50),
+    support_phone VARCHAR(9),
+        CONSTRAINT chk_support_phone CHECK (support_phone IS NULL OR support_phone REGEXP '^(77|78|76|75|70|33)[0-9]{7}$'),
     default_currency VARCHAR(20) NOT NULL DEFAULT 'FCFA',
     instagram_url VARCHAR(255),
     facebook_url VARCHAR(255),

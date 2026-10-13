@@ -1,5 +1,6 @@
 import { API_URL } from '../../config';
 import React, { useState, useEffect } from 'react';
+import { validateSenegalPhone, normalizeSenegalPhone } from '../../utils/phoneUtils';
 
 /**
  * ============================================================================
@@ -19,6 +20,7 @@ export default function OperatorsManager() {
   const [editingId, setEditingId] = useState(null);
   const [nomComplet, setNomComplet] = useState('');
   const [email, setEmail] = useState('');
+  const [telephone, setTelephone] = useState('');
   const [password, setPassword] = useState('');
   const [isActive, setIsActive] = useState(true);
   const [image, setImage] = useState('');
@@ -66,6 +68,7 @@ export default function OperatorsManager() {
     setEditingId(null);
     setNomComplet('');
     setEmail('');
+    setTelephone('');
     setPassword('');
     setIsActive(true);
     setImage('');
@@ -100,6 +103,7 @@ export default function OperatorsManager() {
     setEditingId(op.id);
     setNomComplet(op.nomComplet || '');
     setEmail(op.email || '');
+    setTelephone(op.telephone || '');
     setPassword(''); 
     setIsActive(op.actif !== false);
     setImage(op.photoUrl || '');
@@ -139,9 +143,15 @@ export default function OperatorsManager() {
       }
     }
 
+    if (telephone && !validateSenegalPhone(telephone)) {
+      alert("Le numéro de téléphone doit être un numéro sénégalais valide à 9 chiffres (ex: 771234567 ou +221 77 123 45 67).");
+      return;
+    }
+
     const payload = { 
       nomComplet, 
       email, 
+      telephone: telephone ? normalizeSenegalPhone(telephone) : null,
       motDePasse: password, 
       actif: isActive,
       photoUrl: finalImageUrl,
@@ -252,7 +262,10 @@ export default function OperatorsManager() {
                       />
                       <div>
                         <div className="font-bold text-gray-900">{op.nomComplet}</div>
-                        <div className="text-xs text-gray-500 font-medium">{op.email}</div>
+                        <div className="text-xs text-gray-500 font-medium">
+                          {op.email}
+                          {op.telephone && <span className="ml-1 text-red-600 font-semibold">• 📞 {op.telephone}</span>}
+                        </div>
                       </div>
                     </div>
                   </td>
@@ -372,6 +385,24 @@ export default function OperatorsManager() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Numéro de Téléphone (Optionnel, 9 chiffres)</label>
+                  <input 
+                    type="tel" 
+                    inputMode="numeric"
+                    maxLength={9}
+                    placeholder="Ex: 771234567"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm font-medium focus:bg-white focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors"
+                    value={telephone}
+                    onChange={(e) => setTelephone(e.target.value.replace(/\D/g, '').slice(0, 9))}
+                    onKeyDown={(e) => {
+                      if (!/[0-9]/.test(e.key) && !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key) && !e.ctrlKey && !e.metaKey) {
+                        e.preventDefault();
+                      }
+                    }}
                   />
                 </div>
 

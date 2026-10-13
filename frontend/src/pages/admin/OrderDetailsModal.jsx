@@ -50,7 +50,29 @@ export default function OrderDetailsModal({ order, onClose, onUpdatePayment }) {
                 </div>
                 <div>
                   <div className="text-[10px] font-bold text-blue-400 uppercase">Téléphone</div>
-                  <div className="font-bold text-gray-900">{order.clientPhone || 'Non renseigné'}</div>
+                  <div className="font-bold text-gray-900 flex items-center flex-wrap gap-2">
+                    <span>{order.clientPhone || 'Non renseigné'}</span>
+                    {order.clientPhone && (
+                      <div className="flex gap-1.5">
+                        <a 
+                          href={`tel:${order.clientPhone}`} 
+                          title="Appeler le client"
+                          className="px-2 py-0.5 text-xs bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-md font-bold inline-flex items-center gap-1 transition-colors"
+                        >
+                          📞 Appel
+                        </a>
+                        <a 
+                          href={`https://wa.me/221${order.clientPhone.replace(/\D/g, '')}`} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          title="Contacter sur WhatsApp"
+                          className="px-2 py-0.5 text-xs bg-green-100 text-green-700 hover:bg-green-200 rounded-md font-bold inline-flex items-center gap-1 transition-colors"
+                        >
+                          💬 WhatsApp
+                        </a>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
