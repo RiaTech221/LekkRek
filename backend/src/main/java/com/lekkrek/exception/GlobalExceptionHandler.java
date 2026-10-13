@@ -90,6 +90,20 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * Capture les ressources introuvables (404 Not Found)
+     */
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleResourceNotFoundException(ResourceNotFoundException ex) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("status", HttpStatus.NOT_FOUND.value());
+        body.put("error", "Not Found");
+        body.put("message", ex.getMessage());
+
+        return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
+    }
+
+    /**
      * Capture les exceptions métier ou IllegalArgumentException
      */
     @ExceptionHandler({RuntimeException.class, IllegalArgumentException.class})

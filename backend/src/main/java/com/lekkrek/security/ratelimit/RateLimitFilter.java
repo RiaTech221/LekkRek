@@ -49,7 +49,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
         String errorMessage = "Trop de requêtes. Veuillez patienter avant de réessayer.";
 
         // 1. Protection Anti-Bruteforce sur le Login (5 tentatives / min)
-        if (uri.endsWith("/api/v1/auth/login") && "POST".equalsIgnoreCase(method)) {
+        if (uri.endsWith("/auth/login") && "POST".equalsIgnoreCase(method)) {
             bucketType = RateLimiterService.BucketType.LOGIN;
             errorMessage = "Trop de tentatives de connexion. Veuillez patienter 1 minute avant de réessayer.";
         }
@@ -58,7 +58,12 @@ public class RateLimitFilter extends OncePerRequestFilter {
             bucketType = RateLimiterService.BucketType.ORDERS;
             errorMessage = "Trop de commandes soumises en peu de temps. Veuillez patienter 1 minute.";
         }
-        // 3. Protection Anti-Flood sur l'enregistrement d'analytics public (30 req / min)
+        // 3. Protection Anti-Flood sur le suivi de commande (30 req / min)
+        else if (uri.contains("/orders/track/") && "GET".equalsIgnoreCase(method)) {
+            bucketType = RateLimiterService.BucketType.TRACKING;
+            errorMessage = "Trop de requêtes de suivi de commande. Veuillez patienter 1 minute.";
+        }
+        // 4. Protection Anti-Flood sur l'enregistrement d'analytics public (30 req / min)
         else if (uri.endsWith("/api/v1/public/analytics") && "POST".equalsIgnoreCase(method)) {
             bucketType = RateLimiterService.BucketType.ANALYTICS;
             errorMessage = "Trop d'événements analytics envoyés. Veuillez patienter 1 minute.";
