@@ -381,7 +381,7 @@ return () => {
         <div className="w-full px-2 sm:px-4 lg:px-6 mx-auto">
           <div className="flex justify-between h-20 items-center gap-2">
             
-            <img src="/logo.png" alt="LekkRek Logo" className="h-14 sm:h-16 w-auto object-contain shrink-0 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} />
+            <img src="/logo_lekkrek.png" alt="LekkRek Logo" className="h-14 sm:h-16 w-auto object-contain shrink-0 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} />
             
             {/* BIG SEARCH BAR IN NAVBAR */}
             <div className="flex w-full max-w-[50rem] mx-2 lg:mx-6 bg-white rounded-full border border-gray-200 shadow-sm hover:shadow-md items-center divide-x divide-gray-100 transition-all h-14 overflow-x-auto [&::-webkit-scrollbar]:hidden">
@@ -894,9 +894,12 @@ return () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
             <div className="md:col-span-1">
-              <h2 className="text-3xl font-black tracking-tighter text-red-600 mb-4">
-                {platformSettings?.platformName || 'LekkRek'}
-              </h2>
+              <div className="flex items-center gap-3 mb-4">
+                <img src="/logo_lekkrek.png" alt="LekkRek Logo" className="h-10 w-10 object-contain rounded-full bg-white p-1" />
+                <h2 className="text-3xl font-black tracking-tighter text-red-600">
+                  {platformSettings?.platformName || 'LekkRek'}
+                </h2>
+              </div>
               <p className="text-gray-400 text-sm leading-relaxed mb-4">
                 La plateforme n°1 de livraison partout à Ziguinchor. Vos plats préférés, livrés rapidement et encore chauds.
               </p>

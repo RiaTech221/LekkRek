@@ -376,9 +376,7 @@ return () => {
       <nav className="fixed top-0 left-0 w-full bg-white/90 backdrop-blur-md z-50 border-b border-gray-100 shadow-sm transition-all duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-20 items-center">
-            <h1 className="text-3xl font-black tracking-tighter text-red-600">
-              Lekk<span className="text-gray-900">Rek</span>
-            </h1>
+            <img src="/logo_lekkrek.png" alt="LekkRek Logo" className="h-12 w-auto object-contain cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} />
             <div className="flex gap-4">
               {localStorage.getItem('token') && (
                 <button onClick={() => window.location.href='/dashboard'} className="flex items-center gap-2 bg-red-50 text-red-600 hover:bg-red-100 px-5 py-2.5 rounded-full font-bold transition-all border border-red-100">
@@ -937,9 +935,12 @@ return () => {
       <footer className="bg-gray-900 text-white pt-10 pb-24 border-t border-gray-800 mt-12">
         <div className="px-6">
           <div className="mb-6">
-            <h1 className="text-2xl font-black tracking-tighter text-red-600 mb-2">
-              Lekk<span className="text-white">Rek</span>
-            </h1>
+            <div className="flex items-center gap-3 mb-2">
+              <img src="/logo_lekkrek.png" alt="LekkRek Logo" className="h-10 w-10 object-contain rounded-full bg-white p-1" />
+              <h1 className="text-2xl font-black tracking-tighter text-red-600">
+                Lekk<span className="text-white">Rek</span>
+              </h1>
+            </div>
             <p className="text-gray-400 text-sm">
               Découvrez les meilleurs restaurants de la région. Commandez et suivez votre livreur en temps réel.
             </p>

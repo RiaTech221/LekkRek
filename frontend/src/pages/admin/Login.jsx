@@ -253,7 +253,10 @@ export default function Login() {
           </a>
 
           <div style={{ width: '100%', maxWidth: '380px' }}>
-            <h2 style={{ fontSize: '2.5rem', fontWeight: 900, marginBottom: '2.5rem', color: '#111827', textAlign: 'center', letterSpacing: '-0.02em' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
+              <img src="/logo_lekkrek.png" alt="LekkRek Logo" style={{ height: '64px', width: 'auto', objectFit: 'contain' }} />
+            </div>
+            <h2 style={{ fontSize: '2.25rem', fontWeight: 900, marginBottom: '2rem', color: '#111827', textAlign: 'center', letterSpacing: '-0.02em' }}>
               Espace Pro
             </h2>
             
