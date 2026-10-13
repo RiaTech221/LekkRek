@@ -3,6 +3,44 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import DOMPurify from 'dompurify';
 import { validateSenegalPhone, normalizeSenegalPhone } from '../../utils/phoneUtils';
+import {
+  TbSearch,
+  TbSettings,
+  TbUser,
+  TbMapPin,
+  TbShoppingCart,
+  TbAlertTriangle,
+  TbChevronUp,
+  TbChevronDown,
+  TbBuildingStore,
+  TbCoin,
+  TbLayoutGrid,
+  TbToolsKitchen2,
+  TbCookie,
+  TbMoon,
+  TbBurger,
+  TbGlass,
+  TbCake,
+  TbStar,
+  TbX,
+  TbCheck,
+  TbCircleCheck,
+  TbCircleX,
+  TbInfoCircle,
+  TbClock,
+  TbChefHat,
+  TbMotorbike,
+  TbArrowUp,
+} from 'react-icons/tb';
+
+const CATEGORY_CONFIG = {
+  dejeuner: { label: 'Déjeuner', icon: TbToolsKitchen2 },
+  gouter: { label: 'Goûter', icon: TbCookie },
+  diner: { label: 'Dîner', icon: TbMoon },
+  'fast food': { label: 'Fast food', icon: TbBurger },
+  boisson: { label: 'Cocktails & Jus', icon: TbGlass },
+  dessert: { label: 'Desserts', icon: TbCake },
+};
 
 /**
  * ============================================================================
@@ -367,8 +405,10 @@ return () => {
           animation: 'slideUp 0.3s ease',
           whiteSpace: 'nowrap',
         }}>
-          <span>{toast.type === 'error' ? '❌' : toast.type === 'info' ? 'ℹ️' : '✅'}</span>
-          {toast.message}
+          <span className="shrink-0 flex items-center justify-center">
+            {toast.type === 'error' ? <TbCircleX size={20} aria-hidden="true" /> : toast.type === 'info' ? <TbInfoCircle size={20} aria-hidden="true" /> : <TbCircleCheck size={20} aria-hidden="true" />}
+          </span>
+          <span>{toast.message}</span>
         </div>
       )}
 
@@ -380,23 +420,28 @@ return () => {
             <div className="flex gap-4">
               {localStorage.getItem('token') && (
                 <button onClick={() => window.location.href='/dashboard'} className="flex items-center gap-2 bg-red-50 text-red-600 hover:bg-red-100 px-5 py-2.5 rounded-full font-bold transition-all border border-red-100">
-                  ⚙️ Mon Dashboard
+                  <TbSettings size={22} aria-hidden="true" />
+                  <span>Mon Dashboard</span>
                 </button>
               )}
               {formData.clientPhone ? (
-                <button onClick={openLoginModal} className="flex items-center gap-1 bg-gray-50 border border-gray-200 hover:bg-gray-100 text-gray-800 px-3 py-2 rounded-full font-bold transition-all text-xs" title="Mon Profil">
-                  <span className="truncate max-w-[70px]">👋 {formData.clientName || 'Client'}</span>
+                <button onClick={openLoginModal} className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 hover:bg-gray-100 text-gray-800 px-3 py-2 rounded-full font-bold transition-all text-xs" title="Mon Profil">
+                  <span className="truncate max-w-[90px]">{formData.clientName ? `Bonjour, ${formData.clientName}` : 'Bonjour, Client'}</span>
                 </button>
               ) : (
-                <button onClick={openLoginModal} className="flex items-center gap-1 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 px-3 py-2 rounded-full font-bold transition-all text-xs shadow-sm">
-                  👤 Connexion
+                <button onClick={openLoginModal} className="flex items-center gap-1.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 px-3 py-2 rounded-full font-bold transition-all text-xs shadow-sm">
+                  <TbUser size={18} aria-hidden="true" />
+                  <span>Connexion</span>
                 </button>
               )}
-              <button onClick={() => setTrackModalOpen(true)} className="flex items-center gap-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-full font-bold transition-all text-xs">
-                📍 Suivi
+              <button onClick={() => setTrackModalOpen(true)} className="flex items-center gap-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-full font-bold transition-all text-xs">
+                <TbMapPin size={18} aria-hidden="true" />
+                <span>Suivi</span>
               </button>
-              <button onClick={() => setCheckoutOpen(true)} className="flex items-center gap-1 bg-gray-900 hover:bg-black text-white px-3 py-2 rounded-full font-bold transition-all shadow-md text-xs">
-                🛒 Panier <span className="bg-red-600 text-white text-[10px] px-1.5 py-0.5 rounded-full ml-1">{cart.length}</span>
+              <button onClick={() => setCheckoutOpen(true)} className="flex items-center gap-1.5 bg-gray-900 hover:bg-black text-white px-3 py-2 rounded-full font-bold transition-all shadow-md text-xs">
+                <TbShoppingCart size={18} aria-hidden="true" />
+                <span>Panier</span>
+                <span className="bg-red-600 text-white text-[10px] px-1.5 py-0.5 rounded-full ml-1">{cart.length}</span>
               </button>
             </div>
           </div>
@@ -406,8 +451,9 @@ return () => {
       
       {/* OFFLINE BANNER */}
       {isOffline && (
-        <div className="fixed top-20 left-0 w-full bg-red-600 text-white text-center py-2 text-sm font-bold z-40 shadow-md">
-          ⚠️ Mode hors ligne : Vous consultez les données en cache. Ces offres peuvent être obsolètes.
+        <div className="fixed top-20 left-0 w-full bg-red-600 text-white text-center py-2 text-sm font-bold z-40 shadow-md flex items-center justify-center gap-2">
+          <TbAlertTriangle size={20} aria-hidden="true" />
+          <span>Mode hors ligne : Vous consultez les données en cache. Ces offres peuvent être obsolètes.</span>
         </div>
       )}
 
@@ -430,7 +476,7 @@ return () => {
               onClick={() => setIsSearchExpanded(!isSearchExpanded)}
             >
               <div className="flex items-center flex-1">
-                <span className="text-xl mr-3 text-gray-400">🔍</span>
+                <TbSearch size={22} className="text-gray-400 mr-3 shrink-0" aria-hidden="true" />
                 <input 
                   type="text" 
                   placeholder="Rechercher (Plat, Resto...)" 
@@ -440,7 +486,7 @@ return () => {
                 />
               </div>
               <div className="w-8 h-8 flex items-center justify-center bg-gray-50 rounded-full text-gray-500">
-                <span className="text-sm font-bold">{isSearchExpanded ? '▲' : '▼'}</span>
+                {isSearchExpanded ? <TbChevronUp size={18} aria-hidden="true" /> : <TbChevronDown size={18} aria-hidden="true" />}
               </div>
             </div>
 
@@ -448,7 +494,7 @@ return () => {
             {isSearchExpanded && (
               <div className="px-4 pb-4 pt-2 border-t border-gray-50 flex flex-col gap-3 bg-gray-50/50">
                 <div className="flex items-center px-3 py-2.5 bg-white rounded-xl border border-gray-100 shadow-sm">
-                  <span className="text-lg mr-3">🔍</span>
+                  <TbSearch size={20} className="text-gray-500 mr-3 shrink-0" aria-hidden="true" />
                   <div className="flex flex-col w-full">
                     <span className="text-[9px] uppercase tracking-wider font-bold text-gray-500 mb-0.5">Quoi ?</span>
                     <input type="text" placeholder="Plat, ingrédient..." className="bg-transparent border-none outline-none w-full text-gray-900 font-bold text-xs" value={keyword} onChange={(e) => setKeyword(e.target.value)} />
@@ -456,7 +502,7 @@ return () => {
                 </div>
 
                 <div className="flex items-center px-3 py-2.5 bg-white rounded-xl border border-gray-100 shadow-sm">
-                  <span className="text-lg mr-3">🏪</span>
+                  <TbBuildingStore size={20} className="text-gray-500 mr-3 shrink-0" aria-hidden="true" />
                   <div className="flex flex-col w-full">
                     <span className="text-[9px] uppercase tracking-wider font-bold text-gray-500 mb-0.5">Restaurant</span>
                     <select className="bg-transparent border-none outline-none w-full text-gray-900 font-bold text-xs" value={resto} onChange={(e) => setResto(e.target.value)}>
@@ -470,7 +516,7 @@ return () => {
 
                 <div className="flex gap-2">
                   <div className="flex-1 flex items-center px-3 py-2.5 bg-white rounded-xl border border-gray-100 shadow-sm">
-                    <span className="text-lg mr-2">📍</span>
+                    <TbMapPin size={20} className="text-gray-500 mr-2 shrink-0" aria-hidden="true" />
                     <div className="flex flex-col w-full">
                       <span className="text-[9px] uppercase tracking-wider font-bold text-gray-500 mb-0.5">Quartier</span>
                       <input type="text" placeholder="Où livrer ?" className="bg-transparent border-none outline-none w-full text-gray-900 font-bold text-xs" value={quartier} onChange={(e) => setQuartier(e.target.value)} />
@@ -478,7 +524,7 @@ return () => {
                   </div>
 
                   <div className="flex-1 flex items-center px-3 py-2.5 bg-white rounded-xl border border-gray-100 shadow-sm">
-                    <span className="text-lg mr-2">💰</span>
+                    <TbCoin size={20} className="text-gray-500 mr-2 shrink-0" aria-hidden="true" />
                     <div className="flex flex-col w-full">
                       <span className="text-[9px] uppercase tracking-wider font-bold text-gray-500 mb-0.5">Budget max</span>
                       <input
@@ -516,16 +562,17 @@ return () => {
         {/* MOMENTS FILTER (Pills) */}
         <div className="flex gap-3 overflow-x-auto pb-4 mb-8 hide-scrollbar border-b border-gray-100">
           {/* Dynamic categories from ALL plats - never disappear when filtering */
-          [{value:'', label:'🍴 Tout voir'}, ...(allCategories.map(cat => {
-            const labels = { dejeuner: '🍽️ Déjeuner', gouter: '☕ Goûter', diner: '🍷 Dîner', 'fast food': '🍔 Fast food', boisson: '🍹 Cocktails & Jus', dessert: '🍰 Desserts' };
-            return { value: cat, label: labels[cat] || cat.charAt(0).toUpperCase() + cat.slice(1) };
-          }))].map(({ value, label }) => (
+          [{ value: '', label: 'Tout voir', icon: TbLayoutGrid }, ...(allCategories.map(cat => {
+            const conf = CATEGORY_CONFIG[cat] || { label: cat.charAt(0).toUpperCase() + cat.slice(1), icon: TbToolsKitchen2 };
+            return { value: cat, label: conf.label, icon: conf.icon };
+          }))].map(({ value, label, icon: IconComponent }) => (
             <button 
               key={value}
               onClick={() => setMomentFilter(value)}
-              className={`whitespace-nowrap px-6 py-2.5 mb-2 rounded-full font-bold shadow-sm border border-gray-200 transition-all transform hover:scale-105 ${momentFilter === value ? 'bg-red-600 text-white border-red-600 shadow-md scale-105' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
+              className={`whitespace-nowrap px-6 py-2.5 mb-2 rounded-full font-bold shadow-sm border border-gray-200 transition-all transform hover:scale-105 flex items-center gap-2 ${momentFilter === value ? 'bg-red-600 text-white border-red-600 shadow-md scale-105' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
             >
-              {label}
+              <IconComponent size={20} aria-hidden="true" />
+              <span>{label}</span>
             </button>
           ))}
         </div>
@@ -535,7 +582,8 @@ return () => {
         {recommendations.length > 0 && !keyword && !resto && !quartier && (
           <div className="mb-12">
             <h2 className="text-2xl font-black text-gray-900 mb-6 flex items-center gap-2">
-              <span>🌟</span> Recommandé pour vous
+              <TbStar size={24} aria-hidden="true" />
+              <span>Recommandé pour vous</span>
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               {recommendations.map(plat => (
@@ -575,7 +623,9 @@ return () => {
               
               <div className="p-6 flex flex-col flex-1">
                 <div className="flex items-center gap-2 mb-3">
-                  <span className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-xs">🏪</span>
+                  <span className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-gray-500">
+                    <TbBuildingStore size={14} aria-hidden="true" />
+                  </span>
                   <span className="text-sm font-bold text-gray-500">{plat.restaurant?.name || 'Restaurant Partenaire'}</span>
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-2 leading-tight">{plat.name}</h3>
@@ -601,7 +651,7 @@ return () => {
           )) : (
             <div className="col-span-full py-12">
               <div className="text-center bg-white rounded-3xl border-2 border-dashed border-gray-200 py-12 mb-12">
-                <span className="text-5xl block mb-4">🍽️</span>
+                <TbToolsKitchen2 size={48} className="mx-auto mb-4 text-gray-400" aria-hidden="true" />
                 <h3 className="text-2xl font-bold text-gray-900 mb-2">Aucun plat trouvé avec ces filtres.</h3>
                 <p className="text-gray-500">Mais ne vous inquiétez pas, voici quelques autres plats qui pourraient vous plaire :</p>
               </div>
@@ -620,7 +670,9 @@ return () => {
                     
                     <div className="p-6 flex flex-col flex-1">
                       <div className="flex items-center gap-2 mb-3">
-                        <span className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-xs">🏪</span>
+                        <span className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-gray-500">
+                          <TbBuildingStore size={14} aria-hidden="true" />
+                        </span>
                         <span className="text-sm font-bold text-gray-500">{plat.restaurant?.name || 'Restaurant Partenaire'}</span>
                       </div>
                       <h3 className="text-xl font-bold text-gray-900 mb-2 leading-tight">{plat.name}</h3>
@@ -656,13 +708,15 @@ return () => {
           <div className="w-full max-w-md bg-white h-full shadow-2xl flex flex-col animate-slide-in-right">
             <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
               <h2 className="text-xl font-black text-gray-900">Votre Panier <span className="text-red-600">({cart.length})</span></h2>
-              <button onClick={() => setCheckoutOpen(false)} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold transition-colors">✕</button>
+              <button onClick={() => setCheckoutOpen(false)} aria-label="Fermer le panier" className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-200 hover:bg-gray-300 text-gray-700 transition-colors">
+                <TbX size={18} aria-hidden="true" />
+              </button>
             </div>
             
             <div className="flex-1 overflow-y-auto p-6">
               {cart.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center text-gray-400">
-                  <span className="text-6xl mb-4">🛒</span>
+                  <TbShoppingCart size={56} className="mb-4 text-gray-300" aria-hidden="true" />
                   <p className="font-medium text-lg">Votre panier est vide</p>
                 </div>
               ) : (
@@ -676,7 +730,9 @@ return () => {
                           <p className="text-red-600 font-bold text-sm">{item.price} FCFA</p>
                         </div>
                       </div>
-                      <button onClick={() => setCart(cart.filter((_, i) => i !== idx))} className="text-gray-400 hover:text-red-600 p-2 text-sm">✕</button>
+                      <button onClick={() => setCart(cart.filter((_, i) => i !== idx))} aria-label="Supprimer du panier" className="text-gray-400 hover:text-red-600 p-2 transition-colors">
+                        <TbX size={16} aria-hidden="true" />
+                      </button>
                     </li>
                   ))}
                 </ul>
@@ -745,7 +801,9 @@ return () => {
       {isSuccessOpen && orderInfo && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
           <div className="bg-white p-8 rounded-3xl shadow-2xl max-w-md w-full text-center">
-            <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-4xl mx-auto mb-6">✓</div>
+            <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
+              <TbCheck className="w-10 h-10" aria-hidden="true" />
+            </div>
             <h2 className="text-2xl font-black text-gray-900 mb-2">Commande Réussie !</h2>
             <p className="text-gray-500 mb-8">Votre commande a été envoyée au restaurant. Merci pour votre confiance.</p>
             <div className="bg-gray-50 p-6 rounded-2xl mb-8 border border-gray-100">
@@ -828,7 +886,9 @@ return () => {
       {isTrackModalOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
           <div className="bg-white p-8 rounded-3xl shadow-2xl max-w-md w-full relative">
-            <button onClick={() => setTrackModalOpen(false)} className="absolute top-6 right-6 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 font-bold transition-colors">✕</button>
+            <button onClick={() => setTrackModalOpen(false)} aria-label="Fermer" className="absolute top-6 right-6 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 font-bold transition-colors">
+              <TbX className="w-5 h-5" aria-hidden="true" />
+            </button>
             <h2 className="text-2xl font-black text-gray-900 mb-6">Suivre une commande</h2>
             <form onSubmit={handleTrackOrder} className="flex gap-2 mb-6">
               <input type="text" placeholder="Ex: CMD-123456" required className="flex-1 bg-gray-50 border border-gray-200 rounded-xl p-4 font-bold text-gray-900 focus:outline-none focus:border-red-600" value={trackOrderNumber} onChange={(e) => setTrackOrderNumber(e.target.value)} />
@@ -848,11 +908,11 @@ return () => {
                             trackResult.status === 'EN_PREPARATION' ? 'text-orange-500' :
                             'text-gray-900'
                         }`}>
-                          {trackResult.status === 'NOUVELLE' && 'En attente ⏳'}
-                          {trackResult.status === 'EN_PREPARATION' && 'En préparation 🍳'}
-                          {trackResult.status === 'PRETE' && 'Prête (Livreur en route) 🛵'}
-                          {trackResult.status === 'LIVREE' && 'Livrée ✅'}
-                          {trackResult.status === 'ANNULEE' && 'Annulée ❌'}
+                          {trackResult.status === 'NOUVELLE' && <span className="inline-flex items-center gap-2">En attente <TbClock className="w-5 h-5" aria-hidden="true" /></span>}
+                          {trackResult.status === 'EN_PREPARATION' && <span className="inline-flex items-center gap-2">En préparation <TbChefHat className="w-5 h-5" aria-hidden="true" /></span>}
+                          {trackResult.status === 'PRETE' && <span className="inline-flex items-center gap-2">Prête (Livreur en route) <TbMotorbike className="w-5 h-5" aria-hidden="true" /></span>}
+                          {trackResult.status === 'LIVREE' && <span className="inline-flex items-center gap-2">Livrée <TbCircleCheck className="w-5 h-5" aria-hidden="true" /></span>}
+                          {trackResult.status === 'ANNULEE' && <span className="inline-flex items-center gap-2">Annulée <TbCircleX className="w-5 h-5" aria-hidden="true" /></span>}
                         </h3>
                     </div>
                 </div>
@@ -876,15 +936,15 @@ return () => {
       {isPartnerModalOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-[60]">
           <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl relative animate-slide-in-right">
-            <button onClick={() => setPartnerModalOpen(false)} className="absolute top-6 right-6 text-gray-400 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-full p-2 transition-colors">
-              ✕
+            <button onClick={() => setPartnerModalOpen(false)} aria-label="Fermer" className="absolute top-6 right-6 text-gray-400 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-full p-2 transition-colors">
+              <TbX className="w-5 h-5" aria-hidden="true" />
             </button>
             <h2 className="text-2xl font-black text-gray-900 mb-2">Devenir Partenaire</h2>
             <p className="text-gray-500 text-sm mb-6">Remplissez ce formulaire. Notre équipe vous contactera rapidement pour finaliser votre inscription.</p>
             
             {partnerStatus === 'success' ? (
               <div className="bg-green-50 text-green-700 p-6 rounded-2xl text-center border border-green-200">
-                <span className="text-4xl mb-2 block">✅</span>
+                <TbCircleCheck className="w-12 h-12 mb-2 mx-auto text-green-600" aria-hidden="true" />
                 <p className="font-bold">Demande envoyée !</p>
                 <p className="text-sm mt-1">Nous vous appelons très vite.</p>
               </div>
@@ -976,10 +1036,11 @@ return () => {
       {/* Bouton Remonter - Discret */}
       <button 
         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+        aria-label="Remonter en haut de page"
         className="fixed bottom-[6.5rem] right-6 bg-white text-gray-700 p-2 rounded-full shadow-lg hover:bg-gray-50 border border-gray-100 z-[9999] flex items-center justify-center mb-14"
         style={{ width: 44, height: 44 }}
       >
-        <span className="text-xl font-bold">↑</span>
+        <TbArrowUp className="w-5 h-5 text-gray-700" aria-hidden="true" />
       </button>
     </div>
   );

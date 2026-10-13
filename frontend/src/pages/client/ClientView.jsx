@@ -3,6 +3,42 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import DOMPurify from 'dompurify';
 import { validateSenegalPhone, normalizeSenegalPhone } from '../../utils/phoneUtils';
+import {
+  TbSearch,
+  TbSettings,
+  TbUser,
+  TbMapPin,
+  TbShoppingCart,
+  TbAlertTriangle,
+  TbLayoutGrid,
+  TbToolsKitchen2,
+  TbCookie,
+  TbMoon,
+  TbBurger,
+  TbGlass,
+  TbCake,
+  TbStar,
+  TbBuildingStore,
+  TbX,
+  TbCheck,
+  TbClock,
+  TbChefHat,
+  TbMotorbike,
+  TbCircleCheck,
+  TbCircleX,
+  TbPhone,
+  TbMail,
+  TbInfoCircle,
+} from 'react-icons/tb';
+
+const CATEGORY_CONFIG = {
+  dejeuner: { label: 'Déjeuner', icon: TbToolsKitchen2 },
+  gouter: { label: 'Goûter', icon: TbCookie },
+  diner: { label: 'Dîner', icon: TbMoon },
+  'fast food': { label: 'Fast food', icon: TbBurger },
+  boisson: { label: 'Cocktails & Jus', icon: TbGlass },
+  dessert: { label: 'Desserts', icon: TbCake },
+};
 
 /**
  * ============================================================================
@@ -387,7 +423,7 @@ return () => {
             <div className="flex w-full max-w-[50rem] mx-2 lg:mx-6 bg-white rounded-full border border-gray-200 shadow-sm hover:shadow-md items-center divide-x divide-gray-100 transition-all h-14 overflow-x-auto [&::-webkit-scrollbar]:hidden">
               
               <div className="flex-[1.5] flex items-center pl-4 lg:pl-6 pr-3 h-full cursor-text hover:bg-gray-50 transition-colors shrink-0">
-                <span className="text-gray-400 mr-2 text-sm lg:text-base shrink-0">🔍</span>
+                <TbSearch size={18} className="text-gray-400 mr-2 shrink-0" aria-hidden="true" />
                 <div className="flex flex-col w-full text-left justify-center overflow-hidden">
                   <span className="text-[10px] lg:text-[11px] uppercase tracking-wider font-bold text-gray-800 leading-tight">Quoi ?</span>
                   <input type="text" placeholder="Plat, ingrédient..." className="bg-transparent border-none outline-none w-full text-gray-500 font-medium text-xs lg:text-sm placeholder-gray-400 truncate leading-tight min-w-[70px]" value={keyword} onChange={(e) => setKeyword(e.target.value)} />
@@ -437,23 +473,28 @@ return () => {
             <div className="flex gap-2 lg:gap-4 shrink-0 ml-auto">
               {localStorage.getItem('token') && (
                 <button onClick={() => window.location.href='/dashboard'} className="hidden lg:flex items-center gap-2 bg-red-50 text-red-600 hover:bg-red-100 px-5 py-3 rounded-full font-bold transition-all border border-red-100 text-sm">
-                  ⚙️ Dash
+                  <TbSettings size={18} aria-hidden="true" />
+                  <span>Dash</span>
                 </button>
               )}
               {formData.clientPhone ? (
                 <button onClick={openLoginModal} className="flex items-center gap-2 bg-gray-50 border border-gray-200 hover:bg-gray-100 text-gray-800 px-4 sm:px-5 py-2.5 sm:py-3 rounded-full font-bold transition-all text-xs sm:text-sm" title="Mon Profil">
-                  <span className="truncate max-w-[100px]">👋 {formData.clientName || 'Client'}</span>
+                  <span className="truncate max-w-[120px]">{formData.clientName ? `Bonjour, ${formData.clientName}` : 'Bonjour, Client'}</span>
                 </button>
               ) : (
                 <button onClick={openLoginModal} className="flex items-center gap-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 px-4 sm:px-5 py-2.5 sm:py-3 rounded-full font-bold transition-all text-xs sm:text-sm shadow-sm">
-                  👤 Se connecter
+                  <TbUser size={18} aria-hidden="true" />
+                  <span>Se connecter</span>
                 </button>
               )}
               <button onClick={() => setTrackModalOpen(true)} className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 sm:px-5 py-2.5 sm:py-3 rounded-full font-bold transition-all text-xs sm:text-sm">
-                📍 Suivi
+                <TbMapPin size={18} aria-hidden="true" />
+                <span>Suivi</span>
               </button>
               <button onClick={() => setCheckoutOpen(true)} className="flex items-center gap-2 bg-gray-900 hover:bg-black text-white px-4 sm:px-5 py-2.5 sm:py-3 rounded-full font-bold transition-all shadow-md text-xs sm:text-sm">
-                🛒 Panier <span className="bg-red-600 text-white text-xs px-2 py-0.5 rounded-full ml-1">{cart.length}</span>
+                <TbShoppingCart size={18} aria-hidden="true" />
+                <span>Panier</span>
+                <span className="bg-red-600 text-white text-xs px-2 py-0.5 rounded-full ml-1">{cart.length}</span>
               </button>
             </div>
           </div>
@@ -463,8 +504,9 @@ return () => {
       
       {/* OFFLINE BANNER */}
       {isOffline && (
-        <div className="fixed top-20 left-0 w-full bg-red-600 text-white text-center py-2 text-sm font-bold z-40 shadow-md">
-          ⚠️ Mode hors ligne : Vous consultez les données en cache. Ces offres peuvent être obsolètes.
+        <div className="fixed top-20 left-0 w-full bg-red-600 text-white text-center py-2 text-sm font-bold z-40 shadow-md flex items-center justify-center gap-2">
+          <TbAlertTriangle size={18} aria-hidden="true" />
+          <span>Mode hors ligne : Vous consultez les données en cache. Ces offres peuvent être obsolètes.</span>
         </div>
       )}
 
@@ -522,16 +564,17 @@ return () => {
         {/* MOMENTS FILTER (Pills) */}
         <div className="flex gap-3 overflow-x-auto pb-4 mb-8 hide-scrollbar border-b border-gray-100">
           {/* Dynamic categories from ALL plats - never disappear when filtering */
-          [{value:'', label:'🍴 Tout voir'}, ...(allCategories.map(cat => {
-            const labels = { dejeuner: '🍽️ Déjeuner', gouter: '☕ Goûter', diner: '🍷 Dîner', 'fast food': '🍔 Fast food', boisson: '🍹 Cocktails & Jus', dessert: '🍰 Desserts' };
-            return { value: cat, label: labels[cat] || cat.charAt(0).toUpperCase() + cat.slice(1) };
-          }))].map(({ value, label }) => (
+          [{ value: '', label: 'Tout voir', icon: TbLayoutGrid }, ...(allCategories.map(cat => {
+            const conf = CATEGORY_CONFIG[cat] || { label: cat.charAt(0).toUpperCase() + cat.slice(1), icon: TbToolsKitchen2 };
+            return { value: cat, label: conf.label, icon: conf.icon };
+          }))].map(({ value, label, icon: IconComponent }) => (
             <button 
               key={value}
               onClick={() => setMomentFilter(value)}
-              className={`whitespace-nowrap px-6 py-2.5 mb-2 rounded-full font-bold shadow-sm border border-gray-200 transition-all transform hover:scale-105 ${momentFilter === value ? 'bg-red-600 text-white border-red-600 shadow-md scale-105' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
+              className={`whitespace-nowrap px-6 py-2.5 mb-2 rounded-full font-bold shadow-sm border border-gray-200 transition-all transform hover:scale-105 flex items-center gap-2 ${momentFilter === value ? 'bg-red-600 text-white border-red-600 shadow-md scale-105' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
             >
-              {label}
+              <IconComponent size={18} aria-hidden="true" />
+              <span>{label}</span>
             </button>
           ))}
         </div>
@@ -541,7 +584,8 @@ return () => {
         {recommendations.length > 0 && !keyword && !resto && !quartier && (
           <div className="mb-12">
             <h2 className="text-2xl font-black text-gray-900 mb-6 flex items-center gap-2">
-              <span>🌟</span> Recommandé pour vous
+              <TbStar size={22} aria-hidden="true" />
+              <span>Recommandé pour vous</span>
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
               {recommendations.map(plat => (
@@ -581,7 +625,9 @@ return () => {
               
               <div className="p-6 flex flex-col flex-1">
                 <div className="flex items-center gap-2 mb-3">
-                  <span className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-xs">🏪</span>
+                  <span className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-gray-500">
+                    <TbBuildingStore size={14} aria-hidden="true" />
+                  </span>
                   <span className="text-sm font-bold text-gray-500">{plat.restaurant?.name || 'Restaurant Partenaire'}</span>
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-2 leading-tight">{plat.name}</h3>
@@ -607,7 +653,7 @@ return () => {
           )) : (
             <div className="col-span-full py-12">
               <div className="text-center bg-white rounded-3xl border-2 border-dashed border-gray-200 py-12 mb-12">
-                <span className="text-5xl block mb-4">🍽️</span>
+                <TbToolsKitchen2 size={48} className="mx-auto mb-4 text-gray-400" aria-hidden="true" />
                 <h3 className="text-2xl font-bold text-gray-900 mb-2">Aucun plat trouvé avec ces filtres.</h3>
                 <p className="text-gray-500">Mais ne vous inquiétez pas, voici quelques autres plats qui pourraient vous plaire :</p>
               </div>
@@ -626,7 +672,9 @@ return () => {
                     
                     <div className="p-6 flex flex-col flex-1">
                       <div className="flex items-center gap-2 mb-3">
-                        <span className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-xs">🏪</span>
+                        <span className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-gray-500">
+                          <TbBuildingStore size={14} aria-hidden="true" />
+                        </span>
                         <span className="text-sm font-bold text-gray-500">{plat.restaurant?.name || 'Restaurant Partenaire'}</span>
                       </div>
                       <h3 className="text-xl font-bold text-gray-900 mb-2 leading-tight">{plat.name}</h3>
@@ -662,13 +710,15 @@ return () => {
           <div className="w-full max-w-md bg-white h-full shadow-2xl flex flex-col animate-slide-in-right">
             <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
               <h2 className="text-xl font-black text-gray-900">Votre Panier <span className="text-red-600">({cart.length})</span></h2>
-              <button onClick={() => setCheckoutOpen(false)} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold transition-colors">✕</button>
+              <button onClick={() => setCheckoutOpen(false)} aria-label="Fermer le panier" className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-200 hover:bg-gray-300 text-gray-700 transition-colors">
+                <TbX size={18} aria-hidden="true" />
+              </button>
             </div>
             
             <div className="flex-1 overflow-y-auto p-6">
               {cart.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center text-gray-400">
-                  <span className="text-6xl mb-4">🛒</span>
+                  <TbShoppingCart size={56} className="mb-4 text-gray-300" aria-hidden="true" />
                   <p className="font-medium text-lg">Votre panier est vide</p>
                 </div>
               ) : (
@@ -682,7 +732,9 @@ return () => {
                           <p className="text-red-600 font-bold text-sm">{item.price} FCFA</p>
                         </div>
                       </div>
-                      <button onClick={() => setCart(cart.filter((_, i) => i !== idx))} className="text-gray-400 hover:text-red-600 p-2 text-sm">✕</button>
+                      <button onClick={() => setCart(cart.filter((_, i) => i !== idx))} aria-label="Supprimer du panier" className="text-gray-400 hover:text-red-600 p-2 transition-colors">
+                        <TbX size={16} aria-hidden="true" />
+                      </button>
                     </li>
                   ))}
                 </ul>
@@ -751,7 +803,9 @@ return () => {
       {isSuccessOpen && orderInfo && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
           <div className="bg-white p-8 rounded-3xl shadow-2xl max-w-md w-full text-center">
-            <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-4xl mx-auto mb-6">✓</div>
+            <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
+              <TbCheck size={40} aria-hidden="true" />
+            </div>
             <h2 className="text-2xl font-black text-gray-900 mb-2">Commande Réussie !</h2>
             <p className="text-gray-500 mb-8">Votre commande a été envoyée au restaurant. Merci pour votre confiance.</p>
             <div className="bg-gray-50 p-6 rounded-2xl mb-8 border border-gray-100">
@@ -849,7 +903,9 @@ return () => {
       {isTrackModalOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
           <div className="bg-white p-8 rounded-3xl shadow-2xl max-w-md w-full relative">
-            <button onClick={() => setTrackModalOpen(false)} className="absolute top-6 right-6 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 font-bold transition-colors">✕</button>
+            <button onClick={() => setTrackModalOpen(false)} aria-label="Fermer le suivi" className="absolute top-6 right-6 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 transition-colors">
+              <TbX size={18} aria-hidden="true" />
+            </button>
             <h2 className="text-2xl font-black text-gray-900 mb-6">Suivre une commande</h2>
             <form onSubmit={handleTrackOrder} className="flex gap-2 mb-6">
               <input type="text" placeholder="Ex: CMD-123456" required className="flex-1 bg-gray-50 border border-gray-200 rounded-xl p-4 font-bold text-gray-900 focus:outline-none focus:border-red-600" value={trackOrderNumber} onChange={(e) => setTrackOrderNumber(e.target.value)} />
@@ -869,11 +925,36 @@ return () => {
                             trackResult.status === 'EN_PREPARATION' ? 'text-orange-500' :
                             'text-gray-900'
                         }`}>
-                          {trackResult.status === 'NOUVELLE' && 'En attente ⏳'}
-                          {trackResult.status === 'EN_PREPARATION' && 'En préparation 🍳'}
-                          {trackResult.status === 'PRETE' && 'Prête (Livreur en route) 🛵'}
-                          {trackResult.status === 'LIVREE' && 'Livrée ✅'}
-                          {trackResult.status === 'ANNULEE' && 'Annulée ❌'}
+                          {trackResult.status === 'NOUVELLE' && (
+                            <span className="flex items-center gap-1.5">
+                              <span>En attente</span>
+                              <TbClock size={20} aria-hidden="true" />
+                            </span>
+                          )}
+                          {trackResult.status === 'EN_PREPARATION' && (
+                            <span className="flex items-center gap-1.5">
+                              <span>En préparation</span>
+                              <TbChefHat size={20} aria-hidden="true" />
+                            </span>
+                          )}
+                          {trackResult.status === 'PRETE' && (
+                            <span className="flex items-center gap-1.5">
+                              <span>Prête (Livreur en route)</span>
+                              <TbMotorbike size={20} aria-hidden="true" />
+                            </span>
+                          )}
+                          {trackResult.status === 'LIVREE' && (
+                            <span className="flex items-center gap-1.5">
+                              <span>Livrée</span>
+                              <TbCircleCheck size={20} aria-hidden="true" />
+                            </span>
+                          )}
+                          {trackResult.status === 'ANNULEE' && (
+                            <span className="flex items-center gap-1.5">
+                              <span>Annulée</span>
+                              <TbCircleX size={20} aria-hidden="true" />
+                            </span>
+                          )}
                         </h3>
                     </div>
                 </div>
@@ -903,9 +984,15 @@ return () => {
               <p className="text-gray-400 text-sm leading-relaxed mb-4">
                 La plateforme n°1 de livraison partout à Ziguinchor. Vos plats préférés, livrés rapidement et encore chauds.
               </p>
-              <div className="text-gray-400 text-sm">
-                <p>📞 {platformSettings?.supportPhone || '+221 77 000 00 00'}</p>
-                <p>✉️ {platformSettings?.supportEmail || 'support@lekkrek.com'}</p>
+              <div className="text-gray-400 text-sm space-y-1">
+                <p className="flex items-center gap-2">
+                  <TbPhone size={16} aria-hidden="true" />
+                  <span>{platformSettings?.supportPhone || '+221 77 000 00 00'}</span>
+                </p>
+                <p className="flex items-center gap-2">
+                  <TbMail size={16} aria-hidden="true" />
+                  <span>{platformSettings?.supportEmail || 'support@lekkrek.com'}</span>
+                </p>
               </div>
             </div>
             
@@ -958,15 +1045,15 @@ return () => {
       {isPartnerModalOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-[60]">
           <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl relative animate-slide-in-right">
-            <button onClick={() => setPartnerModalOpen(false)} className="absolute top-6 right-6 text-gray-400 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-full p-2 transition-colors">
-              ✕
+            <button onClick={() => setPartnerModalOpen(false)} aria-label="Fermer" className="absolute top-6 right-6 text-gray-400 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-full p-2 transition-colors">
+              <TbX size={18} aria-hidden="true" />
             </button>
             <h2 className="text-2xl font-black text-gray-900 mb-2">Devenir Partenaire</h2>
             <p className="text-gray-500 text-sm mb-6">Remplissez ce formulaire. Notre équipe vous contactera rapidement pour finaliser votre inscription.</p>
             
             {partnerStatus === 'success' ? (
               <div className="bg-green-50 text-green-700 p-6 rounded-2xl text-center border border-green-200">
-                <span className="text-4xl mb-2 block">✅</span>
+                <TbCircleCheck size={40} className="mx-auto mb-2 text-green-600" aria-hidden="true" />
                 <p className="font-bold">Demande envoyée !</p>
                 <p className="text-sm mt-1">Nous vous appelons très vite.</p>
               </div>
@@ -1032,8 +1119,8 @@ return () => {
       {/* TOAST NOTIFICATION */}
       {toast && (
         <div className="fixed top-24 right-6 z-[9999] flex items-center gap-3 bg-white/95 backdrop-blur-md px-5 py-3.5 rounded-2xl shadow-xl border border-gray-100 text-sm font-bold text-gray-800 transition-all duration-300 animate-in fade-in slide-in-from-top-4">
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${toast.type === 'success' ? 'bg-green-100 text-green-600' : 'bg-red-50 text-red-600'}`}>
-            {toast.type === 'success' ? '✓' : '👋'}
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${toast.type === 'success' ? 'bg-green-100 text-green-600' : 'bg-red-50 text-red-600'}`}>
+            {toast.type === 'success' ? <TbCheck size={18} aria-hidden="true" /> : <TbInfoCircle size={18} aria-hidden="true" />}
           </div>
           <span>{toast.message}</span>
         </div>

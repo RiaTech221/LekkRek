@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import ToastNotification from '../../components/ToastNotification';
+import { TbArrowLeft, TbFileSpreadsheet, TbFileText, TbChartBar } from 'react-icons/tb';
 
 
 export default function Accounting() {
@@ -215,8 +216,9 @@ export default function Accounting() {
                 onClick={() => { setSelectedResto(null); setRestaurantReport(null); }}
                 className="bg-white border border-gray-200 text-gray-700 w-10 h-10 rounded-full font-bold flex items-center justify-center hover:bg-gray-100 hover:text-black transition-colors"
                 title="Retour"
+                aria-label="Retour"
               >
-                ←
+                <TbArrowLeft className="w-5 h-5" aria-hidden="true" />
               </button>
               <div>
                 <h3 className="font-bold text-xl text-gray-900">{selectedResto.name}</h3>
@@ -238,10 +240,10 @@ export default function Accounting() {
               
               <div className="flex gap-2">
                 <button onClick={exportCSV} className="bg-gray-100 text-gray-700 border border-gray-200 font-bold text-sm px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-2">
-                  <span>📄</span> CSV
+                  <TbFileSpreadsheet className="w-4 h-4 text-gray-600" aria-hidden="true" /> CSV
                 </button>
                 <button onClick={exportPDF} className="bg-gray-900 text-white font-bold text-sm px-4 py-2 rounded-lg hover:bg-black transition-colors flex items-center gap-2">
-                  <span>📑</span> Exporter PDF
+                  <TbFileText className="w-4 h-4 text-white" aria-hidden="true" /> Exporter PDF
                 </button>
               </div>
             </div>
@@ -355,7 +357,7 @@ export default function Accounting() {
                     onClick={() => { setSelectedResto(resto); setStartDate(''); setEndDate(''); }}
                     className="mt-auto w-full bg-gray-50 text-gray-900 border border-gray-200 font-bold py-3 rounded-xl hover:bg-gray-900 hover:text-white transition-colors flex justify-center items-center gap-2"
                   >
-                    <span>📊</span> Voir le détail & exporter
+                    <TbChartBar className="w-4 h-4" aria-hidden="true" /> Voir le détail & exporter
                   </button>
                 </div>
               </div>

@@ -2,6 +2,7 @@ import { API_URL } from '../../config';
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import DOMPurify from 'dompurify';
+import { TbArrowLeft } from 'react-icons/tb';
 
 /**
  * ============================================================================
@@ -44,8 +45,9 @@ export default function PublicPage() {
           <Link to="/" className="text-2xl font-black text-red-600 tracking-tighter">
             Lekk<span className="text-gray-900">Rek</span>.
           </Link>
-          <Link to="/" className="text-sm font-bold text-gray-500 hover:text-red-600 transition-colors">
-            ← Retour à l'accueil
+          <Link to="/" className="text-sm font-bold text-gray-500 hover:text-red-600 transition-colors flex items-center gap-2">
+            <TbArrowLeft size={16} aria-hidden="true" />
+            <span>Retour à l'accueil</span>
           </Link>
         </div>
       </header>
