@@ -708,15 +708,15 @@ return () => {
                     <input type="text" placeholder="Votre Nom Complet" required className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-red-600" value={formData.clientName} onChange={e => setFormData({...formData, clientName: e.target.value})} />
                     <input
                       type="tel"
-                      inputMode="tel"
-                      maxLength={16}
-                      placeholder="Numéro de Téléphone (ex: 771234567 ou +221 77...)"
+                      inputMode="numeric"
+                      maxLength={9}
+                      placeholder="Ex: 771234567"
                       required
                       className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-red-600"
                       value={formData.clientPhone}
-                      onChange={e => setFormData({...formData, clientPhone: e.target.value.slice(0, 16)})}
+                      onChange={e => setFormData({...formData, clientPhone: e.target.value.replace(/\D/g, '').slice(0, 9)})}
                       onKeyDown={e => {
-                        if (!/[0-9+\s]/.test(e.key) && !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key) && !e.ctrlKey && !e.metaKey) {
+                        if (!/[0-9]/.test(e.key) && !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key) && !e.ctrlKey && !e.metaKey) {
                           e.preventDefault();
                         }
                       }}
@@ -795,15 +795,15 @@ return () => {
                   </div>
                   <input
                     type="tel"
-                    inputMode="tel"
-                    maxLength={16}
+                    inputMode="numeric"
+                    maxLength={9}
                     placeholder="771234567"
                     required
                     className="w-full bg-gray-50 border border-gray-200 rounded-2xl pl-20 pr-5 py-4 font-bold text-gray-900 focus:outline-none focus:border-red-500 focus:ring-4 focus:ring-red-500/10 transition-all placeholder:font-medium placeholder:text-gray-400"
                     value={loginPhone}
-                    onChange={(e) => setLoginPhone(e.target.value.slice(0, 16))}
+                    onChange={(e) => setLoginPhone(e.target.value.replace(/\D/g, '').slice(0, 9))}
                     onKeyDown={(e) => {
-                      if (!/[0-9+\s]/.test(e.key) && !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key) && !e.ctrlKey && !e.metaKey) {
+                      if (!/[0-9]/.test(e.key) && !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key) && !e.ctrlKey && !e.metaKey) {
                         e.preventDefault();
                       }
                     }}
@@ -904,15 +904,15 @@ return () => {
                   <label className="block text-sm font-bold text-gray-700 mb-1">Téléphone</label>
                   <input
                     type="tel"
-                    inputMode="tel"
-                    maxLength={16}
+                    inputMode="numeric"
+                    maxLength={9}
                     required
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 outline-none focus:ring-2 focus:ring-red-500"
                     value={partnerForm.telephone}
-                    onChange={(e) => setPartnerForm({...partnerForm, telephone: e.target.value.slice(0, 16)})}
-                    placeholder="Ex: 771234567 ou +221 77..."
+                    onChange={(e) => setPartnerForm({...partnerForm, telephone: e.target.value.replace(/\D/g, '').slice(0, 9)})}
+                    placeholder="Ex: 771234567"
                     onKeyDown={(e) => {
-                      if (!/[0-9+\s]/.test(e.key) && !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key) && !e.ctrlKey && !e.metaKey) {
+                      if (!/[0-9]/.test(e.key) && !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key) && !e.ctrlKey && !e.metaKey) {
                         e.preventDefault();
                       }
                     }}
