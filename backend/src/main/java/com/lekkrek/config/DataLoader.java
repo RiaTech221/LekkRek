@@ -16,6 +16,8 @@ import com.lekkrek.repository.PlatRepository;
 import com.lekkrek.repository.RestaurantRepository;
 import com.lekkrek.repository.UtilisateurRepository;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -25,7 +27,11 @@ import java.util.Arrays;
 import java.util.List;
 
 @Configuration
+@Profile("dev")
 public class DataLoader {
+
+    @Value("${app.admin.initial-password:password123}")
+    private String adminInitialPassword;
 
     @Bean
     @Transactional
@@ -62,26 +68,26 @@ public class DataLoader {
             Utilisateur admin = new Utilisateur();
             admin.setNomComplet("Admin Principal");
             admin.setEmail("admin@lekkrek.com");
-            admin.setMotDePasse(passwordEncoder.encode("password123"));
+            admin.setMotDePasse(passwordEncoder.encode(adminInitialPassword));
             admin.setRole(Utilisateur.Role.ADMIN);
             
             // 2. Opérateurs (Gérants de restaurants)
             Utilisateur op1 = new Utilisateur();
             op1.setNomComplet("Awa Ndiaye");
             op1.setEmail("awa@lekkrek.com");
-            op1.setMotDePasse(passwordEncoder.encode("password123"));
+            op1.setMotDePasse(passwordEncoder.encode(adminInitialPassword));
             op1.setRole(Utilisateur.Role.OPERATEUR);
 
             Utilisateur op2 = new Utilisateur();
             op2.setNomComplet("Modou Fall");
             op2.setEmail("modou@lekkrek.com");
-            op2.setMotDePasse(passwordEncoder.encode("password123"));
+            op2.setMotDePasse(passwordEncoder.encode(adminInitialPassword));
             op2.setRole(Utilisateur.Role.OPERATEUR);
 
             Utilisateur op3 = new Utilisateur();
             op3.setNomComplet("Fatou Diop");
             op3.setEmail("fatou@lekkrek.com");
-            op3.setMotDePasse(passwordEncoder.encode("password123"));
+            op3.setMotDePasse(passwordEncoder.encode(adminInitialPassword));
             op3.setRole(Utilisateur.Role.OPERATEUR);
 
             userRepo.saveAll(Arrays.asList(admin, op1, op2, op3));

@@ -37,7 +37,8 @@ Une fois le backend lancé (\`mvn spring-boot:run\`), vous pouvez explorer et te
 - **Audit Logging :** Toutes les actions sensibles (validation d'une commande, suppression d'un plat) déclenchent le `AuditService` qui trace l'email, le rôle, l'action et la date.
 - **Analytics KPI :** Le `AnalyticsController` centralise les événements front-end (clics WhatsApp, recherches) pour générer des tableaux de bord en temps réel.
 
-## 🔑 Comptes de test par défaut
+## 🔑 Comptes de test par défaut (Profil `dev` uniquement)
+> ⚠️ Ces comptes sont injectés par `DataLoader` **uniquement lorsque le profil Spring actif est `dev`**. En production, `DataLoader` est désactivé et les identifiants d'accès doivent être configurés via des variables d'environnement sécurisées.
 
 | Rôle | Nom / Restaurant | Email | Mot de passe |
 |---|---|---|---|
