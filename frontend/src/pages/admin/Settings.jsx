@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { validateSenegalPhone, normalizeSenegalPhone } from '../../utils/phoneUtils';
 import ToastNotification from '../../components/ToastNotification';
 import { handleApiResponse } from '../../utils/apiHelper';
+import { TbSettings, TbBuilding, TbWorld, TbHome2, TbBrandWhatsapp, TbDeviceFloppy, TbLock } from 'react-icons/tb';
 
 
 export default function Settings() {
@@ -32,7 +33,7 @@ export default function Settings() {
     instagramUrl: '',
     facebookUrl: '',
     tiktokUrl: '',
-    whatsappMessageGreeting: "Bonjour l'équipe LekkRek 👋, ",
+    whatsappMessageGreeting: "Bonjour l'équipe LekkRek, ",
     whatsappMessageCart: "J'ai actuellement {count} plat(s) dans mon panier pour un total de {total} FCFA et j'aimerais avoir de l'aide pour finaliser ma commande.",
     whatsappMessageOrder: "Je vous contacte concernant ma commande N° {orderNumber}.",
     whatsappMessageDefault: "j'aimerais avoir de plus amples informations s'il vous plaît.",
@@ -105,7 +106,7 @@ export default function Settings() {
       <header className="mb-6 flex justify-between items-end">
         <div>
           <h2 className="text-2xl font-black text-gray-900 flex items-center gap-2">
-            <span className="text-red-600">⚙️</span> Paramètres
+            <TbSettings className="w-6 h-6 text-red-600" aria-hidden="true" /> Paramètres
           </h2>
         </div>
       </header>
@@ -116,7 +117,7 @@ export default function Settings() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden w-full">
           <div className="bg-gray-50 border-b border-gray-100 px-6 py-4 flex justify-between items-center">
             <h3 className="font-bold text-gray-800 flex items-center gap-2 text-sm">
-              <span className="bg-red-50 text-red-600 p-1.5 rounded-md">🏢</span> Identité Plateforme
+              <span className="bg-red-50 text-red-600 p-1.5 rounded-md"><TbBuilding className="w-4 h-4" aria-hidden="true" /></span> Identité Plateforme
             </h3>
           </div>
           <div className="p-6 grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -161,7 +162,7 @@ export default function Settings() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden w-full">
           <div className="bg-gray-50 border-b border-gray-100 px-6 py-4 flex justify-between items-center">
             <h3 className="font-bold text-gray-800 flex items-center gap-2 text-sm">
-              <span className="bg-blue-50 text-blue-600 p-1.5 rounded-md">🌍</span> Réseaux Sociaux
+              <span className="bg-blue-50 text-blue-600 p-1.5 rounded-md"><TbWorld className="w-4 h-4" aria-hidden="true" /></span> Réseaux Sociaux
             </h3>
           </div>
           <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -185,7 +186,7 @@ export default function Settings() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden w-full mt-6">
           <div className="bg-gray-50 border-b border-gray-100 px-6 py-4 flex justify-between items-center">
             <h3 className="font-bold text-gray-800 flex items-center gap-2 text-sm">
-              <span className="bg-blue-50 text-blue-600 p-1.5 rounded-md">🏠</span> Textes d'Accueil
+              <span className="bg-blue-50 text-blue-600 p-1.5 rounded-md"><TbHome2 className="w-4 h-4" aria-hidden="true" /></span> Textes d'Accueil
             </h3>
           </div>
           <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -204,7 +205,7 @@ export default function Settings() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden w-full mt-6">
           <div className="bg-gray-50 border-b border-gray-100 px-6 py-4 flex justify-between items-center">
             <h3 className="font-bold text-gray-800 flex items-center gap-2 text-sm">
-              <span className="bg-green-50 text-green-600 p-1.5 rounded-md">💬</span> Textes WhatsApp (Modèles)
+              <span className="bg-green-50 text-green-600 p-1.5 rounded-md"><TbBrandWhatsapp className="w-4 h-4" aria-hidden="true" /></span> Textes WhatsApp (Modèles)
             </h3>
           </div>
           <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -229,7 +230,7 @@ export default function Settings() {
 
         <div className="flex justify-end mt-4">
           <button type="submit" disabled={loading} className="bg-red-600 hover:bg-red-700 text-white px-8 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-red-600/20 transition-all disabled:opacity-50">
-            {loading ? '...' : '💾 Enregistrer les modifications'}
+            {loading ? '...' : 'Enregistrer les modifications'}
           </button>
         </div>
       </form>
@@ -239,7 +240,7 @@ export default function Settings() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="bg-gray-50 border-b border-gray-100 px-6 py-4 flex justify-between items-center">
             <h3 className="font-bold text-gray-800 flex items-center gap-2 text-sm">
-              <span className="bg-amber-50 text-amber-600 p-1.5 rounded-md">🎨</span> Préférences Interface
+              <span className="bg-amber-50 text-amber-600 p-1.5 rounded-md"><TbDeviceFloppy className="w-4 h-4" aria-hidden="true" /></span> Préférences Interface
             </h3>
           </div>
           <div className="p-6 space-y-4">
@@ -261,7 +262,7 @@ export default function Settings() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="bg-gray-50 border-b border-gray-100 px-6 py-4 flex justify-between items-center">
             <h3 className="font-bold text-gray-800 flex items-center gap-2 text-sm">
-              <span className="bg-green-50 text-green-600 p-1.5 rounded-md">🔐</span> Sécurité (Admin)
+              <span className="bg-green-50 text-green-600 p-1.5 rounded-md"><TbLock className="w-4 h-4" aria-hidden="true" /></span> Sécurité (Admin)
             </h3>
           </div>
           <form onSubmit={handlePasswordChange} className="p-6 space-y-4">

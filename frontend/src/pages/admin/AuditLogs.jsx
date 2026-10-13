@@ -1,5 +1,6 @@
 import { API_URL } from '../../config';
 import React, { useState, useEffect } from 'react';
+import { TbShieldSearch, TbInbox, TbArrowRight } from 'react-icons/tb';
 
 /**
  * ============================================================================
@@ -51,7 +52,7 @@ export default function AuditLogs() {
     <div className="p-8 w-full" style={{ background: '#f9fafb', minHeight: '100vh' }}>
       <header className="mb-8">
         <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-          <span>🕵️‍♂️</span> Journal d'Audit & Sécurité
+          <TbShieldSearch className="w-6 h-6 text-gray-700" aria-hidden="true" /> Journal d'Audit & Sécurité
         </h2>
         <p className="text-gray-500 text-sm mt-1">Traçabilité complète des actions sensibles sur la plateforme.</p>
       </header>
@@ -59,7 +60,7 @@ export default function AuditLogs() {
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         {logs.length === 0 ? (
           <div className="p-16 flex flex-col items-center justify-center text-center">
-            <span className="text-6xl mb-4">📭</span>
+            <TbInbox className="w-16 h-16 mb-4 text-gray-300 stroke-1" aria-hidden="true" />
             <h3 className="text-xl font-bold text-gray-900 mb-2">Aucun événement enregistré</h3>
             <p className="text-gray-500 mb-6">Le journal d'audit est actuellement vide.</p>
           </div>
@@ -100,7 +101,7 @@ export default function AuditLogs() {
                     <td className="p-4">
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-semibold text-gray-700">{log.entityType}</span>
-                        <span className="bg-gray-100 text-gray-500 text-xs px-1.5 py-0.5 rounded font-mono">#{log.entityId}</span>
+                        <span className="bg-gray-100 text-gray-500 text-xs px-1.5 py-0.5 rounded font-mono">{log.entityId}</span>
                       </div>
                     </td>
                     <td className="p-4">
@@ -110,7 +111,7 @@ export default function AuditLogs() {
                             {log.oldValue}
                           </span>
                         )}
-                        {log.oldValue && log.newValue && <span className="text-gray-400">➔</span>}
+                        {log.oldValue && log.newValue && <TbArrowRight className="w-4 h-4 text-gray-400 inline" aria-hidden="true" />}
                         {log.newValue && (
                           <span className="bg-green-50 text-green-700 px-2 py-0.5 rounded border border-green-100 font-bold">
                             {log.newValue}

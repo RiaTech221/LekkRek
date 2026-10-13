@@ -4,6 +4,7 @@ import { validateSenegalPhone, normalizeSenegalPhone } from '../../utils/phoneUt
 import ConfirmModal from '../../components/ConfirmModal';
 import ToastNotification from '../../components/ToastNotification';
 import { handleApiResponse } from '../../utils/apiHelper';
+import { TbPhone } from 'react-icons/tb';
 
 export default function RestaurantsManager() {
   const [restaurants, setRestaurants] = useState([]);
@@ -285,7 +286,7 @@ export default function RestaurantsManager() {
                 </p>
                 {resto.telephone && (
                   <p className="text-sm text-gray-500 flex items-center gap-2">
-                    <span className="text-xs">📞</span>
+                    <TbPhone className="w-4 h-4 text-gray-400" aria-hidden="true" />
                     Tél : <span className="font-medium text-gray-700">{resto.telephone}</span>
                   </p>
                 )}

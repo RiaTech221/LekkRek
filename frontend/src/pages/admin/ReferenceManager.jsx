@@ -3,11 +3,12 @@ import React, { useState, useEffect } from 'react';
 import ConfirmModal from '../../components/ConfirmModal';
 import ToastNotification from '../../components/ToastNotification';
 import { handleApiResponse } from '../../utils/apiHelper';
+import { TbMapPin, TbClock, TbTag } from 'react-icons/tb';
 
 const TYPES = [
-  { key: 'QUARTIER', label: 'Quartiers', emoji: '📍' },
-  { key: 'CRENEAU',  label: 'Créneaux horaires', emoji: '🕐' },
-  { key: 'CATEGORIE', label: 'Catégories', emoji: '🏷️' },
+  { key: 'QUARTIER', label: 'Quartiers', icon: TbMapPin },
+  { key: 'CRENEAU',  label: 'Créneaux horaires', icon: TbClock },
+  { key: 'CATEGORIE', label: 'Catégories', icon: TbTag },
 ];
 
 export default function ReferenceManager() {
@@ -166,7 +167,7 @@ export default function ReferenceManager() {
                 : 'bg-white text-gray-600 border border-gray-200 hover:border-red-300'
             }`}
           >
-            <span>{t.emoji}</span>
+            <span><t.icon className="w-4 h-4" aria-hidden="true" /></span>
             {t.label}
           </button>
         ))}
