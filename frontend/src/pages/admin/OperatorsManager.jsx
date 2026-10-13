@@ -1,20 +1,32 @@
 import { API_URL } from '../../config';
 import React, { useState, useEffect } from 'react';
 import { validateSenegalPhone, normalizeSenegalPhone } from '../../utils/phoneUtils';
-
-/**
- * ============================================================================
- * 🚀 Fichier : OperatorsManager.jsx
- * 🚀 Description : Gestion des Utilisateurs Internes (Opérateurs & Prestataires)
- * 🚀 Rôle : Composant Frontend (React) - Conforme à la section 10.2 du CDC.
- * ============================================================================
- */
+import ConfirmModal from '../../components/ConfirmModal';
+import ToastNotification from '../../components/ToastNotification';
+import { handleApiResponse } from '../../utils/apiHelper';
 
 export default function OperatorsManager() {
   const [operators, setOperators] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  // Notifications et Confirmation stylées
+  const [toast, setToast] = useState(null);
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    confirmText: 'Confirmer',
+    isDestructive: true,
+    isLoading: false,
+    onConfirm: null
+  });
+
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3500);
+  };
   
   // Form State
   const [editingId, setEditingId] = useState(null);
@@ -83,7 +95,7 @@ export default function OperatorsManager() {
     const newPassword = window.prompt(`Nouveau mot de passe pour ${op.nomComplet} :`);
     if (!newPassword) return;
     if (newPassword.length < 6) {
-      alert('Le mot de passe doit contenir au moins 6 caractères.');
+      showToast('Le mot de passe doit contenir au moins 6 caractères.', 'error');
       return;
     }
     const token = localStorage.getItem('token');
@@ -93,9 +105,9 @@ export default function OperatorsManager() {
       body: JSON.stringify({ newPassword })
     });
     if (res.ok) {
-      alert(`Mot de passe de ${op.nomComplet} réinitialisé avec succès.`);
+      showToast(`Mot de passe de ${op.nomComplet} réinitialisé avec succès !`);
     } else {
-      alert('Erreur lors de la réinitialisation.');
+      showToast('Erreur lors de la réinitialisation.', 'error');
     }
   };
 
@@ -137,14 +149,14 @@ export default function OperatorsManager() {
           throw new Error("Erreur lors de l'upload de l'image");
         }
       } catch (err) {
-        alert(err.message);
+        showToast(err.message, "error");
         setUploadingImage(false);
         return;
       }
     }
 
     if (telephone && !validateSenegalPhone(telephone)) {
-      alert("Le numéro de téléphone doit être un numéro sénégalais valide à 9 chiffres (ex: 771234567 ou +221 77 123 45 67).");
+      showToast("Numéro invalide. Format attendu : 771234567 ou +221 77 123 45 67.", "error");
       return;
     }
 
@@ -169,30 +181,46 @@ export default function OperatorsManager() {
       },
       body: JSON.stringify(payload)
     })
-      .then(res => {
-        if (!res.ok) throw new Error("Erreur lors de l'enregistrement. Email peut-être déjà utilisé.");
-        return res.json();
-      })
+      .then(res => handleApiResponse(res, "Erreur lors de l'enregistrement. Email peut-être déjà utilisé."))
       .then(() => {
         setIsModalOpen(false);
         setUploadingImage(false);
+        showToast(editingId ? "Opérateur modifié avec succès !" : "Opérateur créé avec succès !");
         fetchOperators();
       })
       .catch(err => {
-        alert(err.message);
+        showToast(err.message, "error");
         setUploadingImage(false);
       });
   };
 
-  const handleDelete = (id) => {
-    if (!window.confirm("Êtes-vous sûr de vouloir désactiver/supprimer cet opérateur ?")) return;
-    const token = localStorage.getItem('token');
-    fetch(`${API_URL}/api/v1/admin/operators/${id}`, {
-      method: 'DELETE',
-      headers: { 'Authorization': `Bearer ${token}` }
-    })
-      .then(() => fetchOperators())
-      .catch(err => alert("Erreur lors de la suppression."));
+  const handleDelete = (id, opName = "cet opérateur") => {
+    setConfirmModal({
+      isOpen: true,
+      title: "Supprimer cet utilisateur ?",
+      message: `Êtes-vous sûr de vouloir désactiver ou supprimer "${opName}" ?`,
+      confirmText: "Supprimer l'utilisateur",
+      isDestructive: true,
+      isLoading: false,
+      onConfirm: () => {
+        setConfirmModal(prev => ({ ...prev, isLoading: true }));
+        const token = localStorage.getItem('token');
+        fetch(`${API_URL}/api/v1/admin/operators/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+          .then(res => handleApiResponse(res, "Impossible de supprimer cet opérateur"))
+          .then(() => {
+            setConfirmModal({ isOpen: false });
+            showToast("Opérateur supprimé avec succès !");
+            fetchOperators();
+          })
+          .catch(err => {
+            setConfirmModal({ isOpen: false });
+            showToast(err.message, "error");
+          });
+      }
+    });
   };
 
   const filteredOperators = operators.filter(o => 
@@ -303,7 +331,7 @@ export default function OperatorsManager() {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
                         </svg>
                       </button>
-                      <button onClick={() => handleDelete(op.id)} title="Supprimer" className="p-2 text-gray-400 hover:text-red-600 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow transition-all">
+                      <button onClick={() => handleDelete(op.id, op.nomComplet)} title="Supprimer" className="p-2 text-gray-400 hover:text-red-600 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow transition-all">
                         <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                         </svg>
@@ -485,6 +513,20 @@ export default function OperatorsManager() {
         </div>
       )}
 
+      {/* MODALE DE CONFIRMATION DESIGNÉE */}
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        confirmText={confirmModal.confirmText}
+        isDestructive={confirmModal.isDestructive}
+        isLoading={confirmModal.isLoading}
+        onConfirm={confirmModal.onConfirm}
+        onClose={() => setConfirmModal({ isOpen: false })}
+      />
+
+      {/* TOAST DE NOTIFICATION DESIGNÉ */}
+      <ToastNotification toast={toast} onClose={() => setToast(null)} />
     </div>
   );
 }
