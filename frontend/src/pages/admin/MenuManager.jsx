@@ -3,6 +3,11 @@ import React, { useState, useEffect } from 'react';
 import ConfirmModal from '../../components/ConfirmModal';
 import ToastNotification from '../../components/ToastNotification';
 import { handleApiResponse } from '../../utils/apiHelper';
+import {
+  TbSearch, TbCopy, TbToolsKitchen2, TbMoon, TbCookie, TbBurger, TbGlass, TbCake,
+  TbPencil, TbTrash
+} from 'react-icons/tb';
+
 
 export default function MenuManager() {
   const [plats, setPlats] = useState([]);
@@ -286,7 +291,7 @@ export default function MenuManager() {
               </div>
               <div className="w-full max-w-md">
                 <div className="relative">
-                  <span className="absolute inset-y-0 left-3 flex items-center text-gray-400">🔍</span>
+                  <span className="absolute inset-y-0 left-3 flex items-center text-gray-400"><TbSearch className="w-4 h-4" aria-hidden="true" /></span>
                   <input 
                     type="text" 
                     placeholder="Rechercher un plat..." 
@@ -301,7 +306,9 @@ export default function MenuManager() {
               <button onClick={() => setSelectedRestaurant(null)} className="text-gray-500 font-bold hover:text-gray-700">
                 &larr; Retour aux restaurants
               </button>
-              <button onClick={() => duplicatePlats()} className="bg-red-50 text-red-600 px-5 py-2.5 rounded-xl font-bold shadow-sm shadow-red-100 hover:bg-red-100 transition">🪄 Dupliquer la veille</button>
+              <button onClick={() => duplicatePlats()} className="bg-red-50 text-red-600 px-5 py-2.5 rounded-xl font-bold shadow-sm shadow-red-100 hover:bg-red-100 transition flex items-center gap-2">
+                <TbCopy className="w-4 h-4" aria-hidden="true" /> Dupliquer la veille
+              </button>
               <button onClick={() => openModal()} className="bg-red-600 text-white px-5 py-2.5 rounded-xl font-bold shadow-sm shadow-red-600/20 hover:bg-red-700 transition">
                 + Nouveau Plat
               </button>
@@ -311,7 +318,7 @@ export default function MenuManager() {
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         {platsDuResto.length === 0 ? (
           <div className="p-16 flex flex-col items-center justify-center text-center">
-            <span className="text-6xl mb-4">🍽️</span>
+            <TbToolsKitchen2 className="w-16 h-16 mb-4 text-gray-300 stroke-1" aria-hidden="true" />
             <h3 className="text-xl font-bold text-gray-900 mb-2">Aucun plat au menu</h3>
             <p className="text-gray-500 mb-6">Ce restaurant n'a pas encore de plats enregistrés.</p>
             <button onClick={() => openModal()} className="bg-red-50 text-red-600 font-bold px-6 py-2 rounded-full hover:bg-red-100 transition-colors">
@@ -352,10 +359,13 @@ export default function MenuManager() {
                       </div>
                     </td>
                     <td className="p-4">
-                      <span className="inline-flex px-2.5 py-1 rounded-md bg-gray-100 text-gray-600 text-xs font-bold capitalize whitespace-nowrap border border-gray-200">
-                        {plat.moment === 'fast food' ? '🍔 Fast food' : 
-                         plat.moment === 'boisson' ? '🍹 Boisson' : 
-                         plat.moment === 'dessert' ? '🍰 Dessert' : 
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-gray-100 text-gray-600 text-xs font-bold capitalize whitespace-nowrap border border-gray-200">
+                        {plat.moment === 'fast food' ? <><TbBurger className="w-3.5 h-3.5 shrink-0" aria-hidden="true" /> Fast food</> :
+                         plat.moment === 'boisson' ? <><TbGlass className="w-3.5 h-3.5 shrink-0" aria-hidden="true" /> Boisson</> :
+                         plat.moment === 'dessert' ? <><TbCake className="w-3.5 h-3.5 shrink-0" aria-hidden="true" /> Dessert</> :
+                         plat.moment === 'diner' ? <><TbMoon className="w-3.5 h-3.5 shrink-0" aria-hidden="true" /> Dîner</> :
+                         plat.moment === 'gouter' ? <><TbCookie className="w-3.5 h-3.5 shrink-0" aria-hidden="true" /> Goûter</> :
+                         plat.moment === 'dejeuner' ? <><TbToolsKitchen2 className="w-3.5 h-3.5 shrink-0" aria-hidden="true" /> Déjeuner</> :
                          plat.moment}
                       </span>
                     </td>
@@ -371,11 +381,11 @@ export default function MenuManager() {
                     </td>
                     <td className="p-4 text-right whitespace-nowrap">
                       <div className="flex items-center justify-end gap-2 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => openModal(plat)} className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Modifier">
-                          ✏️
+                        <button onClick={() => openModal(plat)} className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Modifier" aria-label="Modifier">
+                          <TbPencil className="w-4 h-4" aria-hidden="true" />
                         </button>
-                        <button onClick={() => handleDelete(plat.id)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Supprimer">
-                          🗑️
+                        <button onClick={() => handleDelete(plat.id)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Supprimer" aria-label="Supprimer">
+                          <TbTrash className="w-4 h-4" aria-hidden="true" />
                         </button>
                       </div>
                     </td>
@@ -430,20 +440,20 @@ export default function MenuManager() {
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1">Catégorie</label>
                   <select value={formData.moment} onChange={e => setFormData({...formData, moment: e.target.value})} className="w-full border border-gray-200 p-3 rounded-xl bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all shadow-sm text-gray-800 cursor-pointer">
-                    <option value="dejeuner">🍽️ Déjeuner</option>
-                    <option value="diner">🌙 Dîner</option>
-                    <option value="gouter">🍪 Goûter</option>
-                    <option value="fast food">🍔 Fast food</option>
-                    <option value="boisson">🍹 Cocktails & Jus</option>
-                    <option value="dessert">🍰 Desserts</option>
+                    <option value="dejeuner">Déjeuner</option>
+                    <option value="diner">Dîner</option>
+                    <option value="gouter">Goûter</option>
+                    <option value="fast food">Fast food</option>
+                    <option value="boisson">Cocktails &amp; Jus</option>
+                    <option value="dessert">Desserts</option>
                   </select>
                 </div>
 
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1">Statut Initial</label>
                   <select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} className="w-full border border-gray-200 p-3 rounded-xl bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all shadow-sm text-gray-800 cursor-pointer">
-                    <option value="DISPO">🟢 Disponible</option>
-                    <option value="EPUISE">🔴 Épuisé</option>
+                    <option value="DISPO">Disponible</option>
+                    <option value="EPUISE">Épuisé</option>
                   </select>
                 </div>
                 

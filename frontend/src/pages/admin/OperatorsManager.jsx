@@ -4,6 +4,8 @@ import { validateSenegalPhone, normalizeSenegalPhone } from '../../utils/phoneUt
 import ConfirmModal from '../../components/ConfirmModal';
 import ToastNotification from '../../components/ToastNotification';
 import { handleApiResponse } from '../../utils/apiHelper';
+import { TbPhone } from 'react-icons/tb';
+
 
 export default function OperatorsManager() {
   const [operators, setOperators] = useState([]);
@@ -292,7 +294,7 @@ export default function OperatorsManager() {
                         <div className="font-bold text-gray-900">{op.nomComplet}</div>
                         <div className="text-xs text-gray-500 font-medium">
                           {op.email}
-                          {op.telephone && <span className="ml-1 text-red-600 font-semibold">• 📞 {op.telephone}</span>}
+                          {op.telephone && <span className="ml-1 text-red-600 font-semibold flex items-center gap-1 inline-flex">• <TbPhone className="w-3.5 h-3.5 inline" aria-hidden="true" /> {op.telephone}</span>}
                         </div>
                       </div>
                     </div>
