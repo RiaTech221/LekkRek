@@ -1,15 +1,8 @@
 import { API_URL } from '../../config';
 import React, { useState, useEffect } from 'react';
 import { validateSenegalPhone, normalizeSenegalPhone } from '../../utils/phoneUtils';
-
-/**
- * ============================================================================
- * 📁 Fichier : Settings.jsx
- * 📝 Description : Composant React gérant l'interface utilisateur pour Settings.
- * 🎨 Rôle : Vue Frontend (Vite/Tailwind) pour l'expérience client/admin LekkRek.
- * 💡 Auteur : Documenté automatiquement (Standard Enterprise)
- * ============================================================================
- */
+import ToastNotification from '../../components/ToastNotification';
+import { handleApiResponse } from '../../utils/apiHelper';
 
 
 export default function Settings() {
@@ -24,6 +17,12 @@ export default function Settings() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState(null);
+
+  const showToast = (msg, type = 'success') => {
+    setToast({ message: msg, type });
+    setTimeout(() => setToast(null), 3500);
+  };
 
   const [settings, setSettings] = useState({
     platformName: '',
@@ -62,16 +61,16 @@ export default function Settings() {
   const handlePasswordChange = (e) => {
     e.preventDefault();
     if (password !== confirmPassword) {
-      alert("Mots de passe différents.");
+      showToast("Les mots de passe ne correspondent pas.", "error");
       return;
     }
-    alert("Changement de mot de passe à relier.");
+    showToast("Fonctionnalité de changement de mot de passe à relier au backend.", "error");
   };
 
   const handleSaveGlobal = async (e) => {
     e.preventDefault();
     if (settings.supportPhone && !validateSenegalPhone(settings.supportPhone)) {
-      alert("Le numéro de téléphone de support doit être un numéro sénégalais valide à 9 chiffres (ex: 771234567 ou +221 77 123 45 67).");
+      showToast("Numéro de support invalide. Format attendu : 771234567 ou +221 77 123 45 67.", "error");
       return;
     }
     const cleanSettings = {
@@ -87,13 +86,13 @@ export default function Settings() {
         body: JSON.stringify(cleanSettings)
       });
       if (response.ok) {
-        setMessage('Paramètres enregistrés avec succès.');
-        setTimeout(() => setMessage(''), 3000);
+        showToast('Paramètres enregistrés avec succès.');
       } else {
         const errText = await response.text();
-        alert(errText || 'Erreur lors de la sauvegarde des paramètres.');
+        showToast(errText || 'Erreur lors de la sauvegarde des paramètres.', 'error');
       }
     } catch (error) {
+      showToast('Erreur réseau. Vérifiez votre connexion.', 'error');
       console.error(error);
     } finally {
       setLoading(false);
@@ -102,17 +101,13 @@ export default function Settings() {
 
   return (
     <div className="p-8 w-full h-full overflow-y-auto bg-gray-50">
+      <ToastNotification toast={toast} onClose={() => setToast(null)} />
       <header className="mb-6 flex justify-between items-end">
         <div>
           <h2 className="text-2xl font-black text-gray-900 flex items-center gap-2">
             <span className="text-red-600">⚙️</span> Paramètres
           </h2>
         </div>
-        {message && (
-          <div className="px-4 py-2 bg-green-50 text-green-700 text-sm font-bold rounded-lg border border-green-200 shadow-sm animate-fade-in-down">
-            ✅ {message}
-          </div>
-        )}
       </header>
 
       <form onSubmit={handleSaveGlobal} className="space-y-6 w-full">

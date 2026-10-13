@@ -2,19 +2,19 @@ import { API_URL, formatImageUrl } from '../../config';
 import React, { useState, useEffect } from 'react';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+import ToastNotification from '../../components/ToastNotification';
 
-/**
- * ============================================================================
- * 📁 Fichier : Accounting.jsx
- * 📝 Description : Composant React gérant la comptabilité administrateur.
- * 🔒 Sécurité : Chiffre d'affaires, commissions et reversements calculés côté serveur.
- * ============================================================================
- */
 
 export default function Accounting() {
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [toast, setToast] = useState(null);
+
+  const showToast = (msg, type = 'success') => {
+    setToast({ message: msg, type });
+    setTimeout(() => setToast(null), 3500);
+  };
 
   // States pour la vue détaillée d'un restaurant
   const [selectedResto, setSelectedResto] = useState(null);
@@ -90,7 +90,7 @@ export default function Accounting() {
   // --- EXPORT PDF ---
   const exportPDF = () => {
     if (!restaurantReport || !restaurantReport.transactions || restaurantReport.transactions.length === 0) {
-      return alert("Aucune transaction à exporter.");
+      return showToast("Aucune transaction à exporter pour cette période.", "error");
     }
 
     const doc = new jsPDF();
@@ -144,7 +144,7 @@ export default function Accounting() {
   // --- EXPORT CSV ---
   const exportCSV = () => {
     if (!restaurantReport || !restaurantReport.transactions || restaurantReport.transactions.length === 0) {
-      return alert("Aucune transaction à exporter.");
+      return showToast("Aucune transaction à exporter pour cette période.", "error");
     }
 
     let csvContent = "data:text/csv;charset=utf-8,";
@@ -183,6 +183,7 @@ export default function Accounting() {
 
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-8">
+      <ToastNotification toast={toast} onClose={() => setToast(null)} />
       {/* Header */}
       <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-b border-gray-100 pb-8">
         <div>

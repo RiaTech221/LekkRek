@@ -1,13 +1,8 @@
 import { API_URL } from '../../config';
 import React, { useState, useEffect } from 'react';
-
-/**
- * ============================================================================
- * 🚀 Fichier : ReferenceManager.jsx
- * 🚀 Description : Gestion des Quartiers, Créneaux et Catégories (SOL-192/193)
- * 🚀 Rôle : Composant Frontend Admin (React)
- * ============================================================================
- */
+import ConfirmModal from '../../components/ConfirmModal';
+import ToastNotification from '../../components/ToastNotification';
+import { handleApiResponse } from '../../utils/apiHelper';
 
 const TYPES = [
   { key: 'QUARTIER', label: 'Quartiers', emoji: '📍' },
@@ -25,6 +20,23 @@ export default function ReferenceManager() {
   const [description, setDescription] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+
+  // Notifications et Confirmations stylées
+  const [toast, setToast] = useState(null);
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    confirmText: 'Confirmer',
+    isDestructive: true,
+    isLoading: false,
+    onConfirm: null
+  });
+
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3500);
+  };
 
   const token = () => localStorage.getItem('token');
   const headers = () => ({ 'Authorization': `Bearer ${token()}`, 'Content-Type': 'application/json' });
@@ -92,13 +104,32 @@ export default function ReferenceManager() {
     fetchItems(activeType);
   };
 
-  const handleDelete = async (item) => {
-    if (!window.confirm(`Supprimer "${item.valeur}" ?`)) return;
-    await fetch(`${API_URL}/api/v1/admin/reference/${item.id}`, {
-      method: 'DELETE',
-      headers: { 'Authorization': `Bearer ${token()}` }
+  const handleDelete = (item) => {
+    setConfirmModal({
+      isOpen: true,
+      title: "Supprimer cet élément ?",
+      message: `Êtes-vous sûr de vouloir supprimer "${item.valeur}" ?`,
+      confirmText: "Supprimer",
+      isDestructive: true,
+      isLoading: false,
+      onConfirm: () => {
+        setConfirmModal(prev => ({ ...prev, isLoading: true }));
+        fetch(`${API_URL}/api/v1/admin/reference/${item.id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token()}` }
+        })
+          .then(res => handleApiResponse(res, "Impossible de supprimer cet élément"))
+          .then(() => {
+            setConfirmModal({ isOpen: false });
+            showToast(`"${item.valeur}" supprimé avec succès !`);
+            fetchItems(activeType);
+          })
+          .catch(err => {
+            setConfirmModal({ isOpen: false });
+            showToast(err.message, "error");
+          });
+      }
     });
-    fetchItems(activeType);
   };
 
   const activeLabel = TYPES.find(t => t.key === activeType);
@@ -268,6 +299,21 @@ export default function ReferenceManager() {
           </div>
         </div>
       )}
+
+      {/* MODALE DE CONFIRMATION DESIGNÉE */}
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        confirmText={confirmModal.confirmText}
+        isDestructive={confirmModal.isDestructive}
+        isLoading={confirmModal.isLoading}
+        onConfirm={confirmModal.onConfirm}
+        onClose={() => setConfirmModal({ isOpen: false })}
+      />
+
+      {/* TOAST DE NOTIFICATION DESIGNÉ */}
+      <ToastNotification toast={toast} onClose={() => setToast(null)} />
     </div>
   );
 }

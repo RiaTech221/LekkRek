@@ -1,15 +1,8 @@
 import { API_URL, formatImageUrl } from '../../config';
 import React, { useState, useEffect } from 'react';
-
-/**
- * ============================================================================
- * 📁 Fichier : MenuManager.jsx
- * 📝 Description : Composant React gérant l'interface utilisateur pour MenuManager.
- * 🎨 Rôle : Vue Frontend (Vite/Tailwind) pour l'expérience client/admin LekkRek.
- * 💡 Auteur : Documenté automatiquement (Standard Enterprise)
- * ============================================================================
- */
-
+import ConfirmModal from '../../components/ConfirmModal';
+import ToastNotification from '../../components/ToastNotification';
+import { handleApiResponse } from '../../utils/apiHelper';
 
 export default function MenuManager() {
   const [plats, setPlats] = useState([]);
@@ -19,6 +12,23 @@ export default function MenuManager() {
   
   const [isModalOpen, setModalOpen] = useState(false);
   const [currentPlat, setCurrentPlat] = useState(null);
+
+  // Notifications et Confirmations stylées
+  const [toast, setToast] = useState(null);
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    confirmText: 'Confirmer',
+    isDestructive: true,
+    isLoading: false,
+    onConfirm: null
+  });
+
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3500);
+  };
 
   // Formulaire
   const [imageFile, setImageFile] = useState(null);
@@ -97,12 +107,13 @@ export default function MenuManager() {
       },
       body: JSON.stringify(formData)
     })
-    .then(res => res.json())
+    .then(res => handleApiResponse(res, "Erreur lors de l'enregistrement"))
     .then(() => {
       setModalOpen(false);
+      showToast(currentPlat ? "Plat modifié avec succès !" : "Nouveau plat enregistré !");
       fetchPlats();
     })
-    .catch(err => alert("Erreur d'enregistrement"));
+    .catch(err => showToast(err.message, "error"));
   };
 
   const toggleStatus = (plat) => {
@@ -112,31 +123,71 @@ export default function MenuManager() {
       method: 'PUT',
       headers: { 'Authorization': `Bearer ${token}` }
     })
-    .then(() => fetchPlats())
-    .catch(err => alert("Erreur"));
+    .then(res => handleApiResponse(res, "Erreur de mise à jour"))
+    .then(() => {
+      showToast(`Plat marqué comme ${newStatus === 'DISPO' ? 'disponible' : 'épuisé'}`);
+      fetchPlats();
+    })
+    .catch(err => showToast(err.message, "error"));
   };
 
-    const duplicatePlats = () => {
+  const duplicatePlats = () => {
     if (!selectedRestaurant) return;
-    if (!window.confirm("Voulez-vous marquer tous les plats de ce restaurant comme disponibles (dupliquer le menu de la veille) ?")) return;
-    const token = localStorage.getItem('token');
-    fetch(`${API_URL}/api/v1/operator/restaurants/${selectedRestaurant.id}/plats/duplicate`, {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${token}` }
-    })
-    .then(() => fetchPlats())
-    .catch(err => alert("Erreur lors de la duplication"));
+    setConfirmModal({
+      isOpen: true,
+      title: "Dupliquer le menu de la veille",
+      message: `Voulez-vous marquer tous les plats de "${selectedRestaurant.name}" comme disponibles aujourd'hui ?`,
+      confirmText: "Dupliquer le menu",
+      isDestructive: false,
+      isLoading: false,
+      onConfirm: () => {
+        setConfirmModal(prev => ({ ...prev, isLoading: true }));
+        const token = localStorage.getItem('token');
+        fetch(`${API_URL}/api/v1/operator/restaurants/${selectedRestaurant.id}/plats/duplicate`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+        .then(res => handleApiResponse(res, "Erreur lors de la duplication"))
+        .then(() => {
+          setConfirmModal({ isOpen: false });
+          showToast("Menu de la veille dupliqué avec succès !");
+          fetchPlats();
+        })
+        .catch(err => {
+          setConfirmModal({ isOpen: false });
+          showToast(err.message, "error");
+        });
+      }
+    });
   };
 
   const handleDelete = (id) => {
-    if (!window.confirm("Supprimer ce plat ?")) return;
-    const token = localStorage.getItem('token');
-    fetch(`${API_URL}/api/v1/operator/plats/${id}`, {
-      method: 'DELETE',
-      headers: { 'Authorization': `Bearer ${token}` }
-    })
-    .then(() => fetchPlats())
-    .catch(err => alert("Erreur de suppression"));
+    setConfirmModal({
+      isOpen: true,
+      title: "Supprimer ce plat ?",
+      message: "Cette action est irréversible. Le plat sera définitivement retiré de la carte du restaurant.",
+      confirmText: "Supprimer",
+      isDestructive: true,
+      isLoading: false,
+      onConfirm: () => {
+        setConfirmModal(prev => ({ ...prev, isLoading: true }));
+        const token = localStorage.getItem('token');
+        fetch(`${API_URL}/api/v1/operator/plats/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+        .then(res => handleApiResponse(res, "Impossible de supprimer ce plat"))
+        .then(() => {
+          setConfirmModal({ isOpen: false });
+          showToast("Plat supprimé avec succès !");
+          fetchPlats();
+        })
+        .catch(err => {
+          setConfirmModal({ isOpen: false });
+          showToast(err.message, "error");
+        });
+      }
+    });
   };
 
   // VUE 1 : Sélection du restaurant
@@ -439,6 +490,21 @@ const token = localStorage.getItem('token');
           </div>
         </div>
       )}
+
+      {/* MODALE DE CONFIRMATION DESIGNÉE */}
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        confirmText={confirmModal.confirmText}
+        isDestructive={confirmModal.isDestructive}
+        isLoading={confirmModal.isLoading}
+        onConfirm={confirmModal.onConfirm}
+        onClose={() => setConfirmModal({ isOpen: false })}
+      />
+
+      {/* TOAST DE NOTIFICATION DESIGNÉ */}
+      <ToastNotification toast={toast} onClose={() => setToast(null)} />
     </div>
   );
 }

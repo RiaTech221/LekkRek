@@ -1,22 +1,32 @@
 import { API_URL, formatImageUrl } from '../../config';
 import React, { useState, useEffect } from 'react';
 import { validateSenegalPhone, normalizeSenegalPhone } from '../../utils/phoneUtils';
-
-/**
- * ============================================================================
- * 📁 Fichier : RestaurantsManager.jsx
- * 📝 Description : Composant React gérant l'interface utilisateur pour RestaurantsManager.
- * 🎨 Rôle : Vue Frontend (Vite/Tailwind) pour l'expérience client/admin LekkRek.
- * 💡 Auteur : Documenté automatiquement (Standard Enterprise)
- * ============================================================================
- */
-
+import ConfirmModal from '../../components/ConfirmModal';
+import ToastNotification from '../../components/ToastNotification';
+import { handleApiResponse } from '../../utils/apiHelper';
 
 export default function RestaurantsManager() {
   const [restaurants, setRestaurants] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
+
+  // Notifications et Confirmation
+  const [toast, setToast] = useState(null);
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    confirmText: 'Confirmer',
+    isDestructive: true,
+    isLoading: false,
+    onConfirm: null
+  });
+
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3500);
+  };
 
   // Form State
   const [name, setName] = useState('');
@@ -95,14 +105,14 @@ export default function RestaurantsManager() {
           throw new Error("Erreur lors de l'upload de l'image");
         }
       } catch (err) {
-        alert(err.message);
+        showToast(err.message, "error");
         setUploadingImage(false);
         return;
       }
     }
 
     if (telephone && !validateSenegalPhone(telephone)) {
-      alert("Le numéro de téléphone du restaurant doit être un numéro sénégalais valide à 9 chiffres (ex: 771234567 ou +221 77 123 45 67).");
+      showToast("Numéro du restaurant invalide. Format attendu : 771234567 ou +221 77 123 45 67.", "error");
       return;
     }
 
@@ -131,10 +141,7 @@ export default function RestaurantsManager() {
       },
       body: JSON.stringify(payload)
     })
-      .then(res => {
-        if (!res.ok) throw new Error("Erreur lors de l'enregistrement.");
-        return res.json();
-      })
+      .then(res => handleApiResponse(res, "Erreur lors de l'enregistrement."))
       .then(() => {
         setIsModalOpen(false);
         setEditingId(null);
@@ -149,23 +156,42 @@ export default function RestaurantsManager() {
         setSubscriptionEndDate('');
         setIsActive(true);
         setUploadingImage(false);
+        showToast(editingId ? "Restaurant modifié avec succès !" : "Restaurant créé avec succès !");
         fetchRestaurants();
       })
       .catch(err => {
-        alert(err.message);
+        showToast(err.message, "error");
         setUploadingImage(false);
       });
   };
 
-  const handleDelete = (id) => {
-    if (!window.confirm("Êtes-vous sûr de vouloir supprimer ce restaurant et TOUS ses plats associés ?")) return;
-    const token = localStorage.getItem('token');
-    fetch(`${API_URL}/api/v1/admin/restaurants/${id}`, {
-      method: 'DELETE',
-      headers: { 'Authorization': `Bearer ${token}` }
-    })
-      .then(() => fetchRestaurants())
-      .catch(err => alert("Erreur lors de la suppression. Ce restaurant a probablement des commandes liées."));
+  const handleDelete = (id, restoName = "ce restaurant") => {
+    setConfirmModal({
+      isOpen: true,
+      title: "Supprimer ce restaurant ?",
+      message: `Êtes-vous sûr de vouloir supprimer "${restoName}" et TOUS ses plats associés ? Cette action est irréversible.`,
+      confirmText: "Supprimer définitivement",
+      isDestructive: true,
+      isLoading: false,
+      onConfirm: () => {
+        setConfirmModal(prev => ({ ...prev, isLoading: true }));
+        const token = localStorage.getItem('token');
+        fetch(`${API_URL}/api/v1/admin/restaurants/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+          .then(res => handleApiResponse(res, "Impossible de supprimer ce restaurant (commandes liées ou droits insuffisants)."))
+          .then(() => {
+            setConfirmModal({ isOpen: false });
+            showToast("Restaurant et plats associés supprimés !");
+            fetchRestaurants();
+          })
+          .catch(err => {
+            setConfirmModal({ isOpen: false });
+            showToast(err.message, "error");
+          });
+      }
+    });
   };
 
   const toggleActive = (resto) => {
@@ -278,7 +304,7 @@ export default function RestaurantsManager() {
                   Modifier
                 </button>
                 <button 
-                  onClick={() => handleDelete(resto.id)}
+                  onClick={() => handleDelete(resto.id, resto.name)}
                   className="text-red-600 hover:text-white font-bold text-sm bg-red-50 hover:bg-red-600 px-4 py-2 rounded-xl transition-colors"
                 >
                   Supprimer
@@ -442,6 +468,21 @@ export default function RestaurantsManager() {
           </div>
         </div>
       )}
+
+      {/* MODALE DE CONFIRMATION DESIGNÉE */}
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        confirmText={confirmModal.confirmText}
+        isDestructive={confirmModal.isDestructive}
+        isLoading={confirmModal.isLoading}
+        onConfirm={confirmModal.onConfirm}
+        onClose={() => setConfirmModal({ isOpen: false })}
+      />
+
+      {/* TOAST DE NOTIFICATION DESIGNÉ */}
+      <ToastNotification toast={toast} onClose={() => setToast(null)} />
     </div>
   );
 }

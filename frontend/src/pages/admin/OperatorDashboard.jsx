@@ -13,27 +13,25 @@ import AuditLogs from './AuditLogs';
 import PartnerRequests from './PartnerRequests';
 import ReferenceManager from './ReferenceManager';
 import OrderDetailsModal from './OrderDetailsModal';
-
-/**
- * ============================================================================
- * 📁 Fichier : OperatorDashboard.jsx
- * 📝 Description : Composant React gérant l'interface utilisateur pour OperatorDashboard.
- * 🎨 Rôle : Vue Frontend (Vite/Tailwind) pour l'expérience client/admin LekkRek.
- * 💡 Auteur : Documenté automatiquement (Standard Enterprise)
- * ============================================================================
- */
+import ToastNotification from '../../components/ToastNotification';
 
 
 export default function OperatorDashboard() {
   const [activeTab, setActiveTab] = useState(() => localStorage.getItem('lekkrek_admin_tab') || 'overview');
   useEffect(() => { localStorage.setItem('lekkrek_admin_tab', activeTab); }, [activeTab]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-    const [selectedOrder, setSelectedOrder] = useState(null);
+  const [selectedOrder, setSelectedOrder] = useState(null);
   const [commandes, setCommandes] = useState({
     nouvelles: [],
     preparation: [],
     pretes: []
   });
+  const [toast, setToast] = useState(null);
+
+  const showToast = (msg, type = 'success') => {
+    setToast({ message: msg, type });
+    setTimeout(() => setToast(null), 3500);
+  };
 
   const navigate = useNavigate();
 
@@ -132,9 +130,9 @@ export default function OperatorDashboard() {
       method: 'PUT',
       headers: { 'Authorization': `Bearer ${token}` }
     })
-      .then(res => res.json())
+      .then(res => { if (!res.ok) throw new Error("Erreur mise à jour paiement"); return res.json(); })
       .then(() => fetchCommandes())
-      .catch(err => alert("Erreur maj paiement"));
+      .catch(err => showToast(err.message, "error"));
   };
 
   const updateStatus = (id, newStatus) => {
@@ -143,9 +141,9 @@ export default function OperatorDashboard() {
       method: 'PUT',
       headers: { 'Authorization': `Bearer ${token}` }
     })
-      .then(res => res.json())
+      .then(res => { if (!res.ok) throw new Error("Erreur mise à jour du statut"); return res.json(); })
       .then(() => fetchCommandes())
-      .catch(err => alert("Erreur maj statut"));
+      .catch(err => showToast(err.message, "error"));
   };
 
   const handleLogout = () => {
@@ -156,6 +154,7 @@ export default function OperatorDashboard() {
 
   return (
     <div id="desktop-dashboard" className="flex bg-gray-50 font-sans" style={{ position: "fixed", top: 0, left: 0, width: "100%", height: "100vh", zIndex: 50 }}>
+      <ToastNotification toast={toast} onClose={() => setToast(null)} />
       
       {/* Sidebar */}
       <div className={`bg-white border-r border-gray-200 flex flex-col h-full flex-shrink-0 transition-all duration-300 relative overflow-x-hidden`} style={{ width: isSidebarOpen ? "256px" : "80px" }}>
