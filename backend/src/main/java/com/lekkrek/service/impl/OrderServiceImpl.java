@@ -132,13 +132,13 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public Commande getOrderByNumber(String orderNumber) {
         return commandeRepository.findByOrderNumber(orderNumber)
-                .orElseThrow(() -> new RuntimeException("Commande introuvable"));
+                .orElseThrow(() -> new com.lekkrek.exception.ResourceNotFoundException("Commande introuvable avec le numéro : " + orderNumber));
     }
 
     @Override
     public OrderTrackingDTO getOrderTrackingByNumber(String orderNumber) {
         Commande c = commandeRepository.findByOrderNumber(orderNumber)
-                .orElseThrow(() -> new RuntimeException("Commande introuvable"));
+                .orElseThrow(() -> new com.lekkrek.exception.ResourceNotFoundException("Commande introuvable avec le numéro : " + orderNumber));
         return new OrderTrackingDTO(
                 c.getOrderNumber(),
                 c.getStatus().name(),
