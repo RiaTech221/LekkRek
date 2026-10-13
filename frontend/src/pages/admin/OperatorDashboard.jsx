@@ -163,7 +163,7 @@ export default function OperatorDashboard() {
           </button>
         <div className="px-5 pt-8 pb-4 shrink-0">
             <div className="flex items-center justify-center h-16 overflow-hidden transition-all duration-300">
-              <img src="/logo-square.png" alt="Logo LekkRek" className={`object-contain transition-all duration-300 cursor-default ${isSidebarOpen ? "h-14 w-auto" : "h-10 w-10"}`} />
+              <img src="/logo_lekkrek.png" alt="Logo LekkRek" className={`object-contain transition-all duration-300 cursor-default ${isSidebarOpen ? "h-14 w-auto" : "h-10 w-10"}`} />
             </div>
           </div>
         
