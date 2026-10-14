@@ -362,7 +362,7 @@ export default function Overview() {
             </thead>
             <tbody>
               {orders.slice().reverse().slice(0, 5).map(o => {
-                const shortId = "#" + (o.orderNumber || "").replace("CMD-", "").substring(0, 5);
+                const shortId = o.orderNumber || ("#" + String(o.id).substring(0, 6));
                 let statusConfig = { text: "Inconnu", color: "bg-gray-100 text-gray-600", dot: "bg-gray-400" };
                 switch (o.status) {
                   case 'NOUVELLE': statusConfig = { text: "Nouvelle", color: "bg-blue-50 text-blue-700", dot: "bg-blue-500" }; break;
