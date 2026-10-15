@@ -363,7 +363,7 @@ return () => {
   
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans">
+    <div className="min-h-screen bg-gray-50 font-sans flex flex-col">
       
       {/* NAVBAR */}
       <nav className="fixed top-0 left-0 w-full bg-white/90 backdrop-blur-md z-50 border-b border-gray-100 shadow-sm transition-all duration-300">
@@ -449,7 +449,8 @@ return () => {
         </div>
       </nav>
 
-      
+      <main className="flex-1 flex flex-col">
+
       {/* OFFLINE BANNER */}
       {isOffline && (
         <div className="fixed top-20 left-0 w-full bg-red-600 text-white text-center py-2 text-sm font-bold z-40 shadow-md">
@@ -764,9 +765,10 @@ return () => {
         onOrderNumberChange={setTrackOrderNumber}
       />
 
+      </main>
+
       {/* FOOTER */}
-      
-      <footer className="bg-gray-900 text-white pt-16 pb-8 border-t border-gray-800 mt-20">
+      <footer className="bg-gray-900 text-white pt-16 pb-8 border-t border-gray-800 mt-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
             <div className="md:col-span-1">
