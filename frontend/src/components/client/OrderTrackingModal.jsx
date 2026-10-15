@@ -117,7 +117,7 @@ export default function OrderTrackingModal({ isOpen, onClose, onOrderNumberChang
               </p>
 
               <p className="text-gray-500 text-sm">
-                Client : {trackResult.clientName}
+                 Restaurant : {trackResult.restaurantName}
               </p>
 
               <p className="text-gray-500 text-sm">
