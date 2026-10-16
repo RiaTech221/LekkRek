@@ -3,6 +3,9 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import DOMPurify from 'dompurify';
 import { validateSenegalPhone, normalizeSenegalPhone } from '../../utils/phoneUtils';
+import DishCard from '../../components/client/DishCard';
+import SuccessModal from '../../components/client/SuccessModal';
+import OrderTrackingModal from '../../components/client/OrderTrackingModal';
 
 /**
  * ============================================================================
@@ -56,7 +59,7 @@ export default function ClientView() {
   // States pour le suivi
   const [isTrackModalOpen, setTrackModalOpen] = useState(false);
   const [trackOrderNumber, setTrackOrderNumber] = useState('');
-  const [trackResult, setTrackResult] = useState(null);
+  
   
   // Carousel State
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -75,7 +78,6 @@ export default function ClientView() {
     return () => clearInterval(timer);
   }, []);
 
-  const [trackError, setTrackError] = useState('');
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
   const [isLoginOpen, setLoginOpen] = useState(false);
@@ -358,20 +360,7 @@ return () => {
     .catch(() => setPartnerStatus('error'));
   };
 
-  const handleTrackOrder = (e) => {
-    e.preventDefault();
-    setTrackError('');
-    setTrackResult(null);
-
-    fetch(`${API_URL}/api/v1/public/orders/track/${trackOrderNumber}`)
-      .then(res => {
-        if (res.status === 404) throw new Error("Commande introuvable.");
-        if (!res.ok) throw new Error("Erreur lors de la recherche.");
-        return res.json();
-      })
-      .then(data => setTrackResult(data))
-      .catch(err => setTrackError(err.message));
-  };
+  
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans flex flex-col">
@@ -570,41 +559,7 @@ return () => {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8 pb-12">
           {Array.isArray(plats) && plats.length > 0 ? plats.map(plat => (
-            <div key={plat.id} className="bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 group flex flex-col">
-              <div className="relative h-56 overflow-hidden bg-gray-100 shrink-0">
-                <img src={formatImageUrl(plat.image)} alt={plat.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&q=80&w=800'; }} />
-                <div className="absolute top-4 left-4">
-                  <span className={`px-3 py-1 text-xs font-black uppercase tracking-wider rounded-full shadow-md backdrop-blur-md ${plat.status === 'DISPO' ? 'bg-white/90 text-green-600' : 'bg-red-600/90 text-white'}`}>
-                    {plat.status === 'DISPO' ? 'Disponible' : 'Épuisé'}
-                  </span>
-                </div>
-              </div>
-              
-              <div className="p-6 flex flex-col flex-1">
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-xs">🏪</span>
-                  <span className="text-sm font-bold text-gray-500">{plat.restaurant?.name || 'Restaurant Partenaire'}</span>
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2 leading-tight">{plat.name}</h3>
-                <p className="text-gray-500 text-sm mb-6 flex-1 line-clamp-2">{plat.description || 'Un délicieux plat préparé avec soin.'}</p>
-                
-                <div className="flex justify-between items-end mt-auto pt-4 border-t border-gray-50">
-                  <div>
-                    <span className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Prix</span>
-                    <span className="text-2xl font-black text-gray-900">{plat.price.toLocaleString()} <span className="text-base text-gray-500">FCFA</span></span>
-                  </div>
-                  {plat.status === 'DISPO' ? (
-                    <button onClick={() => addToCart(plat)} className="w-12 h-12 bg-gray-900 text-white rounded-full flex items-center justify-center text-2xl font-light hover:bg-red-600 hover:shadow-lg hover:shadow-red-600/30 transition-all transform hover:-translate-y-1">
-                      +
-                    </button>
-                  ) : (
-                     <button disabled className="w-12 h-12 bg-gray-100 text-gray-400 rounded-full flex items-center justify-center text-xl font-light cursor-not-allowed">
-                      —
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
+            <DishCard key={plat.id} plat={plat} onAdd={addToCart} />
           )) : (
             <div className="col-span-full py-12">
               <div className="text-center bg-white rounded-3xl border-2 border-dashed border-gray-200 py-12 mb-12">
@@ -615,41 +570,7 @@ return () => {
               
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8">
                 {allPlats.slice(0, 3).map(plat => (
-                  <div key={plat.id} className="bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 group flex flex-col">
-                    <div className="relative h-56 overflow-hidden bg-gray-100 shrink-0">
-                      <img src={formatImageUrl(plat.image)} alt={plat.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&q=80&w=800'; }} />
-                      <div className="absolute top-4 left-4">
-                        <span className={`px-3 py-1 text-xs font-black uppercase tracking-wider rounded-full shadow-md backdrop-blur-md ${plat.status === 'DISPO' ? 'bg-white/90 text-green-600' : 'bg-red-600/90 text-white'}`}>
-                          {plat.status === 'DISPO' ? 'Disponible' : 'Épuisé'}
-                        </span>
-                      </div>
-                    </div>
-                    
-                    <div className="p-6 flex flex-col flex-1">
-                      <div className="flex items-center gap-2 mb-3">
-                        <span className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-xs">🏪</span>
-                        <span className="text-sm font-bold text-gray-500">{plat.restaurant?.name || 'Restaurant Partenaire'}</span>
-                      </div>
-                      <h3 className="text-xl font-bold text-gray-900 mb-2 leading-tight">{plat.name}</h3>
-                      <p className="text-gray-500 text-sm mb-6 flex-1 line-clamp-2">{plat.description || 'Un délicieux plat préparé avec soin.'}</p>
-                      
-                      <div className="flex justify-between items-end mt-auto pt-4 border-t border-gray-50">
-                        <div>
-                          <span className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Prix</span>
-                          <span className="text-2xl font-black text-gray-900">{plat.price.toLocaleString()} <span className="text-base text-gray-500">FCFA</span></span>
-                        </div>
-                        {plat.status === 'DISPO' ? (
-                          <button onClick={() => addToCart(plat)} className="w-12 h-12 bg-gray-900 text-white rounded-full flex items-center justify-center text-2xl font-light hover:bg-red-600 hover:shadow-lg hover:shadow-red-600/30 transition-all transform hover:-translate-y-1">
-                            +
-                          </button>
-                        ) : (
-                           <button disabled className="w-12 h-12 bg-gray-100 text-gray-400 rounded-full flex items-center justify-center text-xl font-light cursor-not-allowed">
-                            —
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
+                  <DishCard key={plat.id} plat={plat} onAdd={addToCart} />
                 ))}
               </div>
             </div>
@@ -748,24 +669,15 @@ return () => {
         </div>
       )}
 
+      
       {/* SUCCÈS MODAL */}
       {isSuccessOpen && orderInfo && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-          <div className="bg-white p-8 rounded-3xl shadow-2xl max-w-md w-full text-center">
-            <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-4xl mx-auto mb-6">✓</div>
-            <h2 className="text-2xl font-black text-gray-900 mb-2">Commande Réussie !</h2>
-            <p className="text-gray-500 mb-8">Votre commande a été envoyée au restaurant. Merci pour votre confiance.</p>
-            <div className="bg-gray-50 p-6 rounded-2xl mb-8 border border-gray-100">
-                <p className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-2">Numéro de Suivi</p>
-                <p className="text-3xl font-black text-red-600 tracking-wider">{orderInfo.orderNumber}</p>
-                <p className="text-xs text-gray-500 mt-4 bg-white p-2 rounded-lg border border-gray-200">Conservez ce numéro pour suivre votre commande !</p>
-            </div>
-            <button onClick={() => setSuccessOpen(false)} className="w-full bg-gray-900 text-white font-bold py-4 rounded-xl hover:bg-black transition-colors">
-              Fermer
-            </button>
-          </div>
-        </div>
+        <SuccessModal
+          orderInfo={orderInfo}
+          onClose={() => setSuccessOpen(false)}
+        />
       )}
+
 
       {/* LOGIN/PROFILE MODAL */}
       {isLoginOpen && (
@@ -847,47 +759,11 @@ return () => {
       )}
 
       {/* SUIVI MODAL */}
-      {isTrackModalOpen && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-          <div className="bg-white p-8 rounded-3xl shadow-2xl max-w-md w-full relative">
-            <button onClick={() => setTrackModalOpen(false)} className="absolute top-6 right-6 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 font-bold transition-colors">✕</button>
-            <h2 className="text-2xl font-black text-gray-900 mb-6">Suivre une commande</h2>
-            <form onSubmit={handleTrackOrder} className="flex gap-2 mb-6">
-              <input type="text" placeholder="Ex: CMD-123456" required className="flex-1 bg-gray-50 border border-gray-200 rounded-xl p-4 font-bold text-gray-900 focus:outline-none focus:border-red-600" value={trackOrderNumber} onChange={(e) => setTrackOrderNumber(e.target.value)} />
-              <button type="submit" className="bg-red-600 text-white px-6 rounded-xl font-bold hover:bg-red-700 transition-colors">OK</button>
-            </form>
-            
-            {trackError && <p className="text-red-600 font-medium text-center bg-red-50 p-4 rounded-xl">{trackError}</p>}
-            
-            {trackResult && (
-              <div className="border border-gray-100 rounded-2xl p-6 bg-gray-50">
-                <div className="flex justify-between items-start mb-6">
-                    <div>
-                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Statut Actuel</p>
-                        <h3 className={`text-xl font-black ${
-                            trackResult.status === 'LIVREE' ? 'text-green-600' :
-                            trackResult.status === 'PRETE' ? 'text-blue-600' :
-                            trackResult.status === 'EN_PREPARATION' ? 'text-orange-500' :
-                            'text-gray-900'
-                        }`}>
-                          {trackResult.status === 'NOUVELLE' && 'En attente ⏳'}
-                          {trackResult.status === 'EN_PREPARATION' && 'En préparation 🍳'}
-                          {trackResult.status === 'PRETE' && 'Prête (Livreur en route) 🛵'}
-                          {trackResult.status === 'LIVREE' && 'Livrée ✅'}
-                          {trackResult.status === 'ANNULEE' && 'Annulée ❌'}
-                        </h3>
-                    </div>
-                </div>
-                <div className="pt-4 border-t border-gray-200">
-                    <p className="text-sm font-bold text-gray-900 mb-1">Détails</p>
-                    <p className="text-gray-500 text-sm">Client : {trackResult.clientName}</p>
-                    <p className="text-gray-500 text-sm">Total : <span className="font-bold text-gray-900">{trackResult.totalAmount} FCFA</span></p>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+            <OrderTrackingModal
+        isOpen={isTrackModalOpen}
+        onClose={() => setTrackModalOpen(false)}
+        onOrderNumberChange={setTrackOrderNumber}
+      />
 
       </main>
 
@@ -1043,4 +919,3 @@ return () => {
     </div>
   );
 }
-
