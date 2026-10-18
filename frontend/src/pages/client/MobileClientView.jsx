@@ -5,6 +5,7 @@ import DOMPurify from 'dompurify';
 import { validateSenegalPhone, normalizeSenegalPhone } from '../../utils/phoneUtils';
 import DishCard from '../../components/client/DishCard';
 import SuccessModal from '../../components/client/SuccessModal';
+import OrderTrackingModal from '../../components/client/OrderTrackingModal';
 /**
  * ============================================================================
  * 📁 Fichier : MobileClientView.jsx
@@ -106,8 +107,6 @@ export default function MobileClientView() {
     showToast("Vous êtes déconnecté.", 'info');
   };
 
-  
-    
   const handleWhatsappClick = (e) => {
     e.preventDefault();
 
@@ -140,10 +139,6 @@ export default function MobileClientView() {
     });
   };
 
-  
-
-
-  
   useEffect(() => {
     const handleOnline = () => setIsOffline(false);
     const handleOffline = () => setIsOffline(true);
@@ -747,52 +742,13 @@ return () => {
       )}
 
       {/* SUIVI MODAL */}
-      {isTrackModalOpen && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-          <div className="bg-white p-8 rounded-3xl shadow-2xl max-w-md w-full relative">
-            <button onClick={() => setTrackModalOpen(false)} className="absolute top-6 right-6 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 font-bold transition-colors">✕</button>
-            <h2 className="text-2xl font-black text-gray-900 mb-6">Suivre une commande</h2>
-            <form onSubmit={handleTrackOrder} className="flex gap-2 mb-6">
-              <input type="text" placeholder="Ex: CMD-123456" required className="flex-1 bg-gray-50 border border-gray-200 rounded-xl p-4 font-bold text-gray-900 focus:outline-none focus:border-red-600" value={trackOrderNumber} onChange={(e) => setTrackOrderNumber(e.target.value)} />
-              <button type="submit" className="bg-red-600 text-white px-6 rounded-xl font-bold hover:bg-red-700 transition-colors">OK</button>
-            </form>
-            
-            {trackError && <p className="text-red-600 font-medium text-center bg-red-50 p-4 rounded-xl">{trackError}</p>}
-            
-            {trackResult && (
-              <div className="border border-gray-100 rounded-2xl p-6 bg-gray-50">
-                <div className="flex justify-between items-start mb-6">
-                    <div>
-                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Statut Actuel</p>
-                        <h3 className={`text-xl font-black ${
-                            trackResult.status === 'LIVREE' ? 'text-green-600' :
-                            trackResult.status === 'PRETE' ? 'text-blue-600' :
-                            trackResult.status === 'EN_PREPARATION' ? 'text-orange-500' :
-                            'text-gray-900'
-                        }`}>
-                          {trackResult.status === 'NOUVELLE' && 'En attente ⏳'}
-                          {trackResult.status === 'EN_PREPARATION' && 'En préparation 🍳'}
-                          {trackResult.status === 'PRETE' && 'Prête (Livreur en route) 🛵'}
-                          {trackResult.status === 'LIVREE' && 'Livrée ✅'}
-                          {trackResult.status === 'ANNULEE' && 'Annulée ❌'}
-                        </h3>
-                    </div>
-                </div>
-                <div className="pt-4 border-t border-gray-200">
-                    <p className="text-sm font-bold text-gray-900 mb-1">Détails</p>
-                    <p className="text-gray-500 text-sm">Client : {trackResult.clientName}</p>
-                    <p className="text-gray-500 text-sm">Total : <span className="font-bold text-gray-900">{trackResult.totalAmount} FCFA</span></p>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+           <OrderTrackingModal
+        isOpen={isTrackModalOpen}
+        onClose={() => setTrackModalOpen(false)}
+        onOrderNumberChange={setTrackOrderNumber}
+      />
 
       {/* FOOTER */}
-      
-      
-
 
       {/* PARTNER MODAL */}
       {isPartnerModalOpen && (
@@ -851,8 +807,6 @@ return () => {
           </div>
         </div>
       )}
-
-    
             {/* FOOTER MOBILE (SIMPLIFIÉ) */}
       <footer className="bg-gray-900 text-white pt-10 pb-24 border-t border-gray-800 mt-12">
         <div className="px-6">
