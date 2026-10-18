@@ -51,8 +51,6 @@ export default function MobileClientView() {
   // States pour le suivi
   const [isTrackModalOpen, setTrackModalOpen] = useState(false);
   const [trackOrderNumber, setTrackOrderNumber] = useState('');
-  const [trackResult, setTrackResult] = useState(null);
-  const [trackError, setTrackError] = useState('');
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
   // Toast notifications
@@ -330,21 +328,6 @@ return () => {
       }
     })
     .catch(() => setPartnerStatus('error'));
-  };
-
-  const handleTrackOrder = (e) => {
-    e.preventDefault();
-    setTrackError('');
-    setTrackResult(null);
-
-    fetch(`${API_URL}/api/v1/public/orders/track/${trackOrderNumber}`)
-      .then(res => {
-        if (res.status === 404) throw new Error("Commande introuvable.");
-        if (!res.ok) throw new Error("Erreur lors de la recherche.");
-        return res.json();
-      })
-      .then(data => setTrackResult(data))
-      .catch(err => setTrackError(err.message));
   };
 
   return (
