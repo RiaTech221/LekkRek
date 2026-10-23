@@ -19,6 +19,7 @@ target/
 .idea/
 *.iml
 .vscode/
+.claude/
 .DS_Store
 Thumbs.db
 
