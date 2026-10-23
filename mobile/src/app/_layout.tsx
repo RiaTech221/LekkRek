@@ -1,18 +1,33 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { useColorScheme } from 'react-native';
+/**
+ * ============================================================================
+ * 📁 Fichier : app/_layout.tsx
+ * 📝 Description : Layout racine de l'app (point d'entrée du routing Expo Router).
+ * 🔒 Rôle : Définit le navigateur racine. On utilise un **Stack** (pile) et non
+ *           les onglets du template : l'espace client LekkRek est une page
+ *           unique qui scrolle (menu du jour), pas une app multi-onglets.
+ *           Les futures écrans (panier, suivi, profil) s'empileront ici.
+ * 💡 Auteur : Équipe Mobile
+ * ----------------------------------------------------------------------------
+ * 🔧 Simplification : le template embarquait `NativeTabs` (Home/Explore), sans
+ *    rapport avec LekkRek. Remplacé par un Stack + header masqué (chaque écran
+ *    gère sa propre barre de navigation pour coller au design web).
+ * ============================================================================
+ */
 
-import { AnimatedSplashOverlay } from '@/components/animated-icon';
-import AppTabs from '@/components/app-tabs';
+import { Stack } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-SplashScreen.preventAutoHideAsync();
+import { Brand } from '@/constants/theme';
 
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
+export default function RootLayout() {
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <AnimatedSplashOverlay />
-      <AppTabs />
-    </ThemeProvider>
+    <SafeAreaProvider>
+      <StatusBar style="dark" />
+      {/* Header natif masqué : nos écrans possèdent leur propre navbar (reproduit le web). */}
+      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: Brand.surfaceAlt } }}>
+        <Stack.Screen name="index" />
+      </Stack>
+    </SafeAreaProvider>
   );
 }
