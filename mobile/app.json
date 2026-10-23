@@ -42,7 +42,7 @@
       "reactCompiler": true
     },
     "extra": {
-      "apiBaseUrl": "http://localhost:8080"
+      "apiBaseUrl": "http://172.20.10.4:8080"
     }
   }
 }

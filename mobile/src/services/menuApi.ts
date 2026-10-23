@@ -30,6 +30,31 @@ export class ApiError extends Error {
 }
 
 /**
+ * Délai maximum (ms) avant d'abandonner une requête.
+ * 🐛 BUG (corrigé) : sans timeout, `fetch` reste indéfiniment en attente quand
+ *    le serveur est injoignable (IP périmée, réseau coupé) → l'utilisateur voyait
+ *    un spinner « chargement » éternel au lieu de l'état d'erreur avec « Réessayer ».
+ */
+const REQUEST_TIMEOUT_MS = 8000;
+
+/**
+ * `fetch` avec délai d'abandon. Lève une `ApiError` (status 0) si le délai est
+ * dépassé ou si le réseau est indisponible.
+ */
+async function fetchWithTimeout(url: string): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  try {
+    return await fetch(url, { signal: controller.signal });
+  } catch {
+    // Timeout (abort) ou erreur réseau : dans les deux cas, serveur injoignable.
+    throw new ApiError('Serveur injoignable (vérifiez le réseau et l\'adresse de l\'API).', 0);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/**
  * Construit la query string à partir des filtres actifs.
  * Ignore les champs vides/undefined pour ne pas envoyer `?keyword=&resto=…`.
  */
@@ -52,13 +77,7 @@ function buildQuery(filters: MenuFilters): string {
  * @throws ApiError en cas d'échec réseau ou HTTP.
  */
 export async function fetchMenu(filters: MenuFilters = {}): Promise<Plat[]> {
-  let res: Response;
-  try {
-    res = await fetch(`${API_URL}${API_PREFIX}/menu${buildQuery(filters)}`);
-  } catch {
-    // Pas de réseau / backend injoignable.
-    throw new ApiError('Impossible de joindre le serveur.', 0);
-  }
+  const res = await fetchWithTimeout(`${API_URL}${API_PREFIX}/menu${buildQuery(filters)}`);
 
   if (!res.ok) {
     throw new ApiError(`Erreur serveur (${res.status}).`, res.status);
@@ -75,12 +94,7 @@ export async function fetchMenu(filters: MenuFilters = {}): Promise<Plat[]> {
  */
 export async function fetchRecommendations(phone?: string): Promise<Plat[]> {
   const qs = phone ? `?phone=${encodeURIComponent(phone)}` : '';
-  let res: Response;
-  try {
-    res = await fetch(`${API_URL}${API_PREFIX}/menu/recommendations${qs}`);
-  } catch {
-    throw new ApiError('Impossible de joindre le serveur.', 0);
-  }
+  const res = await fetchWithTimeout(`${API_URL}${API_PREFIX}/menu/recommendations${qs}`);
 
   if (!res.ok) {
     throw new ApiError(`Erreur serveur (${res.status}).`, res.status);
