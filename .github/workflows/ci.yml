@@ -45,3 +45,28 @@ jobs:
     - name: Build de Production
       working-directory: ./frontend
       run: npm run build
+
+  build-mobile:
+    name: Valider le Mobile (Expo / React Native)
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Configuration Node.js 22
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+        cache: 'npm'
+        cache-dependency-path: ./mobile/package-lock.json
+        
+    - name: Installation des dépendances
+      working-directory: ./mobile
+      run: npm ci
+      
+    - name: Typecheck TypeScript
+      working-directory: ./mobile
+      run: npx tsc --noEmit
+
+    - name: Lint ESLint
+      working-directory: ./mobile
+      run: npm run lint

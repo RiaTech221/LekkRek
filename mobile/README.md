@@ -98,7 +98,7 @@ Toute la couche API passe par **un point unique** : [`src/services/config.ts`](s
 ```jsonc
 // app.json
 "extra": {
-  "apiBaseUrl": "http://172.20.10.4:8080"   // IP LAN de la machine de dev
+  "apiBaseUrl": "http://localhost:8080"   // Par défaut : localhost (simulateur). Remplacer par votre IP LAN pour un téléphone physique.
 }
 ```
 
@@ -126,7 +126,6 @@ mobile/
 │   ├── types/          # types TS miroir des entités backend
 │   └── constants/      # theme.ts (couleurs, typo, espacements)
 ├── assets/             # icônes, splash
-└── scripts/            # reset-project.js (template, à éviter)
 ```
 
 Les routes vivent dans `src/app/` ; tout le reste (composants, hooks, services) reste **hors** de `src/app/`.
@@ -161,8 +160,6 @@ npx expo install --fix      # aligner les versions sur le SDK
 | Le téléphone ne voit pas l'API | Téléphone en 4G → passez sur le **même WiFi/hotspot** que la machine ; vérifiez le pare-feu (port 8080) |
 | Nouvelle IP après changement de réseau | Mettez à jour `extra.apiBaseUrl` puis redémarrez Metro |
 | Erreur de dépendances / SDK | `npx expo-doctor` puis `npx expo install --fix` |
-
-> ❌ `npm run reset-project` réinitialise l'app sur le squelette du template : **ne pas l'exécuter** sur ce projet.
 
 ---
 
