@@ -11,9 +11,10 @@ Le projet suit une architecture découplée Frontend / Backend :
 | Couche | Technologie | Rôle |
 |---|---|---|
 | **Frontend** | React.js (Vite) + Tailwind CSS | Vitrine client, dashboard admin & opérateur |
+| **Mobile** | React Native (Expo SDK 58) + TypeScript | App mobile native client (menus, filtres, panier) |
 | **Backend** | Java 21 + Spring Boot 3 + Spring Security | API REST, sécurité JWT, logique métier, KPI |
 | **Base de données** | MySQL + Hibernate/JPA | Persistance des données |
-| **CI/CD** | GitHub Actions | Validation backend (Maven) + frontend (Vite) sur chaque PR |
+| **CI/CD** | GitHub Actions | Validation backend (Maven), frontend (Vite) et mobile (Expo) sur chaque PR |
 
 ---
 
@@ -208,8 +209,9 @@ Chaque push et chaque Pull Request sur `develop` et `main` déclenche automatiqu
 
 - **Validation backend** : compilation Maven (Java 21), vérification qu'aucune erreur ne casse le build
 - **Validation frontend** : build Vite, vérification qu'aucune erreur de syntaxe ou d'import ne casse le bundle
+- **Validation mobile** : validation TypeScript (`tsc`) et linter ESLint sur l'application Expo
 
-Les merges ne peuvent être effectués que si les deux checks passent.
+Les merges ne peuvent être effectués que si tous les checks passent.
 
 ---
 
