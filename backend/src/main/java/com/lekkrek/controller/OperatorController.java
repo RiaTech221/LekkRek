@@ -33,27 +33,16 @@ public class OperatorController {
 
     private final OrderService orderService;
     private final PlatService platService;
-    private final UtilisateurRepository utilisateurRepository;
 
-    public OperatorController(OrderService orderService, PlatService platService, UtilisateurRepository utilisateurRepository) {
+    public OperatorController(OrderService orderService, PlatService platService) {
         this.orderService = orderService;
         this.platService = platService;
-        this.utilisateurRepository = utilisateurRepository;
     }
 
     // --- ORDERS ---
     @GetMapping("/orders")
-    public List<Commande> getAllOrders(Principal principal) {
-        Utilisateur user = utilisateurRepository.findByEmail(principal.getName()).orElseThrow();
-        List<Commande> allOrders = orderService.getAllOrders();
-        
-        if (user.getRole() == Utilisateur.Role.ADMIN) {
-            return allOrders;
-        }
-        
-        return allOrders.stream()
-                .filter(c -> c.getRestaurant() != null && c.getRestaurant().getName().equals(user.getRestaurantAssigne()))
-                .collect(Collectors.toList());
+    public List<Commande> getAllOrders() {
+        return orderService.getAllOrders();
     }
 
     @PutMapping("/orders/{id}/status")

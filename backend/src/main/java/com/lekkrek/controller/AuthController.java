@@ -25,6 +25,11 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import com.lekkrek.entity.Restaurant;
+import com.lekkrek.entity.Utilisateur;
+import com.lekkrek.repository.RestaurantRepository;
+import com.lekkrek.repository.UtilisateurRepository;
+import com.lekkrek.service.OperatorAccessService;
 
 @RestController
 @RequestMapping("${api.prefix.public:/api/v1}/auth")
@@ -32,10 +37,20 @@ public class AuthController {
 
     private final AuthenticationManager authenticationManager;
     private final JwtUtils jwtUtils;
+    private final UtilisateurRepository utilisateurRepository;
+    private final RestaurantRepository restaurantRepository;
+    private final OperatorAccessService operatorAccessService;
 
-    public AuthController(AuthenticationManager authenticationManager, JwtUtils jwtUtils) {
+    public AuthController(AuthenticationManager authenticationManager,
+                          JwtUtils jwtUtils,
+                          UtilisateurRepository utilisateurRepository,
+                          RestaurantRepository restaurantRepository,
+                          OperatorAccessService operatorAccessService) {
         this.authenticationManager = authenticationManager;
         this.jwtUtils = jwtUtils;
+        this.utilisateurRepository = utilisateurRepository;
+        this.restaurantRepository = restaurantRepository;
+        this.operatorAccessService = operatorAccessService;
     }
 
     @PostMapping("/login")
@@ -52,6 +67,14 @@ public class AuthController {
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList());
 
-        return ResponseEntity.ok(new JwtResponseDTO(jwt, userDetails.getUsername(), roles));
+        Utilisateur user = utilisateurRepository.findByEmail(userDetails.getUsername()).orElse(null);
+        List<com.lekkrek.dto.RestaurantSummaryDTO> restaurantList = (user != null && user.getRestaurants() != null)
+                ? user.getRestaurants().stream()
+                        .map(r -> new com.lekkrek.dto.RestaurantSummaryDTO(r.getId(), r.getName()))
+                        .sorted(java.util.Comparator.comparing(com.lekkrek.dto.RestaurantSummaryDTO::name, String.CASE_INSENSITIVE_ORDER))
+                        .collect(Collectors.toList())
+                : List.of();
+
+        return ResponseEntity.ok(new JwtResponseDTO(jwt, "Bearer", userDetails.getUsername(), roles, restaurantList));
     }
 }

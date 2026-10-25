@@ -70,7 +70,10 @@ public class GlobalExceptionHandler {
         body.put("timestamp", LocalDateTime.now());
         body.put("status", HttpStatus.FORBIDDEN.value());
         body.put("error", "Forbidden");
-        body.put("message", "Accès refusé : vous n'avez pas les autorisations nécessaires");
+        String message = (ex.getMessage() != null && !ex.getMessage().isBlank() && !ex.getMessage().equalsIgnoreCase("Access is denied"))
+                ? ex.getMessage()
+                : "Accès refusé : vous n'avez pas les autorisations nécessaires";
+        body.put("message", message);
 
         return new ResponseEntity<>(body, HttpStatus.FORBIDDEN);
     }

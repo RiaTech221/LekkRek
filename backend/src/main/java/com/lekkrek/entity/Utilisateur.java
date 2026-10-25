@@ -36,7 +36,7 @@ public class Utilisateur {
     private String telephone;
 
     @Column(nullable = false)
-    @JsonIgnore
+    @com.fasterxml.jackson.annotation.JsonProperty(access = com.fasterxml.jackson.annotation.JsonProperty.Access.WRITE_ONLY)
     private String motDePasse;
 
     @Enumerated(EnumType.STRING)
@@ -48,7 +48,20 @@ public class Utilisateur {
 
     private String photoUrl;
 
+    @Deprecated
     private String restaurantAssigne;
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+        name = "operateur_restaurants",
+        joinColumns = @JoinColumn(name = "utilisateur_id"),
+        inverseJoinColumns = @JoinColumn(name = "restaurant_id")
+    )
+    private java.util.Set<Restaurant> restaurants = new java.util.HashSet<>();
+
+    @Transient
+    @com.fasterxml.jackson.annotation.JsonProperty("restaurantIds")
+    private java.util.Set<Long> restaurantIds;
 
     @Column(name = "date_creation", updatable = false)
     private LocalDateTime dateCreation = LocalDateTime.now();
