@@ -30,14 +30,20 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import CategoryPills from '@/components/CategoryPills';
 import DishCard from '@/components/DishCard';
 import FilterBar from '@/components/FilterBar';
+import ProfileModal from '@/components/ProfileModal';
 import { Brand, FontSize, Radius, Spacing } from '@/constants/theme';
 import { useCategories } from '@/hooks/useCategories';
+import { useClientProfile } from '@/hooks/useClientProfile';
 import { useMenu } from '@/hooks/useMenu';
 import type { Plat } from '@/types/menu';
 
 export default function MenuScreen() {
   const { plats, isLoading, error, filters, setFilter, reload } = useMenu();
   const categories = useCategories();
+  const { profile, saveProfile, logout } = useClientProfile();
+
+  // État local de la modal profil
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
   // État local du panier (liste d'identifiants ajoutés).
   // TODO(checkout) : brancher sur un hook dédié + écran panier lors de la prochaine itération.
@@ -126,18 +132,58 @@ export default function MenuScreen() {
           </Text>
         </View>
 
-        {/* Bouton Panier + compteur */}
+        {/* Actions de navigation : Profil / Connexion + Panier */}
         <View style={styles.navbarActions}>
-          <Pressable style={styles.cartButton}>
-            <Text style={styles.cartButtonText}>🛒 Panier</Text>
+          <Pressable
+            onPress={() => setIsProfileModalOpen(true)}
+            style={({ pressed }) => [
+              styles.profileButton,
+              profile?.phone ? styles.profileButtonActive : null,
+              pressed && styles.buttonPressed,
+            ]}
+            accessibilityRole="button"
+            accessibilityLabel={profile?.phone ? 'Mon profil' : 'Se connecter'}
+          >
+            <Text
+              numberOfLines={1}
+              style={[
+                styles.profileButtonText,
+                profile?.phone ? styles.profileButtonTextActive : null,
+              ]}
+            >
+              {profile?.phone
+                ? `👋 ${profile.name ? profile.name.trim().split(' ')[0] : 'Client'}`
+                : '👤 Connexion'}
+            </Text>
+          </Pressable>
+
+          {/* Bouton Panier compact : icône + badge flottant */}
+          <Pressable
+            style={({ pressed }) => [
+              styles.cartButton,
+              pressed && styles.buttonPressed,
+            ]}
+            accessibilityRole="button"
+            accessibilityLabel={`Panier, ${cart.length} article${cart.length > 1 ? 's' : ''}`}
+          >
+            <Text style={styles.cartIcon}>🛒</Text>
             {cart.length > 0 && (
               <View style={styles.cartBadge}>
-                <Text style={styles.cartBadgeText}>{cart.length}</Text>
+                <Text style={styles.cartBadgeText}>{cart.length > 99 ? '99+' : cart.length}</Text>
               </View>
             )}
           </Pressable>
         </View>
       </View>
+
+      {/* MODAL DE PROFIL / CONNEXION */}
+      <ProfileModal
+        visible={isProfileModalOpen}
+        profile={profile}
+        onClose={() => setIsProfileModalOpen(false)}
+        onSave={saveProfile}
+        onLogout={logout}
+      />
 
       {/* GRILLE DES PLATS */}
       <FlatList
@@ -202,33 +248,66 @@ const styles = StyleSheet.create({
   },
   navbarActions: {
     flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
   },
-  cartButton: {
+  profileButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.one,
-    backgroundColor: Brand.textDark,
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.two,
+    justifyContent: 'center',
+    height: 38,
+    backgroundColor: Brand.surfaceAlt,
+    borderWidth: 1,
+    borderColor: Brand.borderStrong,
+    paddingHorizontal: Spacing.two + Spacing.half,
     borderRadius: Radius.pill,
+    maxWidth: 130,
   },
-  cartButtonText: {
-    color: '#ffffff',
-    fontSize: FontSize.sm,
+  profileButtonActive: {
+    backgroundColor: Brand.primaryLight,
+    borderColor: '#FECACA',
+  },
+  profileButtonText: {
+    fontSize: FontSize.xs,
     fontWeight: '700',
+    color: Brand.textDark,
   },
-  cartBadge: {
-    backgroundColor: Brand.primary,
-    borderRadius: Radius.pill,
-    minWidth: 20,
-    height: 20,
+  profileButtonTextActive: {
+    color: Brand.primary,
+  },
+  buttonPressed: {
+    opacity: 0.8,
+    transform: [{ scale: 0.98 }],
+  },
+  cartButton: {
+    width: 38,
+    height: 38,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 4,
+    backgroundColor: Brand.textDark,
+    borderRadius: Radius.pill,
+    position: 'relative',
+  },
+  cartIcon: {
+    fontSize: 18,
+  },
+  cartBadge: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    backgroundColor: Brand.primary,
+    borderRadius: Radius.pill,
+    minWidth: 18,
+    height: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 3,
+    borderWidth: 2,
+    borderColor: Brand.surface,
   },
   cartBadgeText: {
     color: '#ffffff',
-    fontSize: FontSize.xs,
+    fontSize: 9,
     fontWeight: '900',
   },
 
