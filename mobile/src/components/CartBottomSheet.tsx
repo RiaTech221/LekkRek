@@ -88,10 +88,15 @@ function CartBottomSheetContent({
     };
   }, []);
 
-  const scrollToInput = (extraDelay = 120) => {
+  const formY = useRef<number>(0);
+
+  const scrollToPosition = (offsetY: number) => {
     setTimeout(() => {
-      scrollViewRef.current?.scrollToEnd({ animated: true });
-    }, extraDelay);
+      scrollViewRef.current?.scrollTo({
+        y: Math.max(0, offsetY),
+        animated: true,
+      });
+    }, 100);
   };
 
   // Restaurants uniques concernés par le panier
@@ -356,7 +361,12 @@ function CartBottomSheetContent({
         </View>
 
         {/* Formulaire de commande */}
-        <View style={styles.formSection}>
+        <View
+          style={styles.formSection}
+          onLayout={(e) => {
+            formY.current = e.nativeEvent.layout.y;
+          }}
+        >
           <Text style={styles.sectionHeading}>Options de service</Text>
 
           {/* Sélecteur de type de service */}
@@ -400,7 +410,7 @@ function CartBottomSheetContent({
               placeholderTextColor={Brand.textLight}
               value={clientName}
               onChangeText={setClientName}
-              onFocus={() => scrollToInput(100)}
+              onFocus={() => scrollToPosition(formY.current)}
               autoCapitalize="words"
             />
           </View>
@@ -420,7 +430,7 @@ function CartBottomSheetContent({
                 maxLength={9}
                 value={clientPhone}
                 onChangeText={(text) => setClientPhone(normalizeSenegalPhone(text))}
-                onFocus={() => scrollToInput(120)}
+                onFocus={() => scrollToPosition(formY.current + 50)}
               />
             </View>
           </View>
@@ -437,7 +447,7 @@ function CartBottomSheetContent({
                 numberOfLines={3}
                 value={clientAddress}
                 onChangeText={setClientAddress}
-                onFocus={() => scrollToInput(160)}
+                onFocus={() => scrollToPosition(formY.current + 160)}
               />
             </View>
           )}
@@ -470,9 +480,6 @@ function CartBottomSheetContent({
             ))}
           </View>
         </View>
-
-        {/* Marge de sécurité pour défilement au-dessus du clavier */}
-        <View style={styles.bottomSpacer} />
       </ScrollView>
 
       {/* Bouton de confirmation Sticky */}
@@ -590,7 +597,7 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.six,
   },
   fullscreenScrollContent: {
-    paddingBottom: Spacing.six + Spacing.six,
+    paddingBottom: Spacing.four,
   },
   itemsSection: {
     gap: Spacing.two,
@@ -824,9 +831,6 @@ const styles = StyleSheet.create({
     color: Brand.primary,
     textAlign: 'center',
     fontWeight: '600',
-  },
-  bottomSpacer: {
-    height: 40,
   },
   stickyFooter: {
     paddingHorizontal: Spacing.four,
