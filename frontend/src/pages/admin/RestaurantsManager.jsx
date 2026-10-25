@@ -1,5 +1,5 @@
 import { API_URL, formatImageUrl } from '../../config';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { validateSenegalPhone, normalizeSenegalPhone } from '../../utils/phoneUtils';
 import ConfirmModal from '../../components/ConfirmModal';
 import ToastNotification from '../../components/ToastNotification';
@@ -43,22 +43,68 @@ export default function RestaurantsManager() {
 
   const [subscriptionPlan, setSubscriptionPlan] = useState('Basic');
   const [subscriptionEndDate, setSubscriptionEndDate] = useState('');
+  const fileInputRef = useRef(null);
 
+  const previewUrl = useMemo(() => {
+    if (imageFile) {
+      return URL.createObjectURL(imageFile);
+    }
+    if (image) {
+      return formatImageUrl(image);
+    }
+    return null;
+  }, [imageFile, image]);
 
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      showToast("L'image est trop volumineuse (maximum 5 Mo).", "error");
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+    if (!validTypes.includes(file.type)) {
+      showToast("Format non supporté. Veuillez choisir un fichier JPG, PNG ou WEBP.", "error");
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+    setImageFile(file);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setEditingId(null);
+    setName('');
+    setLocation('');
+    setOperatorName('');
+    setTelephone('');
+    setImage('');
+    setImageFile(null);
+    setCommissionRate(10);
+    setSubscriptionPlan('Basic');
+    setSubscriptionEndDate('');
+    setIsActive(true);
+    setUploadingImage(false);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
   
   const handleEdit = (resto) => {
     setEditingId(resto.id);
-    setIsModalOpen(true);
-    setName(resto.name);
-    setLocation(resto.location);
+    setName(resto.name || '');
+    setLocation(resto.location || '');
     setOperatorName(resto.operatorName || '');
     setTelephone(resto.telephone || '');
+    setImage(resto.image || '');
+    setImageFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
     
     setCommissionRate(resto.commissionRate || 10);
     setSubscriptionPlan(resto.subscriptionPlan || 'Basic');
     setSubscriptionEndDate(resto.subscriptionEndDate || '');
 
     setIsActive(resto.active !== false);
+    setIsModalOpen(true);
   };
   
   const fetchRestaurants = () => {
@@ -81,7 +127,7 @@ export default function RestaurantsManager() {
     fetchRestaurants();
   }, []);
 
-      const handleSubmit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const token = localStorage.getItem('token');
     
@@ -103,7 +149,8 @@ export default function RestaurantsManager() {
           const uploadData = await uploadRes.json();
           finalImageUrl = uploadData.url;
         } else {
-          throw new Error("Erreur lors de l'upload de l'image");
+          const errData = await uploadRes.json().catch(() => ({}));
+          throw new Error(errData.error || errData.message || "Erreur lors de l'upload de l'image.");
         }
       } catch (err) {
         showToast(err.message, "error");
@@ -114,6 +161,7 @@ export default function RestaurantsManager() {
 
     if (telephone && !validateSenegalPhone(telephone)) {
       showToast("Numéro du restaurant invalide. Format attendu : 771234567 ou +221 77 123 45 67.", "error");
+      setUploadingImage(false);
       return;
     }
 
@@ -144,19 +192,7 @@ export default function RestaurantsManager() {
     })
       .then(res => handleApiResponse(res, "Erreur lors de l'enregistrement."))
       .then(() => {
-        setIsModalOpen(false);
-        setEditingId(null);
-        setName('');
-        setLocation('');
-        setOperatorName('');
-        setTelephone('');
-        setImage('');
-        setImageFile(null);
-        setCommissionRate(10);
-        setSubscriptionPlan('Basic');
-        setSubscriptionEndDate('');
-        setIsActive(true);
-        setUploadingImage(false);
+        closeModal();
         showToast(editingId ? "Restaurant modifié avec succès !" : "Restaurant créé avec succès !");
         fetchRestaurants();
       })
@@ -234,10 +270,7 @@ export default function RestaurantsManager() {
           </div>
           <button 
             onClick={() => {
-              setEditingId(null);
-              setName(''); setLocation(''); setOperatorName('');
-              setCommissionRate(10); setSubscriptionPlan('Basic'); setSubscriptionEndDate('');
-              setIsActive(true); setImageFile(null);
+              closeModal();
               setIsModalOpen(true);
             }} 
             className="bg-red-600 text-white px-5 py-2 rounded-full font-bold shadow-sm shadow-red-600/20 hover:bg-red-700 hover:shadow-md transition-all flex items-center gap-2"
@@ -330,7 +363,7 @@ export default function RestaurantsManager() {
               <h3 className="font-black text-gray-900 text-lg">
                 {editingId ? "Modifier le Restaurant" : "Nouveau Restaurant"}
               </h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-700 transition-colors">
+              <button onClick={closeModal} className="text-gray-400 hover:text-gray-700 transition-colors">
                 <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
@@ -425,12 +458,67 @@ export default function RestaurantsManager() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">Photo du restaurant (Optionnel)</label>
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">Photo du restaurant (Optionnel)</label>
+                  {previewUrl ? (
+                    <div className="relative rounded-2xl overflow-hidden border border-gray-200 bg-gray-50 flex flex-col">
+                      <div className="relative w-full h-40 bg-gray-100">
+                        <img 
+                          src={previewUrl} 
+                          alt="Aperçu du restaurant" 
+                          className="w-full h-full object-cover" 
+                        />
+                        <span className="absolute top-2.5 left-2.5 bg-black/70 backdrop-blur-xs text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full shadow-sm">
+                          {imageFile ? "Nouvelle photo sélectionnée" : "Photo actuelle"}
+                        </span>
+                      </div>
+                      <div className="p-2.5 bg-white border-t border-gray-100 flex items-center justify-between gap-2">
+                        <button
+                          type="button"
+                          onClick={() => fileInputRef.current?.click()}
+                          className="text-xs font-bold text-gray-700 hover:text-red-600 px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                          </svg>
+                          Changer la photo
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setImage('');
+                            setImageFile(null);
+                            if (fileInputRef.current) fileInputRef.current.value = '';
+                          }}
+                          className="text-xs font-bold text-red-600 hover:text-red-700 px-3 py-1.5 rounded-lg hover:bg-red-50 transition-colors cursor-pointer"
+                        >
+                          Supprimer
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div 
+                      onClick={() => fileInputRef.current?.click()}
+                      className="border-2 border-dashed border-gray-200 hover:border-red-400 bg-gray-50 hover:bg-red-50/20 rounded-2xl p-5 flex flex-col items-center justify-center gap-2.5 cursor-pointer transition-all group text-center"
+                    >
+                      <div className="w-11 h-11 rounded-full bg-red-100 text-red-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <span className="text-xs font-bold text-gray-700 group-hover:text-red-600 transition-colors">
+                          Cliquez pour sélectionner une photo
+                        </span>
+                        <p className="text-[11px] text-gray-400 mt-0.5">JPG, PNG ou WEBP (max. 5 Mo)</p>
+                      </div>
+                    </div>
+                  )}
                   <input 
+                    ref={fileInputRef}
                     type="file" 
-                    accept="image/*"
-                    className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-red-50 file:text-red-700 hover:file:bg-red-100 cursor-pointer"
-                    onChange={(e) => setImageFile(e.target.files[0])}
+                    accept="image/jpeg,image/png,image/webp,image/jpg"
+                    className="hidden"
+                    onChange={handleFileChange}
                   />
                 </div>
 
@@ -451,7 +539,7 @@ export default function RestaurantsManager() {
             <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3">
               <button 
                 type="button"
-                onClick={() => setIsModalOpen(false)}
+                onClick={closeModal}
                 className="px-5 py-2.5 rounded-full text-sm font-bold text-gray-600 hover:bg-gray-200 transition-colors"
               >
                 Annuler
