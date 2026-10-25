@@ -6,6 +6,35 @@ import ToastNotification from '../../components/ToastNotification';
 import { handleApiResponse } from '../../utils/apiHelper';
 import { TbPhone } from 'react-icons/tb';
 
+function RestaurantCardImage({ resto }) {
+  const [imgError, setImgError] = useState(false);
+  const formatted = formatImageUrl(resto.image);
+  const hasImage = Boolean(formatted && !imgError);
+
+  if (!hasImage) {
+    const initial = (resto.name || 'R').trim().charAt(0).toUpperCase();
+    return (
+      <div className="w-full h-full bg-gradient-to-br from-slate-900 via-gray-900 to-rose-950 flex flex-col items-center justify-center text-white select-none">
+        <span className="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-sm flex items-center justify-center text-xl font-black text-rose-400 border border-white/10 shadow-inner group-hover:scale-110 transition-transform duration-500">
+          {initial}
+        </span>
+        <span className="text-[10px] font-bold text-gray-300 mt-2 tracking-wider uppercase opacity-75 truncate max-w-[85%] text-center px-2">
+          {resto.name || 'Restaurant'}
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={formatted}
+      alt=""
+      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+      onError={() => setImgError(true)}
+    />
+  );
+}
+
 export default function RestaurantsManager() {
   const [restaurants, setRestaurants] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -153,7 +182,7 @@ export default function RestaurantsManager() {
     e.preventDefault();
     const token = localStorage.getItem('token');
     
-    let finalImageUrl = image || 'https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=500&q=80';
+    let finalImageUrl = image ? image.trim() : null;
 
     if (imageFile) {
       setUploadingImage(true);
@@ -309,84 +338,107 @@ export default function RestaurantsManager() {
       </header>
 
       {/* Liste des restaurants (Grid full width) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {restaurants.filter(r => (r.name || "").toLowerCase().includes(searchTerm.toLowerCase()) || (r.location || "").toLowerCase().includes(searchTerm.toLowerCase()) || (r.operatorName || "").toLowerCase().includes(searchTerm.toLowerCase())).map(resto => (
-          <div key={resto.id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-0 flex flex-col overflow-hidden">
-            <div className="h-32 bg-gray-200 relative">
-              <img src={formatImageUrl(resto.image)} alt={resto.name} className="w-full h-full object-cover" />
-              <div className="absolute top-3 right-3 flex gap-2">
+          <div key={resto.id} className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 p-0 flex flex-col overflow-hidden group hover:-translate-y-1">
+            <div className="h-36 sm:h-40 bg-gray-100 relative overflow-hidden shrink-0">
+              <RestaurantCardImage resto={resto} />
+              <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5 z-10">
                 {resto.subscriptionEndDate ? (
                    new Date(resto.subscriptionEndDate) >= new Date() 
-                   ? <span className="text-[10px] font-black tracking-widest uppercase bg-purple-100/90 backdrop-blur-sm text-purple-700 px-3 py-1.5 rounded-full shadow-sm">VIP Actif</span>
-                   : <span className="text-[10px] font-black tracking-widest uppercase bg-red-100/90 backdrop-blur-sm text-red-700 px-3 py-1.5 rounded-full shadow-sm">Expiré</span>
+                   ? <span className="text-[10px] font-black tracking-widest uppercase bg-purple-100/90 backdrop-blur-md text-purple-700 px-2.5 py-1 rounded-full shadow-sm">VIP Actif</span>
+                   : <span className="text-[10px] font-black tracking-widest uppercase bg-red-100/90 backdrop-blur-md text-red-700 px-2.5 py-1 rounded-full shadow-sm">Expiré</span>
                 ) : (
-                   <span className="text-[10px] font-black tracking-widest uppercase bg-white/90 backdrop-blur-sm text-gray-700 px-3 py-1.5 rounded-full shadow-sm">Standard</span>
+                   <span className="text-[10px] font-black tracking-widest uppercase bg-white/90 backdrop-blur-md text-gray-700 px-2.5 py-1 rounded-full shadow-sm">Standard</span>
                 )}
                 <button 
-                  onClick={() => toggleActive(resto)}
-                  className={`px-3 py-1.5 text-[10px] font-black tracking-widest uppercase rounded-full shadow-sm backdrop-blur-sm ${resto.active ? 'bg-green-500/90 text-white' : 'bg-red-500/90 text-white'}`}
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleActive(resto);
+                  }}
+                  className={`px-2.5 py-1 text-[10px] font-black tracking-widest uppercase rounded-full shadow-sm backdrop-blur-md transition-transform hover:scale-105 cursor-pointer ${resto.active ? 'bg-green-500/90 text-white' : 'bg-red-500/90 text-white'}`}
                 >
                   {resto.active ? 'Actif' : 'Inactif'}
                 </button>
               </div>
             </div>
             
-            <div className="p-4 flex-1 flex flex-col">
-              <div className="flex justify-between items-start mb-2">
-                <h4 className="font-black text-gray-900 text-xl group-hover:text-red-600 transition-colors">{resto.name}</h4>
-              </div>
+            <div className="p-3.5 sm:p-4 flex-1 flex flex-col justify-between">
+              <div>
+                <div className="flex justify-between items-start gap-2 mb-1.5">
+                  <h4 className="font-bold text-gray-900 text-base sm:text-lg group-hover:text-red-600 transition-colors line-clamp-1" title={resto.name}>
+                    {resto.name}
+                  </h4>
+                  <span className="text-xs font-black text-red-600 bg-red-50 border border-red-100 px-2 py-0.5 rounded-md shrink-0">
+                    {resto.commissionRate}%
+                  </span>
+                </div>
 
-              <div className="mb-4">
-                <p className="text-sm text-gray-500 flex items-center gap-2">
-                  <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                  {resto.location}
-                </p>
-                <p className="text-sm text-gray-500 flex items-center gap-2">
-                  <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-                  Gérant : <span className="font-medium text-gray-700">{resto.operatorName || 'Non assigné'}</span>
-                </p>
-                {resto.telephone && (
-                  <p className="text-sm text-gray-500 flex items-center gap-2">
-                    <TbPhone className="w-4 h-4 text-gray-400" aria-hidden="true" />
-                    Tél : <span className="font-medium text-gray-700">{resto.telephone}</span>
-                  </p>
-                )}
-                <p className="text-sm font-bold text-red-600 flex items-center gap-2">
-                  <svg className="w-4 h-4 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                  Commission : {resto.commissionRate}%
-                </p>
-                {resto.repere && (
-                  <p className="text-xs text-gray-600 mt-1 flex items-center gap-1 font-medium">
-                    <span>📍</span> Repère : {resto.repere}
-                  </p>
-                )}
-                <div className="flex flex-wrap gap-1.5 mt-2">
-                  {resto.surPlace !== false && <span className="text-[10px] bg-blue-50 text-blue-700 font-bold px-2 py-0.5 rounded-full">🍽️ Sur place</span>}
-                  {(resto.aEmporter ?? resto.aemporter) !== false && <span className="text-[10px] bg-amber-50 text-amber-700 font-bold px-2 py-0.5 rounded-full">🛍️ À emporter</span>}
-                  {resto.livraison !== false && (
-                    <span className="text-[10px] bg-green-50 text-green-700 font-bold px-2 py-0.5 rounded-full">
-                      🛵 Livraison {resto.supplementLivraison > 0 ? `(+${resto.supplementLivraison} F)` : ''}
+                <div className="space-y-1 text-xs text-gray-600 mb-2">
+                  <div className="flex items-start gap-1.5 leading-snug">
+                    <span className="text-red-500 shrink-0 text-[12px] mt-0.5">📍</span>
+                    <span className="truncate">
+                      <strong className="text-gray-800 font-semibold">{resto.location || 'Non renseigné'}</strong>
+                      {resto.repere && (
+                        <span className="text-gray-500 font-normal"> ({resto.repere})</span>
+                      )}
                     </span>
+                  </div>
+
+                  <div className="flex items-center gap-2 text-xs text-gray-500 flex-wrap leading-snug">
+                    {resto.telephone ? (
+                      <span className="flex items-center gap-1 font-medium text-gray-700">
+                        <TbPhone className="w-3.5 h-3.5 text-gray-400 shrink-0" aria-hidden="true" />
+                        <span>{resto.telephone}</span>
+                      </span>
+                    ) : (
+                      <span className="text-gray-400 text-[11px] italic">Sans contact</span>
+                    )}
+                    <span className="text-gray-300">•</span>
+                    <span className="truncate text-gray-600 text-[11px]">
+                      Gérant : <span className="font-medium text-gray-800">{resto.operatorName || 'Non assigné'}</span>
+                    </span>
+                  </div>
+
+                  <div className="pt-1 flex flex-wrap items-center gap-1">
+                    {resto.surPlace !== false && (
+                      <span className="text-[10px] bg-blue-50 text-blue-700 font-bold px-2 py-0.5 rounded-md">
+                        🍽️ Sur place
+                      </span>
+                    )}
+                    {(resto.aEmporter ?? resto.aemporter) !== false && (
+                      <span className="text-[10px] bg-amber-50 text-amber-700 font-bold px-2 py-0.5 rounded-md">
+                        🛍️ À emporter
+                      </span>
+                    )}
+                    {resto.livraison !== false && (
+                      <span className="text-[10px] bg-emerald-50 text-emerald-700 font-bold px-2 py-0.5 rounded-md">
+                        🛵 Livr. {resto.supplementLivraison > 0 ? `(+${resto.supplementLivraison} F)` : ''}
+                      </span>
+                    )}
+                  </div>
+
+                  {resto.notes && (
+                    <p className="text-[11px] text-gray-500 italic mt-1 line-clamp-1 leading-tight" title={resto.notes}>
+                      💡 {resto.notes}
+                    </p>
                   )}
                 </div>
-                {resto.notes && (
-                  <p className="text-[11px] text-gray-500 italic mt-2 line-clamp-2">
-                    💡 {resto.notes}
-                  </p>
-                )}
               </div>
               
-              <div className="mt-auto flex justify-end gap-2 pt-4 border-t border-gray-100">
+              <div className="mt-auto pt-3 border-t border-gray-100 flex items-center justify-end gap-2">
                 <button 
                   type="button"
                   onClick={() => handleEdit(resto)}
-                  className="text-gray-600 hover:text-gray-900 font-bold text-sm bg-gray-50 hover:bg-gray-100 px-4 py-2 rounded-xl transition-colors"
+                  className="text-gray-700 hover:text-gray-900 font-bold text-xs bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg transition-colors border border-gray-200/60 cursor-pointer"
                 >
                   Modifier
                 </button>
                 <button 
+                  type="button"
                   onClick={() => handleDelete(resto.id, resto.name)}
-                  className="text-red-600 hover:text-white font-bold text-sm bg-red-50 hover:bg-red-600 px-4 py-2 rounded-xl transition-colors"
+                  className="text-red-600 hover:text-white font-bold text-xs bg-red-50 hover:bg-red-600 px-3 py-1.5 rounded-lg transition-colors border border-red-100 cursor-pointer"
                 >
                   Supprimer
                 </button>
