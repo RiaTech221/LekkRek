@@ -54,6 +54,9 @@ export default function OperatorDashboard() {
   }
   const isAdmin = Array.isArray(user.roles) && user.roles.includes('ROLE_ADMIN');
   const roleLabel = isAdmin ? 'Administrateur' : 'Opérateur';
+  const operatorRestaurants = Array.isArray(user.restaurants) ? user.restaurants : [];
+  const hasMultipleRestaurants = isAdmin || operatorRestaurants.length > 1;
+  const [restaurantFilter, setRestaurantFilter] = useState('ALL');
 
   // Sécurité : Un opérateur ne peut pas accéder aux onglets réservés à l'administrateur
   const adminOnlyTabs = ['restaurants', 'operateurs', 'partners', 'referentiel', 'comptabilite', 'content', 'audit', 'parametres'];
@@ -100,6 +103,8 @@ export default function OperatorDashboard() {
           clientAddress: cmd.clientAddress,
           totalAmount: cmd.totalAmount,
           fullStatus: cmd.status,
+          restaurantId: cmd.restaurant?.id || null,
+          restaurantName: cmd.restaurant?.name || null,
           temps: "A l'instant"
         });
 
@@ -269,7 +274,7 @@ export default function OperatorDashboard() {
           <Overview />
         ) : activeTab === 'kanban' ? (
           <div className="flex-1 p-8 flex flex-col h-full overflow-hidden">
-            <header className="flex justify-between items-center mb-8">
+            <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
               <div>
                 <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
                   Commandes en direct
@@ -280,6 +285,26 @@ export default function OperatorDashboard() {
                 </h2>
                 <p className="text-gray-500 text-sm mt-1">Gérez le flux de vos commandes du jour en temps réel.</p>
               </div>
+
+              {hasMultipleRestaurants && (
+                <div className="flex items-center gap-2.5">
+                  <span className="text-xs font-bold text-gray-500 whitespace-nowrap">Restaurant :</span>
+                  <select
+                    value={restaurantFilter}
+                    onChange={(e) => setRestaurantFilter(e.target.value)}
+                    className="bg-white border border-gray-200 text-gray-800 text-sm font-bold rounded-xl px-3.5 py-2 shadow-sm focus:outline-none focus:border-red-500 cursor-pointer"
+                  >
+                    <option value="ALL">Tous mes restaurants</option>
+                    {(operatorRestaurants.length > 0 ? operatorRestaurants : Array.from(new Map(
+                      [...commandes.nouvelles, ...commandes.preparation, ...commandes.pretes]
+                        .filter(c => c.restaurantId && c.restaurantName)
+                        .map(c => [c.restaurantId, { id: c.restaurantId, name: c.restaurantName }])
+                    ).values())).map(r => (
+                      <option key={r.id} value={r.id}>{r.name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </header>
 
             {/* Kanban Board */}
@@ -292,15 +317,24 @@ export default function OperatorDashboard() {
                     <div className="w-2.5 h-2.5 rounded-full bg-blue-500"></div>
                     <h3 className="font-bold text-gray-800 tracking-tight">Nouvelles</h3>
                   </div>
-                  <span className="bg-white shadow-sm text-blue-700 px-2.5 py-1 rounded-full text-xs font-black border border-gray-200">{commandes.nouvelles.length}</span>
+                  <span className="bg-white shadow-sm text-blue-700 px-2.5 py-1 rounded-full text-xs font-black border border-gray-200">
+                    {commandes.nouvelles.filter(c => restaurantFilter === 'ALL' || String(c.restaurantId) === String(restaurantFilter)).length}
+                  </span>
                 </div>
                 <div className="space-y-4 flex-1 overflow-y-auto px-1 hide-scrollbar">
-                  {commandes.nouvelles.map(cmd => (
+                  {commandes.nouvelles.filter(c => restaurantFilter === 'ALL' || String(c.restaurantId) === String(restaurantFilter)).map(cmd => (
                     <div key={cmd.id} className="bg-white p-5 rounded-2xl shadow-sm hover:shadow-md transition-shadow border-l-4 border-l-blue-500 border-t border-r border-b border-gray-100 flex flex-col gap-3 group relative cursor-pointer" onClick={() => setSelectedOrder(cmd)}>
                       <div className="flex justify-between items-start">
                         <div>
                           <div className="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">CMD-{cmd.id}</div>
                           <h4 className="font-black text-gray-900 text-lg leading-none">{cmd.client.split(' ')[0]}</h4>
+                          {hasMultipleRestaurants && cmd.restaurantName && (
+                            <div className="mt-1">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                                📍 {cmd.restaurantName}
+                              </span>
+                            </div>
+                          )}
                         </div>
                         <span className="text-[10px] font-bold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-full whitespace-nowrap">A l'instant</span>
                       </div>
@@ -342,15 +376,24 @@ export default function OperatorDashboard() {
                     <div className="w-2.5 h-2.5 rounded-full bg-orange-500"></div>
                     <h3 className="font-bold text-gray-800 tracking-tight">En préparation</h3>
                   </div>
-                  <span className="bg-white shadow-sm text-orange-700 px-2.5 py-1 rounded-full text-xs font-black border border-gray-200">{commandes.preparation.length}</span>
+                  <span className="bg-white shadow-sm text-orange-700 px-2.5 py-1 rounded-full text-xs font-black border border-gray-200">
+                    {commandes.preparation.filter(c => restaurantFilter === 'ALL' || String(c.restaurantId) === String(restaurantFilter)).length}
+                  </span>
                 </div>
                 <div className="space-y-4 flex-1 overflow-y-auto px-1 hide-scrollbar">
-                  {commandes.preparation.map(cmd => (
+                  {commandes.preparation.filter(c => restaurantFilter === 'ALL' || String(c.restaurantId) === String(restaurantFilter)).map(cmd => (
                     <div key={cmd.id} className="bg-white p-5 rounded-2xl shadow-sm hover:shadow-md transition-shadow border-l-4 border-l-orange-500 border-t border-r border-b border-gray-100 flex flex-col gap-3 group relative cursor-pointer" onClick={() => setSelectedOrder(cmd)}>
                       <div className="flex justify-between items-start">
                         <div>
                           <div className="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">CMD-{cmd.id}</div>
                           <h4 className="font-black text-gray-900 text-lg leading-none">{cmd.client.split(' ')[0]}</h4>
+                          {hasMultipleRestaurants && cmd.restaurantName && (
+                            <div className="mt-1">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                                📍 {cmd.restaurantName}
+                              </span>
+                            </div>
+                          )}
                         </div>
                         <span className="text-[10px] font-bold text-orange-700 bg-orange-50 px-2.5 py-1 rounded-full whitespace-nowrap animate-pulse">En cuisine</span>
                       </div>
@@ -392,15 +435,24 @@ export default function OperatorDashboard() {
                     <div className="w-2.5 h-2.5 rounded-full bg-green-500"></div>
                     <h3 className="font-bold text-gray-800 tracking-tight">Prêtes / En route</h3>
                   </div>
-                  <span className="bg-white shadow-sm text-green-700 px-2.5 py-1 rounded-full text-xs font-black border border-gray-200">{commandes.pretes.length}</span>
+                  <span className="bg-white shadow-sm text-green-700 px-2.5 py-1 rounded-full text-xs font-black border border-gray-200">
+                    {commandes.pretes.filter(c => restaurantFilter === 'ALL' || String(c.restaurantId) === String(restaurantFilter)).length}
+                  </span>
                 </div>
                 <div className="space-y-4 flex-1 overflow-y-auto px-1 hide-scrollbar">
-                   {commandes.pretes.map(cmd => (
+                   {commandes.pretes.filter(c => restaurantFilter === 'ALL' || String(c.restaurantId) === String(restaurantFilter)).map(cmd => (
                     <div key={cmd.id} className="bg-white p-5 rounded-2xl shadow-sm opacity-80 border-l-4 border-l-green-500 border-t border-r border-b border-gray-100 flex flex-col gap-3 cursor-pointer hover:shadow-md transition-shadow" onClick={() => setSelectedOrder(cmd)}>
                       <div className="flex justify-between items-start">
                         <div>
                           <div className="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">CMD-{cmd.id}</div>
                           <h4 className="font-black text-gray-900 text-lg leading-none line-through decoration-green-500/30">{cmd.client.split(' ')[0]}</h4>
+                          {hasMultipleRestaurants && cmd.restaurantName && (
+                            <div className="mt-1">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                                📍 {cmd.restaurantName}
+                              </span>
+                            </div>
+                          )}
                         </div>
                         <span className="text-[10px] font-bold text-green-700 bg-green-50 px-2.5 py-1 rounded-full whitespace-nowrap flex items-center gap-1">
                           <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" /></svg>

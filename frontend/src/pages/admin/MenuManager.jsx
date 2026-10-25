@@ -10,10 +10,35 @@ import {
 
 
 export default function MenuManager() {
+  const userStr = localStorage.getItem('user');
+  let user = { roles: [] };
+  try {
+    if (userStr) {
+      const parsed = JSON.parse(userStr);
+      if (parsed && typeof parsed === 'object') {
+        user = { ...parsed, roles: Array.isArray(parsed.roles) ? parsed.roles : [] };
+      }
+    }
+  } catch (e) {
+    console.error("Erreur parsing user:", e);
+  }
+  const isAdmin = Array.isArray(user.roles) && user.roles.includes('ROLE_ADMIN');
+  const operatorRestaurants = Array.isArray(user.restaurants) && user.restaurants.length > 0
+    ? user.restaurants
+    : (user.restaurantId ? [{ id: user.restaurantId, name: user.restaurantAssigne || 'Mon restaurant' }] : []);
+
   const [plats, setPlats] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [restaurants, setRestaurants] = useState([]);
-  const [selectedRestaurant, setSelectedRestaurant] = useState(null);
+  const [selectedRestaurant, setSelectedRestaurant] = useState(() => {
+    if (!isAdmin) {
+      if (operatorRestaurants.length === 1) {
+        return operatorRestaurants[0];
+      }
+      return null;
+    }
+    return null;
+  });
   
   const [isModalOpen, setModalOpen] = useState(false);
   const [currentPlat, setCurrentPlat] = useState(null);
@@ -49,7 +74,14 @@ export default function MenuManager() {
       headers: { 'Authorization': `Bearer ${token}` }
     })
       .then(res => res.json())
-      .then(data => setPlats(data))
+      .then(data => {
+        if (Array.isArray(data)) {
+          setPlats(data);
+          if (!isAdmin && operatorRestaurants.length === 1 && !selectedRestaurant) {
+            setSelectedRestaurant(operatorRestaurants[0]);
+          }
+        }
+      })
       .catch(err => console.error(err));
   };
 
@@ -71,10 +103,14 @@ export default function MenuManager() {
 
   useEffect(() => {
     fetchPlats();
-    fetchRestaurants();
-  }, []);
+    if (isAdmin) {
+      fetchRestaurants();
+    }
+  }, [isAdmin]);
 
   const openModal = (plat = null) => {
+    const defaultRestoId = selectedRestaurant?.id 
+      || (operatorRestaurants.length > 0 ? operatorRestaurants[0].id : (restaurants.length > 0 ? restaurants[0].id : ''));
     if (plat) {
       setCurrentPlat(plat);
       setFormData({
@@ -83,14 +119,15 @@ export default function MenuManager() {
         price: plat.price,
         image: plat.image,
         moment: plat.moment,
+        variantes: plat.variantes || '',
         status: plat.status,
-        restaurantId: plat.restaurant.id
+        restaurantId: plat.restaurant?.id || defaultRestoId
       });
     } else {
       setCurrentPlat(null);
       setFormData({ 
-        name: '', description: '', price: '', image: '', moment: 'dejeuner', status: 'DISPO', 
-        restaurantId: selectedRestaurant ? selectedRestaurant.id : (restaurants.length > 0 ? restaurants[0].id : '') 
+        name: '', description: '', price: '', image: '', moment: 'dejeuner', variantes: '', status: 'DISPO', 
+        restaurantId: defaultRestoId
       });
     }
     setModalOpen(true);
@@ -195,9 +232,23 @@ export default function MenuManager() {
     });
   };
 
-  // VUE 1 : Sélection du restaurant
+  // Cas Opérateur sans restaurant assigné
+  if (!isAdmin && operatorRestaurants.length === 0) {
+    return (
+      <div className="p-8 w-full flex flex-col items-center justify-center min-h-[60vh] bg-gray-50 text-center">
+        <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-200 max-w-lg">
+          <div className="w-16 h-16 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center mx-auto mb-4 text-2xl font-bold">⚠️</div>
+          <h2 className="text-2xl font-black text-gray-900 mb-2">Aucun restaurant assigné</h2>
+          <p className="text-gray-500 font-medium">Aucun restaurant ne vous est assigné, contactez l'administrateur.</p>
+        </div>
+      </div>
+    );
+  }
+
+  // VUE 1 : Sélection du restaurant (ADMIN ou Opérateur multi-restaurants)
   if (!selectedRestaurant) {
-    const filteredRestaurants = restaurants.filter(r => 
+    const listToShow = isAdmin ? restaurants : operatorRestaurants;
+    const filteredRestaurants = listToShow.filter(r => 
       (r.name || "").toLowerCase().includes(searchTerm.toLowerCase()) || 
       (r.location || "").toLowerCase().includes(searchTerm.toLowerCase())
     );
@@ -206,8 +257,14 @@ export default function MenuManager() {
       <div className="p-8 w-full flex flex-col h-full bg-gray-50">
         <header className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-black text-gray-900 tracking-tight">Gestion des Restaurants</h1>
-            <p className="text-gray-500 text-sm mt-1">Sélectionnez un restaurant pour gérer sa carte de plats.</p>
+            <h1 className="text-3xl font-black text-gray-900 tracking-tight">
+              {isAdmin ? "Gestion des Restaurants" : "Mes Restaurants"}
+            </h1>
+            <p className="text-gray-500 text-sm mt-1">
+              {isAdmin 
+                ? "Sélectionnez un restaurant pour gérer sa carte de plats." 
+                : "Sélectionnez l'un de vos restaurants pour gérer son menu."}
+            </p>
           </div>
           
           <div className="flex gap-4">
@@ -279,7 +336,9 @@ export default function MenuManager() {
   }
 
   // VUE 2 : Gestion des plats du restaurant sélectionné
-  const platsDuResto = plats.filter(p => p.restaurant.id === selectedRestaurant.id);
+  const platsDuResto = selectedRestaurant?.id 
+    ? plats.filter(p => p.restaurant?.id === selectedRestaurant.id)
+    : plats;
 
   return (
     <div className="p-8 w-full" style={{ background: '#f9fafb' }}>
@@ -303,9 +362,16 @@ export default function MenuManager() {
               </div>
             </div>
             <div className="flex gap-4">
-              <button onClick={() => setSelectedRestaurant(null)} className="text-gray-500 font-bold hover:text-gray-700">
-                &larr; Retour aux restaurants
-              </button>
+              {isAdmin && (
+                <button onClick={() => setSelectedRestaurant(null)} className="text-gray-500 font-bold hover:text-gray-700">
+                  &larr; Retour aux restaurants
+                </button>
+              )}
+              {!isAdmin && operatorRestaurants.length > 1 && (
+                <button onClick={() => setSelectedRestaurant(null)} className="text-gray-500 font-bold hover:text-gray-700">
+                  &larr; Mes restaurants
+                </button>
+              )}
               <button onClick={() => duplicatePlats()} className="bg-red-50 text-red-600 px-5 py-2.5 rounded-xl font-bold shadow-sm shadow-red-100 hover:bg-red-100 transition flex items-center gap-2">
                 <TbCopy className="w-4 h-4" aria-hidden="true" /> Dupliquer la veille
               </button>
@@ -456,6 +522,22 @@ export default function MenuManager() {
                     <option value="EPUISE">Épuisé</option>
                   </select>
                 </div>
+
+                {(isAdmin || operatorRestaurants.length > 1) && (
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">Restaurant</label>
+                    <select 
+                      value={formData.restaurantId || ''} 
+                      onChange={e => setFormData({...formData, restaurantId: e.target.value ? Number(e.target.value) : ''})}
+                      className="w-full border border-gray-200 p-3 rounded-xl bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all shadow-sm text-gray-800 cursor-pointer font-medium"
+                      required
+                    >
+                      {(isAdmin ? restaurants : operatorRestaurants).map(r => (
+                        <option key={r.id} value={r.id}>{r.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
                 
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1">Upload Photo</label>

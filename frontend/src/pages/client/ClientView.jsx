@@ -1,5 +1,5 @@
 import { API_URL, formatImageUrl } from '../../config';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import DOMPurify from 'dompurify';
 import { validateSenegalPhone, normalizeSenegalPhone } from '../../utils/phoneUtils';
@@ -23,7 +23,14 @@ export default function ClientView() {
   const [plats, setPlats] = useState([]);
   const [todayPlats, setTodayPlats] = useState([]);
   const [allCategories, setAllCategories] = useState([]); // All categories loaded once
-  const [allPlats, setAllPlats] = useState([]); // All plats for fallbacks
+  const [allPlats, setAllPlats] = useState(() => {
+    try {
+      const cached = localStorage.getItem('lekkrek_cache_all_plats');
+      return cached ? JSON.parse(cached) : [];
+    } catch (e) {
+      return [];
+    }
+  }); // All plats for fallbacks and filter options
   const [recommendations, setRecommendations] = useState([]);
   const [cart, setCart] = useState([]);
   const [isCheckoutOpen, setCheckoutOpen] = useState(false);
@@ -35,6 +42,31 @@ export default function ClientView() {
   const [budgetMax, setBudgetMax] = useState('');
   const [quartier, setQuartier] = useState('');
   const [momentFilter, setMomentFilter] = useState('');
+
+  // Options de filtres calculées à partir de la liste COMPLÈTE non filtrée (indépendantes des filtres)
+  const restaurantOptions = useMemo(() => {
+    const source = (Array.isArray(allPlats) && allPlats.length > 0)
+      ? allPlats
+      : (Array.isArray(todayPlats) ? todayPlats : []);
+    const names = [...new Set(source.map(p => p.restaurant?.name?.trim()).filter(Boolean))];
+    return names.sort((a, b) => a.localeCompare(b, 'fr', { sensitivity: 'base' }));
+  }, [allPlats, todayPlats]);
+
+  const quartierOptions = useMemo(() => {
+    const source = (Array.isArray(allPlats) && allPlats.length > 0)
+      ? allPlats
+      : (Array.isArray(todayPlats) ? todayPlats : []);
+    const locations = [...new Set(source.map(p => p.restaurant?.location?.trim()).filter(Boolean))];
+    return locations.sort((a, b) => a.localeCompare(b, 'fr', { sensitivity: 'base' }));
+  }, [allPlats, todayPlats]);
+
+  const momentOptions = useMemo(() => {
+    const source = (Array.isArray(allPlats) && allPlats.length > 0)
+      ? allPlats
+      : (Array.isArray(todayPlats) ? todayPlats : []);
+    const moments = [...new Set(source.map(p => p.moment?.trim()).filter(Boolean))];
+    return moments.sort((a, b) => a.localeCompare(b, 'fr', { sensitivity: 'base' }));
+  }, [allPlats, todayPlats]);
   
   // Checkout form state
   const [formData, setFormData] = useState(() => {
@@ -200,22 +232,31 @@ return () => {
     };
   }, []);
 
-  // Fetch ALL plats once to build the full category list (independent of filters)
+  // Fetch ALL plats once to build the full options lists (independent of filters)
   useEffect(() => {
     fetch(`${API_URL}/api/v1/public/menu`)
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data)) {
           setAllPlats(data);
+          try {
+            localStorage.setItem('lekkrek_cache_all_plats', JSON.stringify(data));
+          } catch (e) {}
           const cats = [...new Set(data.map(p => p.moment).filter(Boolean))].sort();
           setAllCategories(cats);
           localStorage.setItem('lekkrek_cache_cats', JSON.stringify(cats));
         }
       })
       .catch(err => {
-        console.error('Erreur categories:', err);
+        console.error('Erreur chargement menu complet:', err);
         const cachedCats = localStorage.getItem('lekkrek_cache_cats');
-        if (cachedCats) setAllCategories(JSON.parse(cachedCats));
+        if (cachedCats) {
+          try { setAllCategories(JSON.parse(cachedCats)); } catch (e) {}
+        }
+        const cachedPlats = localStorage.getItem('lekkrek_cache_all_plats');
+        if (cachedPlats) {
+          try { setAllPlats(JSON.parse(cachedPlats)); } catch (e) {}
+        }
       });
   }, []);
 
@@ -261,7 +302,12 @@ return () => {
 
     fetch(`${API_URL}/api/v1/public/menu?${params.toString()}`)
       .then(res => res.json())
-      .then(data => setPlats(data))
+      .then(data => {
+        setPlats(data);
+        if (!keyword && !resto && !budgetMax && !quartier && !momentFilter && Array.isArray(data)) {
+          setAllPlats(prev => (Array.isArray(prev) && prev.length > 0 ? prev : data));
+        }
+      })
       .catch(err => console.error("Erreur API:", err));
   }, [keyword, resto, budgetMax, quartier, momentFilter]);
 
@@ -452,8 +498,11 @@ return () => {
                 <div style={{ display: 'flex', flexDirection: 'column', width: '100%', overflow: 'hidden' }}>
                   <span style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700, color: '#1f2937', lineHeight: 1.2 }}>Restaurant</span>
                   <select style={{ background: 'transparent', border: 'none', outline: 'none', width: '100%', color: '#6b7280', fontWeight: 500, fontSize: '12px', appearance: 'none', cursor: 'pointer' }} value={resto} onChange={(e) => setResto(e.target.value)}>
-                    <option value="">Tous les restos</option>
-                    {[...new Set(plats.map(p => p.restaurant?.name).filter(Boolean))].sort().map(name => (
+                    <option value="">Tous les restaurants</option>
+                    {resto && !restaurantOptions.includes(resto) && (
+                      <option value={resto}>{resto}</option>
+                    )}
+                    {restaurantOptions.map(name => (
                       <option key={name} value={name}>{name}</option>
                     ))}
                   </select>
@@ -464,10 +513,18 @@ return () => {
               <div style={{ width: '1px', background: '#f3f4f6', height: '60%', flexShrink: 0 }} />
 
               {/* Quartier */}
-              <div style={{ display: 'flex', alignItems: 'center', minWidth: '110px', flexShrink: 0, padding: '0 12px', height: '100%', cursor: 'text' }}>
+              <div style={{ display: 'flex', alignItems: 'center', minWidth: '130px', flexShrink: 0, padding: '0 12px', height: '100%', cursor: 'pointer' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', width: '100%', overflow: 'hidden' }}>
                   <span style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700, color: '#1f2937', lineHeight: 1.2 }}>Quartier</span>
-                  <input type="text" placeholder="Où livrer ?" style={{ background: 'transparent', border: 'none', outline: 'none', width: '100%', color: '#6b7280', fontWeight: 500, fontSize: '12px' }} value={quartier} onChange={(e) => setQuartier(e.target.value)} />
+                  <select style={{ background: 'transparent', border: 'none', outline: 'none', width: '100%', color: '#6b7280', fontWeight: 500, fontSize: '12px', appearance: 'none', cursor: 'pointer' }} value={quartier} onChange={(e) => setQuartier(e.target.value)}>
+                    <option value="">Tous les quartiers</option>
+                    {quartier && !quartierOptions.includes(quartier) && (
+                      <option value={quartier}>{quartier}</option>
+                    )}
+                    {quartierOptions.map(q => (
+                      <option key={q} value={q}>{q}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
@@ -585,7 +642,7 @@ return () => {
         {/* MOMENTS FILTER (Pills) */}
         <div className="flex gap-3 overflow-x-auto pb-4 mb-8 hide-scrollbar border-b border-gray-100">
           {/* Dynamic categories from ALL plats - never disappear when filtering */
-          [{value:'', label:'🍴 Tout voir'}, ...(allCategories.map(cat => {
+          [{value:'', label:'🍴 Tout voir'}, ...(((momentOptions.length > 0 ? momentOptions : allCategories)).map(cat => {
             const labels = { dejeuner: '🍽️ Déjeuner', gouter: '☕ Goûter', diner: '🍷 Dîner', 'fast food': '🍔 Fast food', boisson: '🍹 Cocktails & Jus', dessert: '🍰 Desserts' };
             return { value: cat, label: labels[cat] || cat.charAt(0).toUpperCase() + cat.slice(1) };
           }))].map(({ value, label }) => (

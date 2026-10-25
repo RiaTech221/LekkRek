@@ -19,4 +19,5 @@ import java.util.Optional;
 public interface CommandeRepository extends JpaRepository<Commande, Long> {
     Optional<Commande> findByOrderNumber(String orderNumber);
     List<Commande> findByRestaurantIdOrderByCreatedAtDesc(Long restaurantId);
+    List<Commande> findByRestaurantIdInOrderByCreatedAtDesc(java.util.Collection<Long> restaurantIds);
 }

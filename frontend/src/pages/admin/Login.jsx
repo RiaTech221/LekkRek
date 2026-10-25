@@ -22,7 +22,13 @@ export default function Login() {
     })
     .then(data => {
       localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify({ email: data.email, roles: data.roles }));
+      localStorage.setItem('user', JSON.stringify({
+        email: data.email,
+        roles: data.roles,
+        restaurants: data.restaurants || [],
+        restaurantAssigne: data.restaurants && data.restaurants.length > 0 ? data.restaurants[0].name : null,
+        restaurantId: data.restaurants && data.restaurants.length > 0 ? data.restaurants[0].id : null
+      }));
       localStorage.setItem('lekkrek_admin_tab', 'overview');
       const isAdmin = Array.isArray(data.roles) && data.roles.includes('ROLE_ADMIN');
       navigate(isAdmin ? '/admin' : '/dashboard');

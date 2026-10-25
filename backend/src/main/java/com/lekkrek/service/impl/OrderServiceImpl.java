@@ -29,6 +29,11 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.UUID;
 
+import com.lekkrek.entity.Utilisateur;
+import com.lekkrek.service.OperatorAccessService;
+import java.util.Collections;
+import java.util.Optional;
+
 @Service
 @Transactional
 public class OrderServiceImpl implements OrderService {
@@ -36,11 +41,16 @@ public class OrderServiceImpl implements OrderService {
     private final CommandeRepository commandeRepository;
     private final PlatRepository platRepository;
     private final AuditService auditService;
+    private final OperatorAccessService operatorAccessService;
 
-    public OrderServiceImpl(CommandeRepository commandeRepository, PlatRepository platRepository, AuditService auditService) {
+    public OrderServiceImpl(CommandeRepository commandeRepository,
+                            PlatRepository platRepository,
+                            AuditService auditService,
+                            OperatorAccessService operatorAccessService) {
         this.commandeRepository = commandeRepository;
         this.platRepository = platRepository;
         this.auditService = auditService;
+        this.operatorAccessService = operatorAccessService;
     }
 
     @Override
@@ -116,27 +126,34 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public List<Commande> getAllOrders() {
-        return commandeRepository.findAll();
+        Utilisateur user = operatorAccessService.getCurrentUser();
+        if (user.getRole() == Utilisateur.Role.ADMIN) {
+            return commandeRepository.findAll();
+        }
+
+        // Rôle OPERATEUR : filtrage strict par ses restaurants assignés (0..n)
+        java.util.Set<Long> assignedIds = operatorAccessService.getRestaurantIdsOf(user);
+        if (assignedIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        return commandeRepository.findByRestaurantIdInOrderByCreatedAtDesc(assignedIds);
     }
 
     @Override
     public Commande updateOrderStatus(Long id, String status) {
         Commande commande = commandeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Commande non trouvee"));
+
+        Utilisateur user = operatorAccessService.getCurrentUser();
+        operatorAccessService.assertCanAccessCommande(user, commande, "/api/v1/operator/orders/" + id + "/status", id.toString());
+
         String oldStatus = commande.getStatus().name();
         commande.setStatus(Commande.OrderStatus.valueOf(status));
         Commande saved = commandeRepository.save(commande);
         
-        
-        String currentUser = "system@lekkrek.com";
-        String currentRole = "ROLE_SYSTEM";
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
-            currentUser = auth.getName();
-            if (!auth.getAuthorities().isEmpty()) {
-                currentRole = auth.getAuthorities().iterator().next().getAuthority();
-            }
-        }
+        String currentUser = user.getEmail();
+        String currentRole = user.getRole().name();
         
         auditService.logAction(
                 currentUser,
@@ -176,19 +193,16 @@ public class OrderServiceImpl implements OrderService {
     public Commande updatePaymentStatus(Long id, String paymentStatus) {
         Commande commande = commandeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Commande non trouvee"));
+
+        Utilisateur user = operatorAccessService.getCurrentUser();
+        operatorAccessService.assertCanAccessCommande(user, commande, "/api/v1/operator/orders/" + id + "/payment-status", id.toString());
+
         String oldStatus = commande.getPaymentStatus().name();
         commande.setPaymentStatus(Commande.PaymentStatus.valueOf(paymentStatus));
         Commande saved = commandeRepository.save(commande);
         
-        String currentUser = "system@lekkrek.com";
-        String currentRole = "ROLE_SYSTEM";
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
-            currentUser = auth.getName();
-            if (!auth.getAuthorities().isEmpty()) {
-                currentRole = auth.getAuthorities().iterator().next().getAuthority();
-            }
-        }
+        String currentUser = user.getEmail();
+        String currentRole = user.getRole().name();
         
         auditService.logAction(
                 currentUser,
