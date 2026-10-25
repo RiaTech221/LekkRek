@@ -2,7 +2,7 @@
 -- 📁 Fichier : database_schema.sql
 -- 📝 Description : Schéma relationnel complet et données initiales pour LekkRek
 -- 🔒 SGBD : MySQL 8.x (UTF-8 MB4)
--- 🛡️ Synchronisé fidèlement avec les 10 entités JPA du backend Spring Boot
+-- 🛡️ Synchronisé fidèlement avec les 13 entités JPA du backend Spring Boot
 -- ============================================================================
 
 CREATE DATABASE IF NOT EXISTS lekkrek_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -40,7 +40,24 @@ CREATE TABLE IF NOT EXISTS restaurants (
     commission_rate DECIMAL(5,2) NOT NULL DEFAULT 10.00,
     subscription_plan VARCHAR(100) DEFAULT 'Basic',
     subscription_end_date DATE,
+    repere VARCHAR(255),
+    sur_place BOOLEAN DEFAULT TRUE,
+    a_emporter BOOLEAN DEFAULT TRUE,
+    livraison BOOLEAN DEFAULT TRUE,
+    supplement_livraison DECIMAL(10,2) DEFAULT 0.00,
+    notes VARCHAR(500),
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ----------------------------------------------------------------------------
+-- 3. Table de Liaison Opérateurs <-> Restaurants (Relation 0..n)
+-- ----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS operateur_restaurants (
+    utilisateur_id BIGINT NOT NULL,
+    restaurant_id BIGINT NOT NULL,
+    PRIMARY KEY (utilisateur_id, restaurant_id),
+    CONSTRAINT fk_opresto_user FOREIGN KEY (utilisateur_id) REFERENCES utilisateurs(id) ON DELETE CASCADE,
+    CONSTRAINT fk_opresto_resto FOREIGN KEY (restaurant_id) REFERENCES restaurants(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ----------------------------------------------------------------------------
@@ -177,6 +194,38 @@ CREATE TABLE IF NOT EXISTS reference_data (
     actif BOOLEAN NOT NULL DEFAULT TRUE,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     UNIQUE KEY uk_type_valeur (type, valeur)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ----------------------------------------------------------------------------
+-- 12. Table des Disponibilités Hebdomadaires des Plats (Planning)
+-- ----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS plat_disponibilites_hebdo (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    plat_id BIGINT NOT NULL,
+    jour_semaine VARCHAR(10) NOT NULL, -- LUNDI..DIMANCHE
+    moment VARCHAR(50) NOT NULL DEFAULT 'dejeuner',
+    actif BOOLEAN NOT NULL DEFAULT TRUE,
+    CONSTRAINT fk_dispo_plat FOREIGN KEY (plat_id) REFERENCES plats(id) ON DELETE CASCADE,
+    CONSTRAINT uk_plat_jour_moment UNIQUE (plat_id, jour_semaine, moment)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ----------------------------------------------------------------------------
+-- 13. Table des Offres Datées (Plats du Jour & Historique)
+-- ----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS offres (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    restaurant_id BIGINT NOT NULL,
+    plat_id BIGINT NOT NULL,
+    date_offre DATE NOT NULL,
+    moment VARCHAR(50) NOT NULL,
+    prix DECIMAL(10,2) NOT NULL,
+    prix_emporter DECIMAL(10,2) NULL,
+    statut VARCHAR(50) NOT NULL DEFAULT 'DISPO', -- DISPO, EPUISE
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_offre_resto FOREIGN KEY (restaurant_id) REFERENCES restaurants(id) ON DELETE CASCADE,
+    CONSTRAINT fk_offre_plat FOREIGN KEY (plat_id) REFERENCES plats(id) ON DELETE CASCADE,
+    CONSTRAINT uk_offre_plat_date_moment UNIQUE (plat_id, date_offre, moment),
+    INDEX idx_offre_date (date_offre)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Créneaux par défaut

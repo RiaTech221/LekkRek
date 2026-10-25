@@ -13,8 +13,225 @@ Le projet suit une architecture découplée Frontend / Backend :
 | **Frontend** | React.js (Vite) + Tailwind CSS | Vitrine client, dashboard admin & opérateur |
 | **Mobile** | React Native (Expo SDK 58) + TypeScript | App mobile native client (menus, filtres, panier) |
 | **Backend** | Java 21 + Spring Boot 3 + Spring Security | API REST, sécurité JWT, logique métier, KPI |
-| **Base de données** | MySQL + Hibernate/JPA | Persistance des données |
+| **Base de données** | MySQL + Hibernate/JPA | Persistance des données (13 entités + 1 table de liaison) |
 | **CI/CD** | GitHub Actions | Validation backend (Maven), frontend (Vite) et mobile (Expo) sur chaque PR |
+
+### Diagramme d'Architecture Globale (UML)
+
+```mermaid
+flowchart TB
+  subgraph Clients["📱 Couche Présentation (Multi-plateformes)"]
+    WebClient["🌐 Web Client PWA<br/>(React / Vite / Tailwind)"]
+    MobileClient["📱 Mobile Client Natif<br/>(React Native / Expo SDK 58)"]
+    AdminBackoffice["🖥️ Dashboard Admin & Opérateur<br/>(React / Vite / Tailwind)"]
+  end
+
+  subgraph Gateway["🛡️ Sécurité & Filtrage"]
+    CorsFilter["Filtre CORS"]
+    JwtFilter["Filtre JWT (HMAC-SHA256)"]
+    SecurityGuard["Contrôle d'accès RBAC<br/>(@PreAuthorize ADMIN / OPERATEUR)"]
+  end
+
+  subgraph Backend["⚙️ Backend REST API (Spring Boot 3 / Java 21)"]
+    Controllers["Contrôleurs REST<br/>(/api/v1/public/**, /operator/**, /admin/**)"]
+    Services["Services Métier<br/>(PlatService, CommandeService, AuditService, etc.)"]
+    Repositories["Spring Data JPA Repositories"]
+  end
+
+  subgraph Database["🗄️ Persistance des Données (MySQL 8)"]
+    DB[("lekkrek_db<br/>13 tables métier + 1 table de liaison")]
+  end
+
+  subgraph External["🔗 Services Tiers"]
+    WhatsApp["WhatsApp Web / Liens pré-remplis"]
+    FileSystem["Stockage Disque (Uploads images)"]
+  end
+
+  WebClient -->|Requêtes REST| CorsFilter
+  MobileClient -->|Requêtes REST| CorsFilter
+  AdminBackoffice -->|Requêtes REST + Bearer JWT| CorsFilter
+
+  CorsFilter --> JwtFilter --> SecurityGuard --> Controllers
+  Controllers --> Services --> Repositories --> DB
+  WebClient -.->|Redirection commande / panier| WhatsApp
+  Services -.->|Gestion des photos| FileSystem
+```
+
+### Architecture des Données (Diagramme Entité-Relation UML)
+
+```mermaid
+erDiagram
+    UTILISATEURS ||--o{ OPERATEUR_RESTAURANTS : "possede"
+    RESTAURANTS ||--o{ OPERATEUR_RESTAURANTS : "est assigne a"
+    
+    RESTAURANTS ||--o{ PLATS : "propose"
+    RESTAURANTS ||--o{ COMMANDES : "recoit"
+    RESTAURANTS ||--o{ OFFRES : "programme"
+    
+    PLATS ||--o{ OFFRES : "fait l'objet de"
+    PLATS ||--o{ PLAT_DISPONIBILITES_HEBDO : "possede"
+    PLATS ||--o{ COMMANDE_ITEMS : "est commande dans"
+    
+    COMMANDES ||--|{ COMMANDE_ITEMS : "se compose de"
+
+    UTILISATEURS {
+        bigint id PK
+        string nom_complet
+        string email UK
+        string telephone
+        string mot_de_passe
+        string role "ADMIN | OPERATEUR"
+        boolean actif
+        string photo_url
+        datetime date_creation
+    }
+
+    OPERATEUR_RESTAURANTS {
+        bigint utilisateur_id PK,FK
+        bigint restaurant_id PK,FK
+    }
+
+    RESTAURANTS {
+        bigint id PK
+        string name
+        string location
+        string repere
+        string telephone
+        string image
+        string operator_name
+        boolean active
+        decimal commission_rate
+        string subscription_plan
+        date subscription_end_date
+        boolean sur_place
+        boolean a_emporter
+        boolean livraison
+        decimal supplement_livraison
+        string notes
+        datetime created_at
+    }
+
+    PLATS {
+        bigint id PK
+        bigint restaurant_id FK
+        string name
+        string description
+        decimal price
+        string image
+        string status "DISPO | EPUISE"
+        string moment
+        string variantes
+    }
+
+    PLAT_DISPONIBILITES_HEBDO {
+        bigint id PK
+        bigint plat_id FK
+        string jour_semaine "LUNDI..DIMANCHE"
+        string moment "dejeuner | etc."
+        boolean actif
+    }
+
+    OFFRES {
+        bigint id PK
+        bigint restaurant_id FK
+        bigint plat_id FK
+        date date_offre
+        string moment
+        decimal prix
+        decimal prix_emporter
+        string statut "DISPO | EPUISE"
+        datetime created_at
+    }
+
+    COMMANDES {
+        bigint id PK
+        bigint restaurant_id FK
+        string order_number UK
+        string client_name
+        string client_phone
+        string client_address
+        string type "LIVRAISON | EMPORTER | SUR_PLACE"
+        string status "NOUVELLE | EN_PREPARATION | PRETE | LIVREE | ANNULEE"
+        string payment_method "WAVE | ORANGE_MONEY | ESPECES"
+        string payment_status "ATTENTE | PAYE | ECHOUE"
+        decimal total_amount
+        datetime created_at
+    }
+
+    COMMANDE_ITEMS {
+        bigint id PK
+        bigint commande_id FK
+        bigint plat_id FK
+        int quantity
+        decimal unit_price
+    }
+
+    PARTNER_REQUESTS {
+        bigint id PK
+        string nom_restaurant
+        string nom_contact
+        string telephone
+        string ville
+        string status "PENDING | APPROVED | REJECTED"
+        datetime created_at
+    }
+
+    PAGE_CONTENTS {
+        bigint id PK
+        string slug UK
+        string title
+        string seo_keywords
+        string content
+        datetime created_at
+        datetime updated_at
+    }
+
+    PLATFORM_SETTINGS {
+        bigint id PK
+        string platform_name
+        string support_email
+        string support_phone
+        string default_currency
+        string instagram_url
+        string facebook_url
+        string tiktok_url
+        string whatsapp_message_greeting
+        string whatsapp_message_cart
+        string whatsapp_message_order
+        string whatsapp_message_default
+        string hero_title
+        string hero_subtitle
+    }
+
+    ANALYTICS_EVENTS {
+        bigint id PK
+        string event_type
+        string entity_id
+        string context
+        datetime timestamp
+    }
+
+    AUDIT_LOGS {
+        bigint id PK
+        string actor_email
+        string role
+        string action
+        string entity_type
+        string entity_id
+        string old_value
+        string new_value
+        datetime timestamp
+    }
+
+    REFERENCE_DATA {
+        bigint id PK
+        string type "QUARTIER | CRENEAU | CATEGORIE"
+        string valeur
+        string description
+        boolean actif
+        datetime created_at
+    }
+```
 
 ---
 
@@ -29,11 +246,13 @@ Le projet suit une architecture découplée Frontend / Backend :
 - Contact rapide via WhatsApp avec messages pré-remplis (panier, commande)
 - Interface **PWA** (installable sur mobile)
 
-### Dashboard Opérateur (accès restreint)
-- Gestion des plats du jour (ajout, modification, statut disponible/épuisé)
+### Dashboard Opérateur (accès restreint & cloisonné 0..n)
+- **Périmètre strict :** un opérateur ne voit et ne modifie que les données des restaurants qui lui sont assignés (relation `0..n` via la table `operateur_restaurants`)
+- Gestion des plats (ajout, modification, statut disponible/épuisé)
+- Gestion du planning hebdomadaire de disponibilité des plats
 - Duplication du menu de la veille
 - Suivi et mise à jour des commandes en temps réel
-- Upload de photos de plats
+- Upload et gestion des photos de plats
 
 ### Panneau Admin (accès restreint)
 - Gestion des restaurants et des opérateurs
@@ -190,16 +409,23 @@ cp frontend/.env.example frontend/.env
 
 ---
 
-## Accès par défaut
+## Accès de démarrage
 
-| Rôle | Nom / Restaurant | Email | Mot de passe |
-|---|---|---|---|
-| **Administrateur** | Admin Principal | `admin@lekkrek.com` | `password123` |
-| **Opérateur** | Awa Ndiaye (La Fourchette) | `awa@lekkrek.com` | `password123` |
-| **Opérateur** | Modou Fall (Chez Loutcha) | `modou@lekkrek.com` | `password123` |
-| **Opérateur** | Fatou Diop (Le Djoloff) | `fatou@lekkrek.com` | `password123` |
+| Rôle | Nom / Profil | Email | Mot de passe | Périmètre |
+|---|---|---|---|---|
+| **Administrateur** | Admin Principal | `admin@lekkrek.com` | `password123` | Accès global (tous les restaurants, finances, CMS, réglages) |
+| **Opérateur** | Awa Ndiaye *(exemple)* | `awa@lekkrek.com` | `password123` | Cloisonné aux restaurants assignés via `operateur_restaurants` |
 
-> Ces accès sont créés automatiquement au démarrage (`DataLoader.java`). **Changer ces mots de passe avant tout déploiement en production.**
+> 📌 **Gestion des Opérateurs & Relation 0..n :**  
+> Les opérateurs ne sont plus figés à un seul restaurant en dur. Un administrateur peut assigner à un opérateur **0, 1 ou plusieurs restaurants**. Si un opérateur n'a aucun restaurant assigné, son dashboard affichera zéro résultat en lecture et les écritures seront rejetées avec `403 Forbidden`.
+>
+> ⚙️ **Activation de l'initialisation automatique (`DataLoader.java`) :**  
+> En environnement de production, `DataLoader.java` est **désactivé par défaut** (`@ConditionalOnProperty(app.dataloader.enabled=true)`) afin de protéger les données réelles. Pour créer automatiquement les comptes de test au premier démarrage en développement local :
+> ```bash
+> export APP_DATALOADER_ENABLED=true
+> ```
+> *(ou ajouter `app.dataloader.enabled=true` dans `backend/src/main/resources/application.properties`)*.  
+> **Pensez à changer ces mots de passe avant tout déploiement en production.**
 
 ---
 
