@@ -297,8 +297,12 @@ export default function MenuManager() {
                 <tr key={resto.id} className="hover:bg-gray-50/80 transition-colors group">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-gray-100 border border-gray-200 overflow-hidden flex-shrink-0">
-                        <img src={formatImageUrl(resto.image) || "https://placehold.co/100x100?text=R"} alt={resto.name} className="w-full h-full object-cover" />
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-800 to-rose-950 border border-gray-200 overflow-hidden shrink-0 flex items-center justify-center text-white font-black text-sm">
+                        {resto.image && formatImageUrl(resto.image) ? (
+                          <img src={formatImageUrl(resto.image)} alt="" className="w-full h-full object-cover" onError={(e) => { e.target.style.display = 'none'; }} />
+                        ) : (
+                          <span>{(resto.name || 'R').trim().charAt(0).toUpperCase()}</span>
+                        )}
                       </div>
                       <div>
                         <p className="font-bold text-gray-900 group-hover:text-red-600 transition-colors">{resto.name}</p>
@@ -408,8 +412,19 @@ export default function MenuManager() {
                 {platsDuResto.map(plat => (
                   <tr key={plat.id} className="hover:bg-gray-50/80 transition-colors group">
                     <td className="p-4">
-                      <div className="w-14 h-14 rounded-xl overflow-hidden shadow-sm border border-gray-100 shrink-0 relative">
-                        <img src={formatImageUrl(plat.image)} alt={plat.name} className="w-full h-full object-cover" onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/150x150?text=Plat'; }} />
+                      <div className="w-14 h-14 rounded-xl overflow-hidden shadow-sm border border-gray-100 shrink-0 relative bg-gray-100">
+                        {plat.image && formatImageUrl(plat.image) ? (
+                          <img
+                            src={formatImageUrl(plat.image)}
+                            alt=""
+                            className="w-full h-full object-cover"
+                            onError={(e) => { e.target.style.display = 'none'; }}
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-gradient-to-br from-slate-900 to-rose-950 flex items-center justify-center text-rose-400 font-black text-sm select-none">
+                            {(plat.name || 'P').trim().charAt(0).toUpperCase()}
+                          </div>
+                        )}
                         {plat.status !== 'DISPO' && (
                           <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px]"></div>
                         )}

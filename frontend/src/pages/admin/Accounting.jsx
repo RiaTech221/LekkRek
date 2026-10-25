@@ -4,6 +4,31 @@ import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import ToastNotification from '../../components/ToastNotification';
 
+function RestaurantCardImage({ resto }) {
+  const [imgError, setImgError] = useState(false);
+  const formatted = formatImageUrl(resto.image);
+  const hasImage = Boolean(formatted && !imgError);
+
+  if (!hasImage) {
+    const initial = (resto.name || 'R').trim().charAt(0).toUpperCase();
+    return (
+      <div className="w-full h-full bg-gradient-to-br from-slate-900 via-gray-900 to-rose-950 flex flex-col items-center justify-center text-white select-none">
+        <span className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center text-lg font-black text-rose-400 border border-white/10 shadow-inner group-hover:scale-110 transition-transform duration-500">
+          {initial}
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={formatted}
+      alt=""
+      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+      onError={() => setImgError(true)}
+    />
+  );
+}
 
 export default function Accounting() {
   const [summary, setSummary] = useState(null);
@@ -318,18 +343,18 @@ export default function Accounting() {
             <span className="text-xs text-gray-400 font-medium">{filteredRestaurants.length} restaurants</span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {filteredRestaurants.map(resto => (
-              <div key={resto.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col group hover:shadow-md transition-shadow">
-                <div className="h-32 relative">
-                  <img src={formatImageUrl(resto.image) || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=500&q=80'} alt={resto.name} className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-gray-900/90 to-transparent"></div>
-                  <div className="absolute top-4 right-4 bg-red-600 text-white px-2 py-1 rounded text-xs font-bold shadow-lg">
+              <div key={resto.id} className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden flex flex-col group hover:-translate-y-1">
+                <div className="h-36 sm:h-40 relative overflow-hidden bg-gray-100 shrink-0">
+                  <RestaurantCardImage resto={resto} />
+                  <div className="absolute inset-0 bg-gradient-to-t from-gray-900/90 via-gray-900/30 to-transparent pointer-events-none"></div>
+                  <div className="absolute top-3 right-3 bg-red-600/90 backdrop-blur-md text-white px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider shadow-sm">
                     Com: {resto.commissionRate}%
                   </div>
-                  <div className="absolute bottom-4 left-4 text-white">
-                    <h3 className="font-bold text-xl">{resto.name}</h3>
-                    <p className="text-xs text-gray-300">{resto.location}</p>
+                  <div className="absolute bottom-3 left-3 right-3 text-white">
+                    <h3 className="font-bold text-lg truncate group-hover:text-rose-200 transition-colors">{resto.name}</h3>
+                    <p className="text-xs text-gray-300 truncate">{resto.location}</p>
                   </div>
                 </div>
                 

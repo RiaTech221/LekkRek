@@ -3,7 +3,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import DOMPurify from 'dompurify';
 import { validateSenegalPhone, normalizeSenegalPhone } from '../../utils/phoneUtils';
-import DishCard from '../../components/client/DishCard';
+import DishCard, { DishCardImage } from '../../components/client/DishCard';
 import SuccessModal from '../../components/client/SuccessModal';
 import OrderTrackingModal from '../../components/client/OrderTrackingModal';
 
@@ -694,7 +694,7 @@ return () => {
                 <div key={`rec-${plat.id}`} className="bg-orange-50/50 rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-orange-100 group flex flex-col relative">
                   <div className="absolute top-2 right-2 bg-orange-500 text-white text-[10px] font-bold px-2 py-1 rounded-full z-10 shadow-sm">Favori</div>
                   <div className="relative h-40 overflow-hidden bg-gray-100 shrink-0">
-                    <img src={formatImageUrl(plat.image)} alt={plat.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&q=80&w=800'; }} />
+                    <DishCardImage plat={plat} />
                   </div>
                   <div className="p-4 flex flex-col flex-grow">
                     <h3 className="font-bold text-lg text-gray-900 leading-tight mb-1 truncate">{plat.name}</h3>
@@ -754,7 +754,13 @@ return () => {
                   {cart.map((item, idx) => (
                     <li key={idx} className="flex justify-between items-center bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
                       <div className="flex items-center gap-4">
-                        <img src={formatImageUrl(item.image)} alt={item.name} className="w-16 h-16 rounded-xl object-cover" />
+                        {item.image && formatImageUrl(item.image) ? (
+                          <img src={formatImageUrl(item.image)} alt="" className="w-16 h-16 rounded-xl object-cover shrink-0" onError={(e) => { e.target.style.display = 'none'; }} />
+                        ) : (
+                          <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-slate-900 to-rose-950 text-rose-400 font-black flex items-center justify-center text-lg shrink-0">
+                            {(item.name || 'P').trim().charAt(0).toUpperCase()}
+                          </div>
+                        )}
                         <div>
                           <p className="font-bold text-gray-900 text-sm">{item.name}</p>
                           <p className="text-red-600 font-bold text-sm">{item.price} FCFA</p>

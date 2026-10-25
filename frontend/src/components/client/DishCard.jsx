@@ -1,19 +1,57 @@
+import React, { useState } from 'react';
 import { formatImageUrl } from '../../config';
 
-const FALLBACK_IMAGE =
-  'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&q=80&w=800';
+export function DishCardImage({
+  plat,
+  className = "w-full h-full object-cover group-hover:scale-110 transition-transform duration-500",
+  showPlaceholderText = true
+}) {
+  const [imgError, setImgError] = useState(false);
+  const formatted = formatImageUrl(plat?.image);
+  const [lastSrc, setLastSrc] = useState(formatted);
+
+  if (lastSrc !== formatted) {
+    setLastSrc(formatted);
+    setImgError(false);
+  }
+
+  const hasImage = Boolean(formatted && !imgError);
+
+  if (!hasImage) {
+    const initial = (plat?.name || 'P').trim().charAt(0).toUpperCase();
+    return (
+      <div className="w-full h-full bg-gradient-to-br from-slate-900 via-gray-900 to-rose-950 flex flex-col items-center justify-center text-white select-none">
+        <span className="w-11 h-11 sm:w-14 sm:h-14 rounded-2xl bg-white/10 backdrop-blur-sm flex items-center justify-center text-lg sm:text-2xl font-black text-rose-400 border border-white/10 shadow-inner group-hover:scale-110 transition-transform duration-500">
+          {initial}
+        </span>
+        <span className="text-[10px] sm:text-xs font-bold text-gray-300 mt-2 tracking-wider uppercase opacity-75 truncate max-w-[85%] text-center px-2">
+          {plat?.name || 'Plat'}
+        </span>
+        {showPlaceholderText && (
+          <span className="text-[9px] font-medium text-rose-300/80 mt-0.5 tracking-wide">
+            Photo en attente
+          </span>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={formatted}
+      alt=""
+      className={className}
+      onError={() => setImgError(true)}
+    />
+  );
+}
 
 export default function DishCard({ plat, onAdd }) {
   return (
     <div className="bg-white rounded-2xl sm:rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 group flex flex-col">
       {/* Image */}
       <div className="relative h-36 sm:h-56 overflow-hidden bg-gray-100 shrink-0">
-        <img
-          src={formatImageUrl(plat.image)}
-          alt={plat.name}
-          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-          onError={(e) => { e.target.src = FALLBACK_IMAGE; }}
-        />
+        <DishCardImage plat={plat} />
         <div className="absolute top-2 left-2 sm:top-4 sm:left-4 flex items-center gap-1">
           <span className={`px-2 sm:px-3 py-0.5 sm:py-1 text-[10px] sm:text-xs font-black uppercase tracking-wider rounded-full shadow-md backdrop-blur-md ${plat.status === 'DISPO' ? 'bg-white/90 text-green-600' : 'bg-red-600/90 text-white'}`}>
             {plat.status === 'DISPO' ? 'Dispo' : 'Épuisé'}
