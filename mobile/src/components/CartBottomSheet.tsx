@@ -193,7 +193,7 @@ function CartBottomSheetContent({
             </View>
           </View>
 
-          <Pressable style={styles.primaryButton} onPress={onClose}>
+          <Pressable style={[styles.primaryButton, styles.emptyActionButton]} onPress={onClose}>
             <Text style={styles.primaryButtonText}>Retour au menu</Text>
           </Pressable>
         </View>
@@ -214,7 +214,7 @@ function CartBottomSheetContent({
           <Text style={styles.emptySubtitle}>
             Découvrez les spécialités locales au menu aujourd&apos;hui et ajoutez vos plats préférés.
           </Text>
-          <Pressable style={styles.primaryButton} onPress={onClose}>
+          <Pressable style={[styles.primaryButton, styles.emptyActionButton]} onPress={onClose}>
             <Text style={styles.primaryButtonText}>Découvrir les plats</Text>
           </Pressable>
         </View>
@@ -543,11 +543,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: Brand.surfaceAlt,
-    padding: Spacing.two,
+    padding: Spacing.three,
     borderRadius: Radius.lg,
     borderWidth: 1,
     borderColor: Brand.border,
-    gap: Spacing.two,
+    gap: Spacing.three,
   },
   itemImage: {
     width: 52,
@@ -642,12 +642,15 @@ const styles = StyleSheet.create({
   },
   typeChip: {
     flex: 1,
-    paddingVertical: Spacing.two,
+    paddingVertical: Spacing.two + Spacing.half,
+    paddingHorizontal: Spacing.two,
     borderRadius: Radius.md,
     backgroundColor: Brand.surfaceAlt,
     borderWidth: 1,
     borderColor: Brand.borderStrong,
     alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 44,
   },
   typeChipActive: {
     backgroundColor: Brand.primaryLight,
@@ -668,7 +671,7 @@ const styles = StyleSheet.create({
     color: Brand.textLight,
   },
   inputGroup: {
-    gap: Spacing.half,
+    gap: Spacing.one,
   },
   inputLabel: {
     fontSize: FontSize.xs,
@@ -681,13 +684,14 @@ const styles = StyleSheet.create({
     borderColor: Brand.borderStrong,
     borderRadius: Radius.lg,
     paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.two + Spacing.half,
+    paddingVertical: Spacing.three,
     fontSize: FontSize.sm,
     color: Brand.textDark,
     fontWeight: '600',
+    minHeight: 48,
   },
   textArea: {
-    minHeight: 70,
+    minHeight: 80,
     textAlignVertical: 'top',
   },
   phoneInputWrap: {
@@ -698,12 +702,15 @@ const styles = StyleSheet.create({
     borderColor: Brand.borderStrong,
     borderRadius: Radius.lg,
     overflow: 'hidden',
+    minHeight: 48,
   },
   phonePrefix: {
     paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.two + Spacing.half,
+    paddingVertical: Spacing.three,
     borderRightWidth: 1,
     borderRightColor: Brand.borderStrong,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   phonePrefixText: {
     fontSize: FontSize.sm,
@@ -713,7 +720,7 @@ const styles = StyleSheet.create({
   phoneTextInput: {
     flex: 1,
     paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.two + Spacing.half,
+    paddingVertical: Spacing.three,
     fontSize: FontSize.sm,
     color: Brand.textDark,
     fontWeight: '700',
@@ -724,12 +731,15 @@ const styles = StyleSheet.create({
   },
   paymentChip: {
     flex: 1,
-    paddingVertical: Spacing.two,
+    paddingVertical: Spacing.two + Spacing.half,
+    paddingHorizontal: Spacing.two,
     borderRadius: Radius.md,
     backgroundColor: Brand.surfaceAlt,
     borderWidth: 1,
     borderColor: Brand.borderStrong,
     alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 44,
   },
   paymentChipActive: {
     backgroundColor: Brand.textDark,
@@ -762,7 +772,9 @@ const styles = StyleSheet.create({
     height: 40,
   },
   stickyFooter: {
-    padding: Spacing.four,
+    paddingHorizontal: Spacing.four,
+    paddingTop: Spacing.three,
+    paddingBottom: Platform.OS === 'ios' ? Spacing.five : Spacing.four,
     backgroundColor: Brand.surface,
     borderTopWidth: 1,
     borderTopColor: Brand.border,
@@ -770,17 +782,20 @@ const styles = StyleSheet.create({
   primaryButton: {
     backgroundColor: Brand.primary,
     borderRadius: Radius.lg,
-    paddingVertical: Spacing.three,
+    minHeight: 54,
+    paddingVertical: Spacing.three + Spacing.half,
+    paddingHorizontal: Spacing.four,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: Brand.primary,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
     elevation: 4,
   },
   primaryButtonPressed: {
     backgroundColor: Brand.primaryDark,
+    transform: [{ scale: 0.99 }],
   },
   primaryButtonDisabled: {
     opacity: 0.6,
@@ -789,16 +804,24 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: FontSize.base,
     fontWeight: '800',
+    textAlign: 'center',
+    letterSpacing: 0.3,
+  },
+  emptyActionButton: {
+    minWidth: 240,
+    paddingHorizontal: Spacing.five,
+    minHeight: 54,
+    marginTop: Spacing.two,
   },
   emptyWrapper: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: Spacing.four,
+    padding: Spacing.five,
   },
   emptyIconCircle: {
-    width: 68,
-    height: 68,
+    width: 72,
+    height: 72,
     borderRadius: Radius.pill,
     backgroundColor: Brand.surfaceAlt,
     alignItems: 'center',
@@ -806,19 +829,19 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.three,
   },
   emptyIconText: {
-    fontSize: 32,
+    fontSize: 34,
   },
   emptyTitle: {
-    fontSize: FontSize.lg,
-    fontWeight: '800',
+    fontSize: FontSize.xl,
+    fontWeight: '900',
     color: Brand.textDark,
     marginBottom: Spacing.one,
   },
   emptySubtitle: {
-    fontSize: FontSize.xs,
+    fontSize: FontSize.sm,
     color: Brand.textMuted,
     textAlign: 'center',
-    lineHeight: 18,
+    lineHeight: 22,
     marginBottom: Spacing.four,
     paddingHorizontal: Spacing.three,
   },
