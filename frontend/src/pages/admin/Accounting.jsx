@@ -55,11 +55,8 @@ export default function Accounting() {
 
   const fetchSummary = async () => {
     setLoading(true);
-    const token = localStorage.getItem('token');
     try {
-      const res = await fetch(`${API_URL}/api/v1/admin/accounting/summary`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      const res = await fetch(`${API_URL}/api/v1/admin/accounting/summary`);
       if (!res.ok) throw new Error("Erreur chargement comptabilité");
       const data = await res.json();
       setSummary(data);
@@ -81,7 +78,6 @@ export default function Accounting() {
 
   const fetchRestaurantReport = async (restoId, start, end) => {
     setReportLoading(true);
-    const token = localStorage.getItem('token');
     try {
       let url = `${API_URL}/api/v1/admin/accounting/restaurants/${restoId}`;
       const params = new URLSearchParams();
@@ -89,9 +85,7 @@ export default function Accounting() {
       if (end) params.append('endDate', end);
       if (params.toString()) url += `?${params.toString()}`;
 
-      const res = await fetch(url, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      const res = await fetch(url);
       if (!res.ok) throw new Error("Erreur chargement rapport restaurant");
       const data = await res.json();
       setRestaurantReport(data);

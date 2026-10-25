@@ -1,34 +1,44 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
+import { API_URL } from '../config';
 
 /**
  * Composant ProtectedRoute pour protéger les routes React par rôle.
- * - Redirige vers /login si aucun token ou session invalide.
- * - Vérifie si l'utilisateur possède l'un des rôles autorisés (allowedRoles).
+ * - Vérifie la session via GET /auth/me : le JWT étant en cookie HttpOnly, le JS
+ *   ne peut ni le lire ni en vérifier l'expiration — c'est le serveur qui valide.
+ * - En cas d'échec (401) : on purge le profil local et on redirige vers /login.
+ * - Vérifie ensuite si l'utilisateur possède l'un des rôles autorisés (allowedRoles).
  * - En cas de rôle non autorisé, redirige vers la route de secours (fallbackPath).
  */
 export default function ProtectedRoute({ children, allowedRoles = [] }) {
-  const token = localStorage.getItem('token');
-  
-  if (!token) {
-    return <Navigate to="/login" replace />;
-  }
+  const [status, setStatus] = useState('checking'); // checking | ok | ko
 
-  // Vérification de la durée de vie du token JWT côté client
-  try {
-    const payloadBase64 = token.split('.')[1];
-    if (payloadBase64) {
-      const decodedPayload = JSON.parse(atob(payloadBase64));
-      if (decodedPayload.exp && decodedPayload.exp * 1000 < Date.now()) {
-        console.warn("Session expirée (token JWT expiré)");
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        return <Navigate to="/login" replace />;
-      }
-    }
-  } catch (err) {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`${API_URL}/api/v1/public/auth/me`)
+      .then(res => (res.ok ? res.json() : null))
+      .then(user => {
+        if (cancelled) return;
+        if (user && user.email) {
+          localStorage.setItem('user', JSON.stringify({ email: user.email, roles: user.roles || [] }));
+          setStatus('ok');
+        } else {
+          localStorage.removeItem('user');
+          setStatus('ko');
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          localStorage.removeItem('user');
+          setStatus('ko');
+        }
+      });
+    return () => { cancelled = true; };
+  }, []);
+
+  if (status === 'checking') return null;
+
+  if (status === 'ko') {
     return <Navigate to="/login" replace />;
   }
 
@@ -47,7 +57,6 @@ export default function ProtectedRoute({ children, allowedRoles = [] }) {
     }
   } catch (e) {
     console.error("Erreur lecture utilisateur:", e);
-    localStorage.removeItem('token');
     localStorage.removeItem('user');
     return <Navigate to="/login" replace />;
   }

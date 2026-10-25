@@ -554,7 +554,7 @@ return () => {
             </div>
 
             <div className="flex gap-2 lg:gap-4 shrink-0 ml-auto">
-              {localStorage.getItem('token') && (
+              {localStorage.getItem('user') && (
                 <button onClick={() => window.location.href='/dashboard'} className="hidden lg:flex items-center gap-2 bg-red-50 text-red-600 hover:bg-red-100 px-5 py-3 rounded-full font-bold transition-all border border-red-100 text-sm">
                   ⚙️ Dash
                 </button>

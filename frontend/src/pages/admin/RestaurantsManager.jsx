@@ -159,10 +159,7 @@ export default function RestaurantsManager() {
   };
   
   const fetchRestaurants = () => {
-    const token = localStorage.getItem('token');
-    fetch(`${API_URL}/api/v1/admin/restaurants`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    })
+    fetch(`${API_URL}/api/v1/admin/restaurants`)
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data)) setRestaurants(data);
@@ -180,7 +177,6 @@ export default function RestaurantsManager() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const token = localStorage.getItem('token');
     
     let finalImageUrl = image ? image.trim() : null;
 
@@ -192,7 +188,6 @@ export default function RestaurantsManager() {
       try {
         const uploadRes = await fetch(`${API_URL}/api/v1/upload`, {
           method: 'POST',
-          headers: { 'Authorization': 'Bearer ' + token },
           body: formData
         });
         
@@ -242,8 +237,7 @@ export default function RestaurantsManager() {
     fetch(url, {
       method,
       headers: { 
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + token 
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify(payload)
     })
@@ -269,10 +263,8 @@ export default function RestaurantsManager() {
       isLoading: false,
       onConfirm: () => {
         setConfirmModal(prev => ({ ...prev, isLoading: true }));
-        const token = localStorage.getItem('token');
         fetch(`${API_URL}/api/v1/admin/restaurants/${id}`, {
-          method: 'DELETE',
-          headers: { 'Authorization': `Bearer ${token}` }
+          method: 'DELETE'
         })
           .then(res => handleApiResponse(res, "Impossible de supprimer ce restaurant (commandes liées ou droits insuffisants)."))
           .then(() => {
@@ -289,12 +281,10 @@ export default function RestaurantsManager() {
   };
 
   const toggleActive = (resto) => {
-    const token = localStorage.getItem('token');
     fetch(`${API_URL}/api/v1/admin/restaurants/${resto.id}`, {
       method: 'PUT',
       headers: { 
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}` 
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({ ...resto, active: !resto.active, subscriptionPlan: resto.subscriptionPlan, subscriptionEndDate: resto.subscriptionEndDate })
     })
