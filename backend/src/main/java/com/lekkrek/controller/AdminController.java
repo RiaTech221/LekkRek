@@ -187,6 +187,12 @@ public class AdminController {
                 resto.setCommissionRate(restaurantDetails.getCommissionRate());
             }
             resto.setActive(restaurantDetails.isActive());
+            resto.setRepere(restaurantDetails.getRepere());
+            resto.setSurPlace(restaurantDetails.getSurPlace());
+            resto.setAEmporter(restaurantDetails.getAEmporter());
+            resto.setLivraison(restaurantDetails.getLivraison());
+            resto.setSupplementLivraison(restaurantDetails.getSupplementLivraison());
+            resto.setNotes(restaurantDetails.getNotes());
             Restaurant updated = restaurantRepository.save(resto);
             auditService.logCurrentAction("UPDATE_RESTAURANT", "Restaurant", id.toString(), null, "Modification restaurant: " + resto.getName() + " (Commission: " + resto.getCommissionRate() + "%)");
             return ResponseEntity.ok(updated);

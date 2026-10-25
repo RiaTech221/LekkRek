@@ -20,6 +20,7 @@ import '../../index.css';
 export default function MobileClientView() {
   const [platformSettings, setPlatformSettings] = useState(null);
   const [plats, setPlats] = useState([]);
+  const [todayPlats, setTodayPlats] = useState([]);
   const [allCategories, setAllCategories] = useState([]); // All categories loaded once
   const [allPlats, setAllPlats] = useState([]); // All plats for fallbacks
   const [recommendations, setRecommendations] = useState([]);
@@ -107,6 +108,9 @@ export default function MobileClientView() {
 
   const handleWhatsappClick = (e) => {
     e.preventDefault();
+    if (!platformSettings?.supportPhone || !platformSettings.supportPhone.trim()) {
+      return;
+    }
 
     // Sanitise les valeurs potentiellement corrompues (encodage Latin-1 → UTF-8)
     const sanitize = (str) => {
@@ -141,13 +145,15 @@ export default function MobileClientView() {
       message += defTpl;
     }
 
+    const cleanDigits = platformSettings.supportPhone.replace(/\D/g, '');
+    const phone = cleanDigits.startsWith('221') ? cleanDigits : `221${cleanDigits}`;
     const encodedMessage = encodeURIComponent(message);
-    const waUrl = `https://wa.me/221781161910?text=${encodedMessage}`;
+    const waUrl = `https://wa.me/${phone}?text=${encodedMessage}`;
 
     fetch(`${API_URL}/api/v1/public/analytics`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ eventType: 'click_whatsapp', entityId: '781161910', context: 'floating_button' })
+      body: JSON.stringify({ eventType: 'click_whatsapp', entityId: phone, context: 'floating_button' })
     }).catch(err => console.error(err)).finally(() => {
       window.open(waUrl, '_blank');
     });
@@ -195,6 +201,18 @@ return () => {
       .catch(err => console.error(err));
   }, []);
 
+  // Fetch plats du jour
+  useEffect(() => {
+    fetch(`${API_URL}/api/v1/public/menu/today`)
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          setTodayPlats(data);
+        }
+      })
+      .catch(err => console.error("Erreur chargement plats du jour:", err));
+  }, []);
+
   // Recharge les plats dès qu'un filtre change
   useEffect(() => {
     // 1. Fetch settings
@@ -231,13 +249,38 @@ return () => {
   }, [keyword]);
 
   const addToCart = (plat) => setCart([...cart, plat]);
-  const total = cart.reduce((sum, item) => sum + item.price, 0);
+
+  // Restaurants uniques concernés par le panier
+  const uniqueRestaurants = Array.from(
+    new Map(cart.map(item => [item.restaurant?.id, item.restaurant])).values()
+  ).filter(Boolean);
+
+  const canLivraison = uniqueRestaurants.length === 0 || !uniqueRestaurants.some(r => r?.livraison === false);
+  const canEmporter = uniqueRestaurants.length === 0 || !uniqueRestaurants.some(r => (r?.aEmporter ?? r?.aemporter) === false);
+  const canSurPlace = uniqueRestaurants.length === 0 || !uniqueRestaurants.some(r => r?.surPlace === false);
+
+  const subtotal = cart.reduce((sum, item) => sum + (Number(item.price) || 0), 0);
+  const deliverySupplement = formData.type === 'LIVRAISON'
+    ? uniqueRestaurants.reduce((sum, r) => sum + (Number(r?.supplementLivraison) || 0), 0)
+    : 0;
+  const total = subtotal + deliverySupplement;
 
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
   const handleCheckout = () => {
     if (cart.length === 0) return showToast("Votre panier est vide !", 'error');
     
+    // Contrôles de modes de service
+    if (formData.type === 'LIVRAISON' && !canLivraison) {
+      return showToast("La livraison n'est pas acceptée par au moins un des restaurants de votre panier.", 'error');
+    }
+    if (formData.type === 'EMPORTER' && !canEmporter) {
+      return showToast("La vente à emporter n'est pas acceptée par au moins un des restaurants de votre panier.", 'error');
+    }
+    if (formData.type === 'SUR_PLACE' && !canSurPlace) {
+      return showToast("Le service sur place n'est pas disponible pour au moins un des restaurants de votre panier.", 'error');
+    }
+
     // Contrôles de saisie (Validation)
     if (!formData.clientName || formData.clientName.trim().length < 2) {
       return showToast("Veuillez saisir un nom valide (minimum 2 caractères).", 'error');
@@ -253,7 +296,7 @@ return () => {
       const orderRequest = {
         ...formData,
         clientPhone: normalizeSenegalPhone(formData.clientPhone),
-        platIds: cart.map(p => p.id)
+        platIds: cart.map(p => p.id || p.platId)
       };
 
       fetch(`${API_URL}/api/v1/public/orders`, {
@@ -523,6 +566,32 @@ return () => {
             </button>
           ))}
         </div>
+
+        {/* SECTION PLATS DU JOUR (API /today) */}
+        {Array.isArray(todayPlats) && todayPlats.length > 0 && !keyword && !resto && !quartier && !momentFilter && (
+          <div className="mb-12">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <span className="text-xs font-black uppercase tracking-wider text-red-600 bg-red-50 px-3 py-1 rounded-full">
+                  Disponibilités du jour
+                </span>
+                <h2 className="text-2xl font-black text-gray-900 mt-2 flex items-center gap-2">
+                  <span>🔥</span> Plats du Jour à Ziguinchor
+                </h2>
+              </div>
+              <span className="text-xs font-bold text-gray-500 bg-gray-100 px-3 py-1.5 rounded-full">
+                {todayPlats.length} disponible{todayPlats.length > 1 ? 's' : ''}
+              </span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+              {todayPlats.map(plat => (
+                <DishCard key={`today-${plat.id || plat.platId}`} plat={plat} onAdd={addToCart} />
+              ))}
+            </div>
+            <div className="mt-10 border-t border-gray-100"></div>
+          </div>
+        )}
+
         <h3 className="text-2xl font-black text-gray-900 mb-8">Au menu aujourd'hui</h3>
         
         {/* RECOMMENDATIONS SECTION */}
@@ -615,20 +684,45 @@ return () => {
             
             {cart.length > 0 && (
               <div className="p-6 border-t border-gray-100 bg-gray-50/50">
-                <div className="flex justify-between items-center mb-6">
-                  <span className="text-gray-500 font-bold">Total à payer</span>
-                  <span className="text-2xl font-black text-gray-900">{total} FCFA</span>
+                <div className="space-y-1.5 mb-5 bg-white p-3.5 rounded-2xl border border-gray-100 shadow-xs">
+                  <div className="flex justify-between items-center text-xs text-gray-500">
+                    <span>Sous-total plats</span>
+                    <span className="font-semibold text-gray-800">{subtotal.toLocaleString()} FCFA</span>
+                  </div>
+                  {formData.type === 'LIVRAISON' && (
+                    <div className="flex justify-between items-center text-xs text-emerald-600">
+                      <span>Frais de livraison</span>
+                      <span className="font-semibold">{deliverySupplement > 0 ? `+${deliverySupplement.toLocaleString()} FCFA` : 'Inclus / 0 FCFA'}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between items-center pt-2 border-t border-gray-100">
+                    <span className="text-gray-900 font-bold text-sm">Total à payer</span>
+                    <span className="text-xl font-black text-gray-900">{total.toLocaleString()} FCFA</span>
+                  </div>
                 </div>
+
                 <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); handleCheckout(); }}>
                     <div className="flex gap-2 mb-4">
-                      {['LIVRAISON', 'EMPORTER', 'SUR_PLACE'].map(type => (
+                      {[
+                        { type: 'SUR_PLACE', label: 'Sur place', allowed: canSurPlace },
+                        { type: 'EMPORTER', label: 'À emporter', allowed: canEmporter },
+                        { type: 'LIVRAISON', label: 'Livraison', allowed: canLivraison }
+                      ].map(({ type, label, allowed }) => (
                         <button 
                           key={type} 
                           type="button"
+                          disabled={!allowed}
                           onClick={() => setFormData({...formData, type})}
-                          className={`flex-1 py-2 text-xs font-bold rounded-xl border ${formData.type === type ? 'bg-red-50 border-red-200 text-red-600' : 'bg-white border-gray-200 text-gray-500'}`}
+                          className={`flex-1 py-2 text-xs font-bold rounded-xl border transition-all ${
+                            !allowed 
+                              ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed opacity-50' 
+                              : formData.type === type 
+                                ? 'bg-red-50 border-red-200 text-red-600 shadow-xs' 
+                                : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
+                          }`}
+                          title={!allowed ? "Non proposé par l'un des restaurants de votre panier" : label}
                         >
-                          {type === 'SUR_PLACE' ? 'Sur place' : type === 'EMPORTER' ? 'À emporter' : 'Livraison'}
+                          {label}
                         </button>
                       ))}
                     </div>
@@ -837,16 +931,18 @@ return () => {
       </footer>
 
       {/* BOUTON WHATSAPP FLOTTANT */}
-      <a 
-        onClick={handleWhatsappClick} href="#" 
-        target="_blank" 
-        rel="noopener noreferrer"
-        className="fixed bottom-24 right-6 bg-green-500 text-white p-3 rounded-full shadow-2xl hover:bg-green-600 transition-all z-50 flex items-center justify-center"
-      >
-        <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/>
-        </svg>
-      </a>
+      {platformSettings?.supportPhone && platformSettings.supportPhone.trim() !== '' && (
+        <a 
+          onClick={handleWhatsappClick} href="#" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="fixed bottom-24 right-6 bg-green-500 text-white p-3 rounded-full shadow-2xl hover:bg-green-600 transition-all z-50 flex items-center justify-center"
+        >
+          <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/>
+          </svg>
+        </a>
+      )}
 
       {/* Bouton Remonter - Discret */}
       <button 

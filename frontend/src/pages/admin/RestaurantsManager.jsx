@@ -43,6 +43,15 @@ export default function RestaurantsManager() {
 
   const [subscriptionPlan, setSubscriptionPlan] = useState('Basic');
   const [subscriptionEndDate, setSubscriptionEndDate] = useState('');
+  
+  // Nouveaux champs LekkRek Vraies Données
+  const [repere, setRepere] = useState('');
+  const [surPlace, setSurPlace] = useState(true);
+  const [aEmporter, setAEmporter] = useState(true);
+  const [livraison, setLivraison] = useState(true);
+  const [supplementLivraison, setSupplementLivraison] = useState('');
+  const [notes, setNotes] = useState('');
+
   const fileInputRef = useRef(null);
 
   const previewUrl = useMemo(() => {
@@ -84,6 +93,12 @@ export default function RestaurantsManager() {
     setCommissionRate(10);
     setSubscriptionPlan('Basic');
     setSubscriptionEndDate('');
+    setRepere('');
+    setSurPlace(true);
+    setAEmporter(true);
+    setLivraison(true);
+    setSupplementLivraison('');
+    setNotes('');
     setIsActive(true);
     setUploadingImage(false);
     if (fileInputRef.current) fileInputRef.current.value = '';
@@ -102,6 +117,13 @@ export default function RestaurantsManager() {
     setCommissionRate(resto.commissionRate || 10);
     setSubscriptionPlan(resto.subscriptionPlan || 'Basic');
     setSubscriptionEndDate(resto.subscriptionEndDate || '');
+
+    setRepere(resto.repere || '');
+    setSurPlace(resto.surPlace !== false);
+    setAEmporter((resto.aEmporter ?? resto.aemporter) !== false);
+    setLivraison(resto.livraison !== false);
+    setSupplementLivraison(resto.supplementLivraison != null ? resto.supplementLivraison : '');
+    setNotes(resto.notes || '');
 
     setIsActive(resto.active !== false);
     setIsModalOpen(true);
@@ -174,7 +196,13 @@ export default function RestaurantsManager() {
       commissionRate: parseFloat(commissionRate), 
       active: isActive, 
       subscriptionPlan, 
-      subscriptionEndDate: subscriptionEndDate || null 
+      subscriptionEndDate: subscriptionEndDate || null,
+      repere: repere.trim() || null,
+      surPlace: surPlace,
+      aEmporter: aEmporter,
+      livraison: livraison,
+      supplementLivraison: supplementLivraison !== '' ? parseFloat(supplementLivraison) : null,
+      notes: notes.trim() || null
     };
 
     const url = editingId 
@@ -327,6 +355,25 @@ export default function RestaurantsManager() {
                   <svg className="w-4 h-4 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                   Commission : {resto.commissionRate}%
                 </p>
+                {resto.repere && (
+                  <p className="text-xs text-gray-600 mt-1 flex items-center gap-1 font-medium">
+                    <span>📍</span> Repère : {resto.repere}
+                  </p>
+                )}
+                <div className="flex flex-wrap gap-1.5 mt-2">
+                  {resto.surPlace !== false && <span className="text-[10px] bg-blue-50 text-blue-700 font-bold px-2 py-0.5 rounded-full">🍽️ Sur place</span>}
+                  {(resto.aEmporter ?? resto.aemporter) !== false && <span className="text-[10px] bg-amber-50 text-amber-700 font-bold px-2 py-0.5 rounded-full">🛍️ À emporter</span>}
+                  {resto.livraison !== false && (
+                    <span className="text-[10px] bg-green-50 text-green-700 font-bold px-2 py-0.5 rounded-full">
+                      🛵 Livraison {resto.supplementLivraison > 0 ? `(+${resto.supplementLivraison} F)` : ''}
+                    </span>
+                  )}
+                </div>
+                {resto.notes && (
+                  <p className="text-[11px] text-gray-500 italic mt-2 line-clamp-2">
+                    💡 {resto.notes}
+                  </p>
+                )}
               </div>
               
               <div className="mt-auto flex justify-end gap-2 pt-4 border-t border-gray-100">
@@ -388,9 +435,21 @@ export default function RestaurantsManager() {
                   <label className="block text-xs font-bold text-gray-700 mb-1">Adresse / Localisation</label>
                   <input 
                     type="text" 
+                    placeholder="Ex: Escale, Peyrissac, HLM Néma..."
                     className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm font-medium focus:bg-white focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors"
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Repère visuel / Proximité (Optionnel)</label>
+                  <input 
+                    type="text" 
+                    placeholder="Ex: À côté de Rubis, Face camp militaire..."
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm font-medium focus:bg-white focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors"
+                    value={repere}
+                    onChange={(e) => setRepere(e.target.value)}
                   />
                 </div>
 
@@ -455,6 +514,62 @@ export default function RestaurantsManager() {
                       onChange={(e) => setSubscriptionEndDate(e.target.value)}
                     />
                   </div>
+                </div>
+
+                <div className="border-t border-gray-100 mt-2 pt-3">
+                  <label className="block text-xs font-bold text-gray-700 mb-2">Modes de service autorisés</label>
+                  <div className="grid grid-cols-3 gap-2">
+                    <label className="flex items-center gap-2 p-2.5 bg-gray-50 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-100 transition-colors">
+                      <input 
+                        type="checkbox"
+                        checked={surPlace}
+                        onChange={(e) => setSurPlace(e.target.checked)}
+                        className="rounded text-red-600 focus:ring-red-500"
+                      />
+                      <span className="text-xs font-medium text-gray-800">🍽️ Sur place</span>
+                    </label>
+                    <label className="flex items-center gap-2 p-2.5 bg-gray-50 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-100 transition-colors">
+                      <input 
+                        type="checkbox"
+                        checked={aEmporter}
+                        onChange={(e) => setAEmporter(e.target.checked)}
+                        className="rounded text-red-600 focus:ring-red-500"
+                      />
+                      <span className="text-xs font-medium text-gray-800">🛍️ À emporter</span>
+                    </label>
+                    <label className="flex items-center gap-2 p-2.5 bg-gray-50 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-100 transition-colors">
+                      <input 
+                        type="checkbox"
+                        checked={livraison}
+                        onChange={(e) => setLivraison(e.target.checked)}
+                        className="rounded text-red-600 focus:ring-red-500"
+                      />
+                      <span className="text-xs font-medium text-gray-800">🛵 Livraison</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Supplément Livraison (FCFA)</label>
+                  <input 
+                    type="number" min="0" step="50"
+                    placeholder="Ex: 500"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm font-medium focus:bg-white focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors"
+                    value={supplementLivraison}
+                    onChange={(e) => setSupplementLivraison(e.target.value)}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Notes / Horaires / Précisions (Optionnel)</label>
+                  <input 
+                    type="text" 
+                    maxLength={500}
+                    placeholder="Ex: Soir uniquement, Service dès 13h..."
+                    className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm font-medium focus:bg-white focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors"
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                  />
                 </div>
 
                 <div>

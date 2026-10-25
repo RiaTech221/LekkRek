@@ -10,8 +10,10 @@ package com.lekkrek.controller;
  */
 
 
+import com.lekkrek.dto.PlatTodayDTO;
 import com.lekkrek.entity.Plat;
 import com.lekkrek.repository.PlatRepository;
+import com.lekkrek.service.MenuTodayService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,9 +23,16 @@ import java.util.List;
 public class MenuController {
 
     private final PlatRepository platRepository;
+    private final MenuTodayService menuTodayService;
 
-    public MenuController(PlatRepository platRepository) {
+    public MenuController(PlatRepository platRepository, MenuTodayService menuTodayService) {
         this.platRepository = platRepository;
+        this.menuTodayService = menuTodayService;
+    }
+
+    @GetMapping("/today")
+    public List<PlatTodayDTO> getMenuToday() {
+        return menuTodayService.getMenuToday();
     }
 
         @GetMapping

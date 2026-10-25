@@ -36,7 +36,7 @@ public class PlatformSettingsService {
                     .id(1L)
                     .platformName("LekkRek")
                     .supportEmail("support@lekkrek.com")
-                    .supportPhone("+221 77 000 00 00")
+                    .supportPhone(null)
                     .defaultCurrency("FCFA")
                     .instagramUrl("lekkrek.sn")
                     .facebookUrl("lekkrekofficiel")
