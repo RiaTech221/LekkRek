@@ -63,14 +63,12 @@ export default function ContentManager() {
   const handleSave = async () => {
     setLoading(true);
     setMessage({ text: '', type: '' });
-    const token = localStorage.getItem('token');
 
     try {
       const response = await fetch(`${API_URL}/api/v1/pages/${selectedSlug}`, {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({ title, seoKeywords, content })
       });
@@ -97,14 +95,10 @@ export default function ContentManager() {
 
     const formData = new FormData();
     formData.append('file', file);
-    const token = localStorage.getItem('token');
 
     try {
       const response = await fetch(`${API_URL}/api/v1/admin/documents/parse`, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
         body: formData
       });
 

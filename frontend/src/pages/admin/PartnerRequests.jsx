@@ -16,10 +16,7 @@ export default function PartnerRequests() {
   const [loading, setLoading] = useState(true);
 
   const fetchRequests = () => {
-    const token = localStorage.getItem("token");
-    fetch(`${API_URL}/api/v1/admin/partner-requests`, {
-      headers: { "Authorization": `Bearer ${token}` }
-    })
+    fetch(`${API_URL}/api/v1/admin/partner-requests`)
       .then(res => res.json())
       .then(data => {
         setRequests(Array.isArray(data) ? data : []);
@@ -37,10 +34,8 @@ export default function PartnerRequests() {
   }, []);
 
   const updateStatus = (id, newStatus) => {
-    const token = localStorage.getItem("token");
     fetch(`${API_URL}/api/v1/admin/partner-requests/${id}/status?status=${newStatus}`, {
-      method: "PUT",
-      headers: { "Authorization": `Bearer ${token}` }
+      method: "PUT"
     })
       .then(res => res.json())
       .then(() => {

@@ -1,8 +1,13 @@
 /**
- * Configuration globale de l'API LekkRek.
- * Utilise VITE_API_URL si définie, sinon bascule dynamiquement sur l'hôte courant sur le port 8080.
+ * Base URL de l'API.
+ * - Dev : '' (chemin relatif) → le proxy Vite (/api → localhost:8080) rend les
+ *   requêtes same-origin, donc le cookie HttpOnly d'auth part automatiquement.
+ * - Prod : VITE_API_URL est fixé au build (Dockerfile) ; '' = même origine via
+ *   le proxy Nginx /api. On utilise `??` pour accepter la valeur vide explicite.
  */
-export const API_URL = import.meta.env.VITE_API_URL || (typeof window !== 'undefined' && window.location.hostname ? `${window.location.protocol}//${window.location.hostname}:8080` : 'http://localhost:8080');
+export const API_URL = import.meta.env.VITE_API_URL ?? (import.meta.env.DEV
+  ? ''
+  : (typeof window !== 'undefined' && window.location.hostname ? `${window.location.protocol}//${window.location.hostname}:8080` : 'http://localhost:8080'));
 
 /**
  * Normalise l'URL d'une image pour remplacer localhost ou une IP fixe par l'adresse configurée de l'API (VITE_API_URL).

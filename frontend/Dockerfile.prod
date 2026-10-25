@@ -5,8 +5,10 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 COPY . .
-# En production, on appelle le backend sur /api au lieu de localhost:8080 (proxy inverse via Nginx)
-ENV VITE_API_URL=/api/v1
+# API_URL reste vide : les fetch utilisent déjà des chemins relatifs /api/v1/…
+# et Nginx proxy /api/ vers le backend → même origine, le cookie HttpOnly est
+# envoyé automatiquement (l'ancienne valeur /api/v1 doublonnait le préfixe).
+ENV VITE_API_URL=
 RUN npm run build
 
 # 2. Serveur Nginx

@@ -10,11 +10,13 @@ package com.lekkrek.controller;
  */
 
 
+import com.lekkrek.dto.AuthMeDTO;
 import com.lekkrek.dto.JwtResponseDTO;
 import com.lekkrek.dto.LoginRequestDTO;
 import com.lekkrek.security.AuthCookieService;
 import com.lekkrek.security.JwtUtils;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -99,5 +101,21 @@ public class AuthController {
                 .header(HttpHeaders.SET_COOKIE, authCookieService.buildClearCookie().toString())
                 .build();
     }
+
+    /**
+     * Session courante : email + rôles de l'utilisateur authentifié.
+     * Le front l'appelle au chargement pour restaurer la session (le JWT n'étant
+     * plus lisible côté JS — stocké en cookie HttpOnly). 401 sinon.
+     */
+    @GetMapping("/me")
+    public ResponseEntity<?> currentUser(Authentication authentication) {
+        if (authentication == null || !(authentication.getPrincipal() instanceof UserDetails principal)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(java.util.Map.of("message", "Non authentifié"));
+        }
+        List<String> roles = principal.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(new AuthMeDTO(principal.getUsername(), roles));
     }
 }
