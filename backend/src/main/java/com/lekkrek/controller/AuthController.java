@@ -12,7 +12,9 @@ package com.lekkrek.controller;
 
 import com.lekkrek.dto.JwtResponseDTO;
 import com.lekkrek.dto.LoginRequestDTO;
+import com.lekkrek.security.AuthCookieService;
 import com.lekkrek.security.JwtUtils;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -40,17 +42,20 @@ public class AuthController {
     private final UtilisateurRepository utilisateurRepository;
     private final RestaurantRepository restaurantRepository;
     private final OperatorAccessService operatorAccessService;
+    private final AuthCookieService authCookieService;
 
     public AuthController(AuthenticationManager authenticationManager,
                           JwtUtils jwtUtils,
                           UtilisateurRepository utilisateurRepository,
                           RestaurantRepository restaurantRepository,
-                          OperatorAccessService operatorAccessService) {
+                          OperatorAccessService operatorAccessService,
+                          AuthCookieService authCookieService) {
         this.authenticationManager = authenticationManager;
         this.jwtUtils = jwtUtils;
         this.utilisateurRepository = utilisateurRepository;
         this.restaurantRepository = restaurantRepository;
         this.operatorAccessService = operatorAccessService;
+        this.authCookieService = authCookieService;
     }
 
     @PostMapping("/login")
@@ -75,6 +80,24 @@ public class AuthController {
                         .collect(Collectors.toList())
                 : List.of();
 
-        return ResponseEntity.ok(new JwtResponseDTO(jwt, "Bearer", userDetails.getUsername(), roles, restaurantList));
+        // Option A : le JWT est décliné en double —
+        //  - cookie HttpOnly pour le web (jamais lisible par le JS → anti-vol par XSS) ;
+        //  - corps JSON pour le mobile Expo (header Authorization: Bearer).
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, authCookieService.buildLoginCookie(jwt).toString())
+                .body(new JwtResponseDTO(jwt, "Bearer", userDetails.getUsername(), roles, restaurantList));
+    }
+
+    /**
+     * Déconnexion : efface le cookie de session côté navigateur.
+     * Le JWT reste valide jusqu'à son expiration (durée configurée) — une
+     * révocation instantanée côté serveur correspond à l'option B (session serveur).
+     */
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout() {
+        return ResponseEntity.noContent()
+                .header(HttpHeaders.SET_COOKIE, authCookieService.buildClearCookie().toString())
+                .build();
+    }
     }
 }
