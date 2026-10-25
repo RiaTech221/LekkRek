@@ -30,14 +30,20 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import CategoryPills from '@/components/CategoryPills';
 import DishCard from '@/components/DishCard';
 import FilterBar from '@/components/FilterBar';
+import ProfileModal from '@/components/ProfileModal';
 import { Brand, FontSize, Radius, Spacing } from '@/constants/theme';
 import { useCategories } from '@/hooks/useCategories';
+import { useClientProfile } from '@/hooks/useClientProfile';
 import { useMenu } from '@/hooks/useMenu';
 import type { Plat } from '@/types/menu';
 
 export default function MenuScreen() {
   const { plats, isLoading, error, filters, setFilter, reload } = useMenu();
   const categories = useCategories();
+  const { profile, saveProfile, logout } = useClientProfile();
+
+  // État local de la modal profil
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
   // État local du panier (liste d'identifiants ajoutés).
   // TODO(checkout) : brancher sur un hook dédié + écran panier lors de la prochaine itération.
@@ -126,8 +132,31 @@ export default function MenuScreen() {
           </Text>
         </View>
 
-        {/* Bouton Panier + compteur */}
+        {/* Actions de navigation : Profil / Connexion + Panier */}
         <View style={styles.navbarActions}>
+          <Pressable
+            onPress={() => setIsProfileModalOpen(true)}
+            style={({ pressed }) => [
+              styles.profileButton,
+              profile?.phone ? styles.profileButtonActive : null,
+              pressed && styles.buttonPressed,
+            ]}
+            accessibilityRole="button"
+            accessibilityLabel={profile?.phone ? 'Mon profil' : 'Se connecter'}
+          >
+            <Text
+              numberOfLines={1}
+              style={[
+                styles.profileButtonText,
+                profile?.phone ? styles.profileButtonTextActive : null,
+              ]}
+            >
+              {profile?.phone
+                ? `👋 ${profile.name ? profile.name.trim().split(' ')[0] : 'Client'}`
+                : '👤 Connexion'}
+            </Text>
+          </Pressable>
+
           <Pressable style={styles.cartButton}>
             <Text style={styles.cartButtonText}>🛒 Panier</Text>
             {cart.length > 0 && (
@@ -138,6 +167,15 @@ export default function MenuScreen() {
           </Pressable>
         </View>
       </View>
+
+      {/* MODAL DE PROFIL / CONNEXION */}
+      <ProfileModal
+        visible={isProfileModalOpen}
+        profile={profile}
+        onClose={() => setIsProfileModalOpen(false)}
+        onSave={saveProfile}
+        onLogout={logout}
+      />
 
       {/* GRILLE DES PLATS */}
       <FlatList
@@ -202,6 +240,35 @@ const styles = StyleSheet.create({
   },
   navbarActions: {
     flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
+  },
+  profileButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Brand.surfaceAlt,
+    borderWidth: 1,
+    borderColor: Brand.borderStrong,
+    paddingHorizontal: Spacing.two + Spacing.half,
+    paddingVertical: Spacing.two,
+    borderRadius: Radius.pill,
+    maxWidth: 120,
+  },
+  profileButtonActive: {
+    backgroundColor: Brand.primaryLight,
+    borderColor: '#FECACA',
+  },
+  profileButtonText: {
+    fontSize: FontSize.xs,
+    fontWeight: '700',
+    color: Brand.textDark,
+  },
+  profileButtonTextActive: {
+    color: Brand.primary,
+  },
+  buttonPressed: {
+    opacity: 0.8,
+    transform: [{ scale: 0.98 }],
   },
   cartButton: {
     flexDirection: 'row',
