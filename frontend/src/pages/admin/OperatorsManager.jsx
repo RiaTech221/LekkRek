@@ -40,7 +40,8 @@ export default function OperatorsManager() {
   const [image, setImage] = useState('');
   const [imageFile, setImageFile] = useState(null);
   const [uploadingImage, setUploadingImage] = useState(false);
-  const [restaurantAssigne, setRestaurantAssigne] = useState('');
+  const [selectedRestaurantIds, setSelectedRestaurantIds] = useState([]);
+  const [restoSearchTerm, setRestoSearchTerm] = useState("");
   const [role, setRole] = useState('OPERATEUR');
   const [restaurants, setRestaurants] = useState([]);
 
@@ -87,7 +88,8 @@ export default function OperatorsManager() {
     setIsActive(true);
     setImage('');
     setImageFile(null);
-    setRestaurantAssigne('');
+    setSelectedRestaurantIds([]);
+    setRestoSearchTerm('');
     setRole('OPERATEUR');
     setIsModalOpen(true);
   };
@@ -122,7 +124,12 @@ export default function OperatorsManager() {
     setIsActive(op.actif !== false);
     setImage(op.photoUrl || '');
     setImageFile(null);
-    setRestaurantAssigne(op.restaurantAssigne || '');
+    const assigned = Array.isArray(op.restaurants)
+      ? op.restaurants.map(r => r.id)
+      : (op.restaurantIds ? Array.from(op.restaurantIds) : []);
+    setSelectedRestaurantIds(assigned);
+    setRestoSearchTerm('');
+    setRole(op.role || 'OPERATEUR');
     setIsModalOpen(true);
   };
 
@@ -169,8 +176,8 @@ export default function OperatorsManager() {
       motDePasse: password, 
       actif: isActive,
       photoUrl: finalImageUrl,
-      restaurantAssigne: restaurantAssigne,
-      role: role  // SOL-194 : inclure le rôle dans le payload
+      restaurantIds: selectedRestaurantIds,
+      role: role
     };
 
     const url = editingId ? `${API_URL}/api/v1/admin/operators/${editingId}` : `${API_URL}/api/v1/admin/operators`;
@@ -276,7 +283,7 @@ export default function OperatorsManager() {
                 <th className="p-4 pl-6">Utilisateur</th>
                 <th className="p-4">Rôle</th>
                 <th className="p-4">Statut</th>
-                <th className="p-4">Restaurant Assigné</th>
+                <th className="p-4">Restaurants Assignés</th>
                 <th className="p-4 text-right pr-6">Actions</th>
               </tr>
             </thead>
@@ -318,7 +325,17 @@ export default function OperatorsManager() {
                     )}
                   </td>
                   <td className="p-4 text-sm font-medium text-gray-600">
-                    {op.restaurantAssigne || <span className="text-gray-400 italic">Aucun / Global</span>}
+                    {op.restaurants && op.restaurants.length > 0 ? (
+                      <div className="flex flex-wrap gap-1.5 max-w-xs">
+                        {op.restaurants.map(r => (
+                          <span key={r.id} className="inline-flex items-center px-2 py-0.5 rounded-md bg-gray-100 text-gray-800 text-xs font-semibold border border-gray-200">
+                            {r.name}
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-gray-400 italic">Aucun restaurant</span>
+                    )}
                   </td>
                   <td className="p-4 pr-6 text-right">
                     <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -466,17 +483,77 @@ export default function OperatorsManager() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">Restaurant Assigné (Optionnel)</label>
-                  <select 
-                    className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm font-medium focus:bg-white focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors"
-                    value={restaurantAssigne}
-                    onChange={(e) => setRestaurantAssigne(e.target.value)}
-                  >
-                    <option value="">-- Aucun restaurant assign� (Staff LekkRek) --</option>
-                    {restaurants.map(r => (
-                      <option key={r.id} value={r.name}>{r.name}</option>
-                    ))}
-                  </select>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="block text-xs font-bold text-gray-700">
+                      Restaurants Assignés ({selectedRestaurantIds.length})
+                    </label>
+                    <div className="flex items-center gap-2 text-xs">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedRestaurantIds(restaurants.map(r => r.id))}
+                        className="text-red-600 hover:text-red-700 font-bold"
+                      >
+                        Tout
+                      </button>
+                      <span className="text-gray-300">|</span>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedRestaurantIds([])}
+                        className="text-gray-500 hover:text-gray-700 font-bold"
+                      >
+                        Aucun
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Champ de recherche pour filtrer les restaurants */}
+                  <div className="relative mb-2">
+                    <input
+                      type="text"
+                      placeholder="Filtrer les restaurants..."
+                      value={restoSearchTerm}
+                      onChange={(e) => setRestoSearchTerm(e.target.value)}
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-medium focus:bg-white focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
+                    />
+                  </div>
+
+                  {/* Liste scrollable multi-sélection utilisable sur mobile */}
+                  <div className="max-h-48 overflow-y-auto border border-gray-200 rounded-xl p-2 bg-gray-50/50 space-y-1">
+                    {restaurants
+                      .filter(r => (r.name || '').toLowerCase().includes(restoSearchTerm.toLowerCase()))
+                      .map(r => {
+                        const isChecked = selectedRestaurantIds.includes(r.id);
+                        return (
+                          <label
+                            key={r.id}
+                            className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-colors text-xs font-semibold ${
+                              isChecked ? 'bg-red-50 text-red-900 border border-red-200' : 'hover:bg-gray-100 text-gray-700'
+                            }`}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedRestaurantIds(prev => [...prev, r.id]);
+                                } else {
+                                  setSelectedRestaurantIds(prev => prev.filter(id => id !== r.id));
+                                }
+                              }}
+                              className="rounded border-gray-300 text-red-600 focus:ring-red-500 w-4 h-4 cursor-pointer"
+                            />
+                            <span className="flex-1 truncate">{r.name}</span>
+                            {r.location && <span className="text-[10px] text-gray-400 font-normal truncate">{r.location}</span>}
+                          </label>
+                        );
+                      })}
+                    {restaurants.filter(r => (r.name || '').toLowerCase().includes(restoSearchTerm.toLowerCase())).length === 0 && (
+                      <p className="text-center text-xs text-gray-400 py-3">Aucun restaurant trouvé.</p>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-gray-400 mt-1">
+                    0 restaurant = 0 résultat en lecture, 403 en écriture. 1 à n = accès restreint à ces restaurants.
+                  </p>
                 </div>
 
                 <div className="flex items-center gap-3 pt-2">

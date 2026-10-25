@@ -4,6 +4,31 @@ import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import ToastNotification from '../../components/ToastNotification';
 
+function RestaurantCardImage({ resto }) {
+  const [imgError, setImgError] = useState(false);
+  const formatted = formatImageUrl(resto.image);
+  const hasImage = Boolean(formatted && !imgError);
+
+  if (!hasImage) {
+    const initial = (resto.name || 'R').trim().charAt(0).toUpperCase();
+    return (
+      <div className="w-full h-full bg-gradient-to-br from-slate-900 via-gray-900 to-rose-950 flex flex-col items-center justify-center text-white select-none">
+        <span className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center text-lg font-black text-rose-400 border border-white/10 shadow-inner group-hover:scale-110 transition-transform duration-500">
+          {initial}
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={formatted}
+      alt=""
+      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+      onError={() => setImgError(true)}
+    />
+  );
+}
 
 export default function Accounting() {
   const [summary, setSummary] = useState(null);
@@ -113,7 +138,7 @@ export default function Accounting() {
     // Table
     const tableColumn = ["N° Cmd", "Date", "Statut", "Total Brut", "Com. LekkRek", "A Reverser"];
     const tableRows = restaurantReport.transactions.map(c => [
-      (c.orderNumber || "").substring(0, 8),
+      (() => { const r = (c.orderNumber || "").replace(/#/g, "").trim(); return r.startsWith("CMD-") ? r : (r ? `CMD-${r}` : "CMD-???"); })(),
       new Date(c.createdAt).toLocaleDateString('fr-FR'),
       c.status,
       `${Number(c.totalAmount || 0).toLocaleString('fr-FR')} F`,
@@ -182,26 +207,25 @@ export default function Accounting() {
   }
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-8">
+    <div className="p-8 w-full min-h-screen" style={{ background: '#f8fafc' }}>
       <ToastNotification toast={toast} onClose={() => setToast(null)} />
       {/* Header */}
-      <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-b border-gray-100 pb-8">
-        <div>
-          <span className="text-red-600 text-xs font-bold uppercase tracking-wider">Dashboard Administrateur</span>
-          <h1 className="text-3xl font-black text-gray-900 mt-1">Comptabilité & Commissions</h1>
-          <p className="text-gray-500 text-sm mt-1">
-            Calculs financiers certifiés côté serveur (Spring Boot BigDecimal)
-          </p>
+      <header className="flex flex-row items-center justify-between gap-6 mb-6">
+        <div className="flex items-center gap-3">
+          <div>
+            <span className="text-red-600 text-xs font-bold uppercase tracking-wider">Dashboard Administrateur</span>
+            <h1 className="text-2xl font-black text-gray-900 leading-tight">Comptabilité & Commissions</h1>
+          </div>
         </div>
 
-        <div className="flex gap-4">
-          <div className="bg-white border border-gray-200 px-6 py-3 rounded-xl shadow-sm text-right">
-             <p className="text-xs text-gray-500 font-bold uppercase tracking-wider mb-1">Total Généré Brut</p>
-             <p className="text-2xl font-black text-gray-900">{Number(globalCa).toLocaleString('fr-FR')} FCFA</p>
+        <div className="flex gap-3 shrink-0">
+          <div className="bg-white border border-gray-200 px-5 py-2.5 rounded-xl shadow-sm text-right">
+             <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">Total Généré Brut</p>
+             <p className="text-xl font-black text-gray-900">{Number(globalCa).toLocaleString('fr-FR')} FCFA</p>
           </div>
-          <div className="bg-red-600 text-white px-6 py-3 rounded-xl shadow-lg text-right">
-             <p className="text-xs text-red-200 font-bold uppercase tracking-wider mb-1">Bénéfice Net LekkRek</p>
-             <p className="text-2xl font-black">{Number(globalBenefice).toLocaleString('fr-FR')} FCFA</p>
+          <div className="bg-red-600 text-white px-5 py-2.5 rounded-xl shadow-lg text-right">
+             <p className="text-[10px] text-red-200 font-bold uppercase tracking-wider mb-0.5">Bénéfice Net LekkRek</p>
+             <p className="text-xl font-black">{Number(globalBenefice).toLocaleString('fr-FR')} FCFA</p>
           </div>
         </div>
       </header>
@@ -269,7 +293,7 @@ export default function Accounting() {
                     {(restaurantReport?.transactions || []).map(c => {
                       return (
                         <tr key={c.id} className="hover:bg-gray-50 transition-colors">
-                          <td className="p-4"><span className="bg-gray-100 text-gray-800 font-mono text-xs px-2 py-1 rounded border border-gray-200">{(c.orderNumber || "").substring(0,6).toUpperCase()}</span></td>
+                          <td className="p-4"><span className="bg-gray-100 text-gray-800 font-mono text-xs px-2 py-1 rounded border border-gray-200">{(() => { const r = (c.orderNumber || "").replace(/#/g, "").trim(); return r.startsWith("CMD-") ? r : (r ? `CMD-${r}` : "CMD-???"); })()}</span></td>
                           <td className="p-4 text-sm text-gray-600">{new Date(c.createdAt).toLocaleDateString('fr-FR')} {new Date(c.createdAt).toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'})}</td>
                           <td className="p-4"><span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider ${c.status === 'LIVREE' ? 'bg-green-100 text-green-700' : c.status === 'ANNULEE' ? 'bg-gray-100 text-gray-400 line-through' : 'bg-blue-100 text-blue-700'}`}>{c.status}</span></td>
                           <td className="p-4 text-sm font-bold text-gray-900 text-right">{Number(c.totalAmount || 0).toLocaleString('fr-FR')} F</td>
@@ -307,7 +331,7 @@ export default function Accounting() {
         </div>
       ) : (
         /* VUE MAITRE */
-        <div className="space-y-6">
+        <div className="space-y-6 mt-6">
           <div className="flex justify-between items-center">
             <input 
               type="text" 
@@ -319,18 +343,18 @@ export default function Accounting() {
             <span className="text-xs text-gray-400 font-medium">{filteredRestaurants.length} restaurants</span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {filteredRestaurants.map(resto => (
-              <div key={resto.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col group hover:shadow-md transition-shadow">
-                <div className="h-32 relative">
-                  <img src={formatImageUrl(resto.image) || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=500&q=80'} alt={resto.name} className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-gray-900/90 to-transparent"></div>
-                  <div className="absolute top-4 right-4 bg-red-600 text-white px-2 py-1 rounded text-xs font-bold shadow-lg">
+              <div key={resto.id} className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden flex flex-col group hover:-translate-y-1">
+                <div className="h-36 sm:h-40 relative overflow-hidden bg-gray-100 shrink-0">
+                  <RestaurantCardImage resto={resto} />
+                  <div className="absolute inset-0 bg-gradient-to-t from-gray-900/90 via-gray-900/30 to-transparent pointer-events-none"></div>
+                  <div className="absolute top-3 right-3 bg-red-600/90 backdrop-blur-md text-white px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider shadow-sm">
                     Com: {resto.commissionRate}%
                   </div>
-                  <div className="absolute bottom-4 left-4 text-white">
-                    <h3 className="font-bold text-xl">{resto.name}</h3>
-                    <p className="text-xs text-gray-300">{resto.location}</p>
+                  <div className="absolute bottom-3 left-3 right-3 text-white">
+                    <h3 className="font-bold text-lg truncate group-hover:text-rose-200 transition-colors">{resto.name}</h3>
+                    <p className="text-xs text-gray-300 truncate">{resto.location}</p>
                   </div>
                 </div>
                 

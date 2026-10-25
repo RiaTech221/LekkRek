@@ -18,6 +18,9 @@ import java.util.List;
 
 public interface PlatRepository extends JpaRepository<Plat, Long> {
 
+    List<Plat> findByRestaurantId(Long restaurantId);
+    List<Plat> findByRestaurantIdIn(java.util.Collection<Long> restaurantIds);
+
     @Query("SELECT p FROM Plat p WHERE " +
            "(:keyword IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(p.variantes) LIKE LOWER(CONCAT('%', :keyword, '%'))) AND " +
            "(:resto IS NULL OR p.restaurant.name = :resto) AND " +

@@ -17,11 +17,10 @@ import com.lekkrek.repository.RestaurantRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import com.lekkrek.service.AuditService;
 
@@ -67,9 +66,25 @@ public class AdminController {
         operator.setRole(operator.getRole() != null ? operator.getRole() : Utilisateur.Role.OPERATEUR);
         operator.setMotDePasse(passwordEncoder.encode(operator.getMotDePasse()));
         operator.setActif(true);
+
+        java.util.Set<Long> idsToAssign = new java.util.HashSet<>();
+        if (operator.getRestaurantIds() != null) {
+            idsToAssign.addAll(operator.getRestaurantIds());
+        }
+        if (operator.getRestaurants() != null) {
+            operator.getRestaurants().forEach(r -> { if (r.getId() != null) idsToAssign.add(r.getId()); });
+        }
+        if (!idsToAssign.isEmpty()) {
+            java.util.List<Restaurant> targetRestos = restaurantRepository.findAllById(idsToAssign);
+            operator.setRestaurants(new java.util.HashSet<>(targetRestos));
+        }
         
         Utilisateur saved = utilisateurRepository.save(operator);
-        auditService.logCurrentAction("CREATE_OPERATOR", "Utilisateur", saved.getId().toString(), null, "Création opérateur: " + saved.getEmail() + " (" + saved.getNomComplet() + ")");
+        String restosStr = (saved.getRestaurants() != null && !saved.getRestaurants().isEmpty())
+                ? saved.getRestaurants().stream().map(Restaurant::getName).collect(Collectors.joining(", "))
+                : "Aucun";
+        auditService.logCurrentAction("CREATE_OPERATOR", "Utilisateur", saved.getId().toString(), null,
+                "Création opérateur: " + saved.getEmail() + " (" + saved.getNomComplet() + ") - Restaurants: " + restosStr);
         return ResponseEntity.ok(saved);
     }
 
@@ -99,6 +114,41 @@ public class AdminController {
             if (operatorDetails.getRestaurantAssigne() != null) {
                 op.setRestaurantAssigne(operatorDetails.getRestaurantAssigne());
             }
+
+            // Gestion de l'assignation 0..n des restaurants
+            java.util.Set<Long> oldRestoIds = op.getRestaurants() != null
+                    ? op.getRestaurants().stream().map(Restaurant::getId).collect(Collectors.toSet())
+                    : java.util.Collections.emptySet();
+            String oldRestosStr = (op.getRestaurants() != null && !op.getRestaurants().isEmpty())
+                    ? op.getRestaurants().stream().map(Restaurant::getName).collect(Collectors.joining(", "))
+                    : "Aucun";
+
+            java.util.Set<Long> newRestoIds = new java.util.HashSet<>();
+            boolean assignmentSpecified = false;
+            if (operatorDetails.getRestaurantIds() != null) {
+                newRestoIds.addAll(operatorDetails.getRestaurantIds());
+                assignmentSpecified = true;
+            }
+            if (operatorDetails.getRestaurants() != null && !operatorDetails.getRestaurants().isEmpty()) {
+                operatorDetails.getRestaurants().forEach(r -> { if (r.getId() != null) newRestoIds.add(r.getId()); });
+                assignmentSpecified = true;
+            }
+
+            if (assignmentSpecified) {
+                java.util.List<Restaurant> targetRestos = newRestoIds.isEmpty()
+                        ? java.util.Collections.emptyList()
+                        : restaurantRepository.findAllById(newRestoIds);
+                op.setRestaurants(new java.util.HashSet<>(targetRestos));
+                String newRestosStr = targetRestos.isEmpty()
+                        ? "Aucun"
+                        : targetRestos.stream().map(Restaurant::getName).collect(Collectors.joining(", "));
+
+                if (!oldRestoIds.equals(newRestoIds)) {
+                    auditService.logCurrentAction("UPDATE_OPERATOR_ASSIGNMENT", "Utilisateur", id.toString(),
+                            oldRestosStr, newRestosStr);
+                }
+            }
+
             Utilisateur updated = utilisateurRepository.save(op);
             auditService.logCurrentAction("UPDATE_OPERATOR", "Utilisateur", id.toString(), null, "Modification opérateur: " + op.getEmail());
             return ResponseEntity.ok(updated);
@@ -187,6 +237,12 @@ public class AdminController {
                 resto.setCommissionRate(restaurantDetails.getCommissionRate());
             }
             resto.setActive(restaurantDetails.isActive());
+            resto.setRepere(restaurantDetails.getRepere());
+            resto.setSurPlace(restaurantDetails.getSurPlace());
+            resto.setAEmporter(restaurantDetails.getAEmporter());
+            resto.setLivraison(restaurantDetails.getLivraison());
+            resto.setSupplementLivraison(restaurantDetails.getSupplementLivraison());
+            resto.setNotes(restaurantDetails.getNotes());
             Restaurant updated = restaurantRepository.save(resto);
             auditService.logCurrentAction("UPDATE_RESTAURANT", "Restaurant", id.toString(), null, "Modification restaurant: " + resto.getName() + " (Commission: " + resto.getCommissionRate() + "%)");
             return ResponseEntity.ok(updated);

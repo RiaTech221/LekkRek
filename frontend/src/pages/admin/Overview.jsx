@@ -19,7 +19,6 @@ export default function Overview() {
   const [restaurantsCount, setRestaurantsCount] = useState(0);
   const [activeRestaurantsCount, setActiveRestaurantsCount] = useState(0);
   const [operatorsCount, setOperatorsCount] = useState(0);
-  const [platsCount, setPlatsCount] = useState(0);
   
   // Nouveaux états pour coller à 10.1
   const [offresDuJourCount, setOffresDuJourCount] = useState(0);
@@ -41,6 +40,16 @@ export default function Overview() {
     console.error("Erreur parsing user:", e);
   }
   const isAdmin = Array.isArray(user.roles) && user.roles.includes('ROLE_ADMIN');
+  const operatorRestaurants = Array.isArray(user.restaurants) ? user.restaurants : [];
+  const hasMultipleRestaurants = isAdmin || operatorRestaurants.length > 1;
+  const [restaurantFilter, setRestaurantFilter] = useState('ALL');
+
+  const availableRestaurantsForFilter = operatorRestaurants.length > 0 
+    ? operatorRestaurants 
+    : Array.from(new Map(
+        orders.filter(o => o.restaurant?.id && o.restaurant?.name)
+          .map(o => [o.restaurant.id, { id: o.restaurant.id, name: o.restaurant.name }])
+      ).values());
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -87,13 +96,6 @@ export default function Overview() {
                 setOffresEpuiseesCount(Math.floor(data.length * 0.2));
             }
         }).catch(console.error);
-
-    } else {
-      // Pour l'opérateur classique
-      fetch(`${API_URL}/api/v1/operator/plats`, { headers })
-        .then(res => res.json())
-        .then(data => { if (Array.isArray(data)) setPlatsCount(data.length); })
-        .catch(console.error);
     }
   }, [isAdmin]);
 
@@ -322,18 +324,15 @@ export default function Overview() {
             </div>
           </>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           {/* Opérateur Stats */}
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
-            <div>
-              <h4 className="text-sm font-bold text-gray-500 mb-1">Plats au Catalogue</h4>
-              <p className="text-3xl font-black text-gray-900">{platsCount}</p>
-            </div>
-          </div>
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
             <div>
               <h4 className="text-sm font-bold text-gray-500 mb-1">Commandes en cours</h4>
               <p className="text-3xl font-black text-orange-500">{pendingOrders}</p>
+            </div>
+            <div className="w-12 h-12 rounded-full bg-orange-50 flex items-center justify-center text-orange-500">
+              <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
             </div>
           </div>
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
@@ -341,14 +340,32 @@ export default function Overview() {
               <h4 className="text-sm font-bold text-gray-500 mb-1">Commandes Livrées</h4>
               <p className="text-3xl font-black text-green-600">{completedOrders}</p>
             </div>
+            <div className="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center text-green-600">
+              <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            </div>
           </div>
         </div>
       )}
 
       {/* Recent Orders Table */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="p-6 border-b border-gray-100">
+        <div className="p-6 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <h4 className="font-black text-gray-900 text-lg">Activité Récente</h4>
+          {hasMultipleRestaurants && (
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-gray-500 whitespace-nowrap">Restaurant :</span>
+              <select
+                value={restaurantFilter}
+                onChange={(e) => setRestaurantFilter(e.target.value)}
+                className="bg-gray-50 border border-gray-200 text-gray-700 text-xs font-bold rounded-xl px-3 py-1.5 focus:outline-none focus:border-red-500 cursor-pointer"
+              >
+                <option value="ALL">Tous mes restaurants</option>
+                {availableRestaurantsForFilter.map(r => (
+                  <option key={r.id} value={r.id}>{r.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
@@ -361,8 +378,11 @@ export default function Overview() {
               </tr>
             </thead>
             <tbody>
-              {orders.slice().reverse().slice(0, 5).map(o => {
-                const shortId = (o.orderNumber || "").replace("CMD-", "") || String(o.id).substring(0, 6);
+              {orders
+                .filter(o => restaurantFilter === 'ALL' || (o.restaurant?.id && String(o.restaurant.id) === String(restaurantFilter)))
+                .slice().reverse().slice(0, 5).map(o => {
+                const raw = (o.orderNumber || "").replace(/#/g, "").trim();
+                const shortId = raw.startsWith("CMD-") ? raw : (raw ? `CMD-${raw}` : `CMD-${String(o.id).substring(0, 8).toUpperCase()}`);
                 let statusConfig = { text: "Inconnu", color: "bg-gray-100 text-gray-600", dot: "bg-gray-400" };
                 switch (o.status) {
                   case 'NOUVELLE': statusConfig = { text: "Nouvelle", color: "bg-blue-50 text-blue-700", dot: "bg-blue-500" }; break;
@@ -380,7 +400,16 @@ export default function Overview() {
                         {shortId}
                       </div>
                     </td>
-                    <td className="p-4 font-bold text-gray-900">{o.clientName}</td>
+                    <td className="p-4 font-bold text-gray-900">
+                      <div>{o.clientName}</div>
+                      {hasMultipleRestaurants && o.restaurant?.name && (
+                        <div className="mt-0.5">
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                            📍 {o.restaurant.name}
+                          </span>
+                        </div>
+                      )}
+                    </td>
                     <td className="p-4">
                       <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full ${statusConfig.color} text-[10px] font-black uppercase tracking-wide border border-current opacity-80`}>
                         <span className={`w-1.5 h-1.5 rounded-full ${statusConfig.dot}`}></span>
@@ -393,7 +422,7 @@ export default function Overview() {
                   </tr>
                 );
               })}
-              {orders.length === 0 && (
+              {orders.filter(o => restaurantFilter === 'ALL' || (o.restaurant?.id && String(o.restaurant.id) === String(restaurantFilter))).length === 0 && (
                 <tr>
                   <td colSpan="4" className="p-12 text-center">
                     <TbInbox className="w-12 h-12 mb-3 mx-auto text-gray-300 stroke-1" aria-hidden="true" />
