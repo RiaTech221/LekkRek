@@ -157,11 +157,19 @@ export default function MenuScreen() {
             </Text>
           </Pressable>
 
-          <Pressable style={styles.cartButton}>
-            <Text style={styles.cartButtonText}>🛒 Panier</Text>
+          {/* Bouton Panier compact : icône + badge flottant */}
+          <Pressable
+            style={({ pressed }) => [
+              styles.cartButton,
+              pressed && styles.buttonPressed,
+            ]}
+            accessibilityRole="button"
+            accessibilityLabel={`Panier, ${cart.length} article${cart.length > 1 ? 's' : ''}`}
+          >
+            <Text style={styles.cartIcon}>🛒</Text>
             {cart.length > 0 && (
               <View style={styles.cartBadge}>
-                <Text style={styles.cartBadgeText}>{cart.length}</Text>
+                <Text style={styles.cartBadgeText}>{cart.length > 99 ? '99+' : cart.length}</Text>
               </View>
             )}
           </Pressable>
@@ -246,13 +254,14 @@ const styles = StyleSheet.create({
   profileButton: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    height: 38,
     backgroundColor: Brand.surfaceAlt,
     borderWidth: 1,
     borderColor: Brand.borderStrong,
     paddingHorizontal: Spacing.two + Spacing.half,
-    paddingVertical: Spacing.two,
     borderRadius: Radius.pill,
-    maxWidth: 120,
+    maxWidth: 130,
   },
   profileButtonActive: {
     backgroundColor: Brand.primaryLight,
@@ -271,31 +280,34 @@ const styles = StyleSheet.create({
     transform: [{ scale: 0.98 }],
   },
   cartButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.one,
-    backgroundColor: Brand.textDark,
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.two,
-    borderRadius: Radius.pill,
-  },
-  cartButtonText: {
-    color: '#ffffff',
-    fontSize: FontSize.sm,
-    fontWeight: '700',
-  },
-  cartBadge: {
-    backgroundColor: Brand.primary,
-    borderRadius: Radius.pill,
-    minWidth: 20,
-    height: 20,
+    width: 38,
+    height: 38,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 4,
+    backgroundColor: Brand.textDark,
+    borderRadius: Radius.pill,
+    position: 'relative',
+  },
+  cartIcon: {
+    fontSize: 18,
+  },
+  cartBadge: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    backgroundColor: Brand.primary,
+    borderRadius: Radius.pill,
+    minWidth: 18,
+    height: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 3,
+    borderWidth: 2,
+    borderColor: Brand.surface,
   },
   cartBadgeText: {
     color: '#ffffff',
-    fontSize: FontSize.xs,
+    fontSize: 9,
     fontWeight: '900',
   },
 
