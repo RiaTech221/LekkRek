@@ -89,7 +89,7 @@ export default function OperatorDashboard() {
         if (!Array.isArray(data)) return;
         
         const formatCmd = (cmd) => ({
-          id: (cmd.orderNumber || 'CMD-XXX').replace('CMD-', ''),
+          id: (cmd.orderNumber || 'CMD-XXX').replace('CMD-', '').replace('#', ''),
           realId: cmd.id,
           plat: (cmd.items || []).map(i => `${i.quantity || 1}x ${i.plat?.name || 'Plat inconnu'}`).join(', ') || 'Commande sans plat', 
           client: cmd.clientName || 'Client inconnu',
@@ -299,7 +299,7 @@ export default function OperatorDashboard() {
                     <div key={cmd.id} className="bg-white p-5 rounded-2xl shadow-sm hover:shadow-md transition-shadow border-l-4 border-l-blue-500 border-t border-r border-b border-gray-100 flex flex-col gap-3 group relative cursor-pointer" onClick={() => setSelectedOrder(cmd)}>
                       <div className="flex justify-between items-start">
                         <div>
-                          <div className="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">{cmd.id.substring(0,5)}</div>
+                          <div className="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">CMD-{cmd.id}</div>
                           <h4 className="font-black text-gray-900 text-lg leading-none">{cmd.client.split(' ')[0]}</h4>
                         </div>
                         <span className="text-[10px] font-bold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-full whitespace-nowrap">A l'instant</span>
@@ -349,7 +349,7 @@ export default function OperatorDashboard() {
                     <div key={cmd.id} className="bg-white p-5 rounded-2xl shadow-sm hover:shadow-md transition-shadow border-l-4 border-l-orange-500 border-t border-r border-b border-gray-100 flex flex-col gap-3 group relative cursor-pointer" onClick={() => setSelectedOrder(cmd)}>
                       <div className="flex justify-between items-start">
                         <div>
-                          <div className="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">{cmd.id.substring(0,5)}</div>
+                          <div className="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">CMD-{cmd.id}</div>
                           <h4 className="font-black text-gray-900 text-lg leading-none">{cmd.client.split(' ')[0]}</h4>
                         </div>
                         <span className="text-[10px] font-bold text-orange-700 bg-orange-50 px-2.5 py-1 rounded-full whitespace-nowrap animate-pulse">En cuisine</span>
@@ -399,7 +399,7 @@ export default function OperatorDashboard() {
                     <div key={cmd.id} className="bg-white p-5 rounded-2xl shadow-sm opacity-80 border-l-4 border-l-green-500 border-t border-r border-b border-gray-100 flex flex-col gap-3 cursor-pointer hover:shadow-md transition-shadow" onClick={() => setSelectedOrder(cmd)}>
                       <div className="flex justify-between items-start">
                         <div>
-                          <div className="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">{cmd.id.substring(0,5)}</div>
+                          <div className="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">CMD-{cmd.id}</div>
                           <h4 className="font-black text-gray-900 text-lg leading-none line-through decoration-green-500/30">{cmd.client.split(' ')[0]}</h4>
                         </div>
                         <span className="text-[10px] font-bold text-green-700 bg-green-50 px-2.5 py-1 rounded-full whitespace-nowrap flex items-center gap-1">
