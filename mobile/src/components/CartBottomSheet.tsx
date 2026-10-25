@@ -10,9 +10,10 @@
  * ============================================================================
  */
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Keyboard,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -24,6 +25,7 @@ import {
   View,
 } from 'react-native';
 import { Image } from 'expo-image';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Brand, FontSize, Radius, Spacing } from '@/constants/theme';
 import { normalizeSenegalPhone, validateSenegalPhone } from '@/hooks/useClientProfile';
@@ -54,6 +56,10 @@ function CartBottomSheetContent({
   onClearCart,
   onUpdateProfile,
 }: Omit<CartBottomSheetProps, 'visible'>) {
+  const insets = useSafeAreaInsets();
+  const scrollViewRef = useRef<React.ComponentRef<typeof ScrollView>>(null);
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+
   const [clientName, setClientName] = useState(profile?.name || '');
   const [clientPhone, setClientPhone] = useState(profile?.phone || '');
   const [clientAddress, setClientAddress] = useState(profile?.address || '');
@@ -63,6 +69,30 @@ function CartBottomSheetContent({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirmedOrder, setConfirmedOrder] = useState<OrderResponse | null>(null);
+
+  // Détecte l'ouverture du clavier pour passer en plein écran dynamique
+  useEffect(() => {
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+
+    const showSub = Keyboard.addListener(showEvent, () => {
+      setIsKeyboardVisible(true);
+    });
+    const hideSub = Keyboard.addListener(hideEvent, () => {
+      setIsKeyboardVisible(false);
+    });
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
+
+  const scrollToInput = (extraDelay = 120) => {
+    setTimeout(() => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    }, extraDelay);
+  };
 
   // Restaurants uniques concernés par le panier
   const uniqueRestaurants = useMemo(() => {
@@ -226,16 +256,27 @@ function CartBottomSheetContent({
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      style={styles.sheetContainer}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? (isKeyboardVisible ? insets.top : 0) : 0}
+      style={[
+        styles.sheetContainer,
+        isKeyboardVisible && [styles.fullscreenSheet, { paddingTop: insets.top }],
+      ]}
     >
-      <View style={styles.dragHandle} />
+      {!isKeyboardVisible && <View style={styles.dragHandle} />}
 
       {/* Header du panier */}
       <View style={styles.sheetHeader}>
         <Text style={styles.sheetTitle}>
           Votre Panier <Text style={styles.cartCount}>({cart.length})</Text>
         </Text>
-        <Pressable onPress={onClose} style={styles.closeButton} hitSlop={10}>
+        <Pressable
+          onPress={() => {
+            Keyboard.dismiss();
+            onClose();
+          }}
+          style={styles.closeButton}
+          hitSlop={10}
+        >
           <Text style={styles.closeButtonText}>✕</Text>
         </Pressable>
       </View>
@@ -249,8 +290,12 @@ function CartBottomSheetContent({
 
       {/* Contenu scrollable avec gestion du clavier */}
       <ScrollView
+        ref={scrollViewRef}
         style={styles.scrollArea}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          isKeyboardVisible && styles.fullscreenScrollContent,
+        ]}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
@@ -355,6 +400,7 @@ function CartBottomSheetContent({
               placeholderTextColor={Brand.textLight}
               value={clientName}
               onChangeText={setClientName}
+              onFocus={() => scrollToInput(100)}
               autoCapitalize="words"
             />
           </View>
@@ -374,6 +420,7 @@ function CartBottomSheetContent({
                 maxLength={9}
                 value={clientPhone}
                 onChangeText={(text) => setClientPhone(normalizeSenegalPhone(text))}
+                onFocus={() => scrollToInput(120)}
               />
             </View>
           </View>
@@ -390,6 +437,7 @@ function CartBottomSheetContent({
                 numberOfLines={3}
                 value={clientAddress}
                 onChangeText={setClientAddress}
+                onFocus={() => scrollToInput(160)}
               />
             </View>
           )}
@@ -428,7 +476,7 @@ function CartBottomSheetContent({
       </ScrollView>
 
       {/* Bouton de confirmation Sticky */}
-      <View style={styles.stickyFooter}>
+      <View style={[styles.stickyFooter, isKeyboardVisible && styles.stickyFooterWithKeyboard]}>
         <Pressable
           style={({ pressed }) => [
             styles.primaryButton,
@@ -485,6 +533,12 @@ const styles = StyleSheet.create({
     shadowRadius: 16,
     elevation: 10,
   },
+  fullscreenSheet: {
+    height: '100%',
+    maxHeight: '100%',
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: 0,
+  },
   emptySheetContainer: {
     minHeight: '40%',
     maxHeight: '50%',
@@ -534,6 +588,9 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: Spacing.four,
     paddingBottom: Spacing.six,
+  },
+  fullscreenScrollContent: {
+    paddingBottom: Spacing.six + Spacing.six,
   },
   itemsSection: {
     gap: Spacing.two,
@@ -778,6 +835,10 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.surface,
     borderTopWidth: 1,
     borderTopColor: Brand.border,
+  },
+  stickyFooterWithKeyboard: {
+    paddingTop: Spacing.two,
+    paddingBottom: Spacing.two,
   },
   primaryButton: {
     backgroundColor: Brand.primary,
