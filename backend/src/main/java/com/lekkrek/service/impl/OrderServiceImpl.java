@@ -71,6 +71,28 @@ public class OrderServiceImpl implements OrderService {
         }
 
         commande.setRestaurant(resto);
+
+        // Validation des modes de service et supplément de livraison
+        if (resto != null) {
+            String restoNom = resto.getName() != null ? resto.getName() : "ce restaurant";
+            if (commande.getType() == Commande.OrderType.LIVRAISON) {
+                if (Boolean.FALSE.equals(resto.getLivraison())) {
+                    throw new IllegalArgumentException("Le restaurant '" + restoNom + "' ne propose pas le service de livraison.");
+                }
+                if (resto.getSupplementLivraison() != null && resto.getSupplementLivraison().compareTo(java.math.BigDecimal.ZERO) > 0) {
+                    total = total.add(resto.getSupplementLivraison());
+                }
+            } else if (commande.getType() == Commande.OrderType.EMPORTER) {
+                if (Boolean.FALSE.equals(resto.getAEmporter())) {
+                    throw new IllegalArgumentException("Le restaurant '" + restoNom + "' ne propose pas le service à emporter.");
+                }
+            } else if (commande.getType() == Commande.OrderType.SUR_PLACE) {
+                if (Boolean.FALSE.equals(resto.getSurPlace())) {
+                    throw new IllegalArgumentException("Le restaurant '" + restoNom + "' ne propose pas le service sur place.");
+                }
+            }
+        }
+
         commande.setTotalAmount(total);
         commande.setStatus(Commande.OrderStatus.NOUVELLE);
         
