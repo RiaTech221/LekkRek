@@ -28,6 +28,10 @@ export interface Restaurant {
   location: string;
   image?: string | null;
   telephone?: string | null;
+  surPlace?: boolean;
+  aEmporter?: boolean;
+  livraison?: boolean;
+  supplementLivraison?: number;
 }
 
 /**
