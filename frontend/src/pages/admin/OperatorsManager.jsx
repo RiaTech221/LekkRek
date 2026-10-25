@@ -472,7 +472,7 @@ export default function OperatorsManager() {
                     value={restaurantAssigne}
                     onChange={(e) => setRestaurantAssigne(e.target.value)}
                   >
-                    <option value="">-- Aucun restaurant assign� (Staff LekkRek) --</option>
+                    <option value="">-- Aucun restaurant assigné (Staff LekkRek) --</option>
                     {restaurants.map(r => (
                       <option key={r.id} value={r.name}>{r.name}</option>
                     ))}

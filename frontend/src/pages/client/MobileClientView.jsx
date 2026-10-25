@@ -108,20 +108,36 @@ export default function MobileClientView() {
   const handleWhatsappClick = (e) => {
     e.preventDefault();
 
-    let message = platformSettings?.whatsappMessageGreeting || "Bonjour l'équipe LekkRek 👋, ";
+    // Sanitise les valeurs potentiellement corrompues (encodage Latin-1 → UTF-8)
+    const sanitize = (str) => {
+      if (!str) return str;
+      return str
+        .replace(/\u00C3\u00A9/g, 'é')
+        .replace(/\u00C3\u00A8/g, 'è')
+        .replace(/\u00C3\u00AA/g, 'ê')
+        .replace(/\u00C3\u00B4/g, 'ô')
+        .replace(/\u00C3\u00B9/g, 'ù')
+        .replace(/\u00C3\u00A0/g, 'à')
+        .replace(/\u00C3\u00AE/g, 'î')
+        .replace(/\u00C2\u00B0/g, '°')
+        .replace(/\u00C3\u00AF/g, 'ï')
+        .replace(/\uFFFD/g, '');
+    };
+
+    let message = sanitize(platformSettings?.whatsappMessageGreeting) || "Bonjour l'équipe LekkRek 👋, ";
     if (formData.clientName && formData.clientName.trim() !== '') {
       message += "je suis " + formData.clientName + ". ";
     }
     
     if (trackOrderNumber && trackOrderNumber.trim() !== '') {
-      const orderTpl = platformSettings?.whatsappMessageOrder || "Je vous contacte concernant ma commande N° {orderNumber}.";
+      const orderTpl = sanitize(platformSettings?.whatsappMessageOrder) || "Je vous contacte concernant ma commande N° {orderNumber}.";
       message += orderTpl.replace('{orderNumber}', trackOrderNumber) + " ";
     } else if (cart.length > 0) {
       const total = cart.reduce((sum, item) => sum + item.price, 0);
-      const cartTpl = platformSettings?.whatsappMessageCart || "J'ai actuellement {count} plat(s) dans mon panier pour un total de {total} FCFA et j'aimerais avoir de l'aide pour finaliser ma commande.";
+      const cartTpl = sanitize(platformSettings?.whatsappMessageCart) || "J'ai actuellement {count} plat(s) dans mon panier pour un total de {total} FCFA et j'aimerais avoir de l'aide pour finaliser ma commande.";
       message += cartTpl.replace('{count}', cart.length).replace('{total}', total) + " ";
     } else {
-      const defTpl = platformSettings?.whatsappMessageDefault || "j'aimerais avoir de plus amples informations s'il vous plaît.";
+      const defTpl = sanitize(platformSettings?.whatsappMessageDefault) || "j'aimerais avoir de plus amples informations s'il vous plaît.";
       message += defTpl;
     }
 

@@ -2,10 +2,10 @@ package com.lekkrek.entity;
 
 /**
  * ============================================================================
- * ðŸ“ Fichier : PlatformSettings.java
- * ðŸ“ Description : Classe mÃ©tier pour la gestion de PlatformSettings dans LekkRek.
- * ðŸ”’ RÃ´le : Fait partie de l'architecture Backend Spring Boot.
- * ðŸ’¡ Auteur : DocumentÃ© automatiquement (Standard Enterprise)
+ * Fichier : PlatformSettings.java
+ * Description : Classe métier pour la gestion de PlatformSettings dans LekkRek.
+ * Rôle : Fait partie de l'architecture Backend Spring Boot.
+ * Auteur : Documenté automatiquement (Standard Enterprise)
  * ============================================================================
  */
 
@@ -41,21 +41,20 @@ public class PlatformSettings {
     private String tiktokUrl;
 
     @Column(columnDefinition = "TEXT")
-    private String whatsappMessageGreeting = "Bonjour l'Ã©quipe LekkRek ðŸ‘‹, ";
+    private String whatsappMessageGreeting = "Bonjour l'\u00e9quipe LekkRek \ud83d\udc4b, ";
     
     @Column(columnDefinition = "TEXT")
     private String whatsappMessageCart = "J'ai actuellement {count} plat(s) dans mon panier pour un total de {total} FCFA et j'aimerais avoir de l'aide pour finaliser ma commande.";
     
     @Column(columnDefinition = "TEXT")
-    private String whatsappMessageOrder = "Je vous contacte concernant ma commande NÂ° {orderNumber}.";
+    private String whatsappMessageOrder = "Je vous contacte concernant ma commande N\u00b0 {orderNumber}.";
     
     @Column(columnDefinition = "TEXT")
-    private String whatsappMessageDefault = "j'aimerais avoir de plus amples informations s'il vous pla\u00EEt.";
+    private String whatsappMessageDefault = "j'aimerais avoir de plus amples informations s'il vous pla\u00eet.";
 
     @Column(columnDefinition = "TEXT")
-    private String heroTitle = "Les menus du jour à Ziguinchor.";
+    private String heroTitle = "Les menus du jour \u00e0 Ziguinchor.";
 
     @Column(columnDefinition = "TEXT")
-    private String heroSubtitle = "Qui cuisine quoi aujourd'hui, à quel prix et où le trouver. Menus publiés du lundi au samedi dès 10H30.";
+    private String heroSubtitle = "Qui cuisine quoi aujourd'hui, \u00e0 quel prix et o\u00f9 le trouver. Menus publi\u00e9s du lundi au samedi d\u00e8s 10H30.";
 }
-

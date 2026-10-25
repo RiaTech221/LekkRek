@@ -134,20 +134,36 @@ export default function ClientView() {
   const handleWhatsappClick = (e) => {
     e.preventDefault();
 
-    let message = platformSettings?.whatsappMessageGreeting || "Bonjour l'équipe LekkRek 👋, ";
+    // Sanitise les valeurs potentiellement corrompues (encodage Latin-1 → UTF-8)
+    const sanitize = (str) => {
+      if (!str) return str;
+      return str
+        .replace(/\u00C3\u00A9/g, 'é')   // é mal encodé
+        .replace(/\u00C3\u00A8/g, 'è')
+        .replace(/\u00C3\u00AA/g, 'ê')
+        .replace(/\u00C3\u00B4/g, 'ô')
+        .replace(/\u00C3\u00B9/g, 'ù')
+        .replace(/\u00C3\u00A0/g, 'à')
+        .replace(/\u00C3\u00AE/g, 'î')
+        .replace(/\u00C2\u00B0/g, '°')   // ° (degré/numéro)
+        .replace(/\u00C3\u00AF/g, 'ï')
+        .replace(/\uFFFD/g, '');         // caractère de remplacement inconnu
+    };
+
+    let message = sanitize(platformSettings?.whatsappMessageGreeting) || "Bonjour l'équipe LekkRek 👋, ";
     if (formData.clientName && formData.clientName.trim() !== '') {
       message += "je suis " + formData.clientName + ". ";
     }
     
     if (trackOrderNumber && trackOrderNumber.trim() !== '') {
-      const orderTpl = platformSettings?.whatsappMessageOrder || "Je vous contacte concernant ma commande N° {orderNumber}.";
+      const orderTpl = sanitize(platformSettings?.whatsappMessageOrder) || "Je vous contacte concernant ma commande N° {orderNumber}.";
       message += orderTpl.replace('{orderNumber}', trackOrderNumber) + " ";
     } else if (cart.length > 0) {
       const total = cart.reduce((sum, item) => sum + item.price, 0);
-      const cartTpl = platformSettings?.whatsappMessageCart || "J'ai actuellement {count} plat(s) dans mon panier pour un total de {total} FCFA et j'aimerais avoir de l'aide pour finaliser ma commande.";
+      const cartTpl = sanitize(platformSettings?.whatsappMessageCart) || "J'ai actuellement {count} plat(s) dans mon panier pour un total de {total} FCFA et j'aimerais avoir de l'aide pour finaliser ma commande.";
       message += cartTpl.replace('{count}', cart.length).replace('{total}', total) + " ";
     } else {
-      const defTpl = platformSettings?.whatsappMessageDefault || "j'aimerais avoir de plus amples informations s'il vous plaît.";
+      const defTpl = sanitize(platformSettings?.whatsappMessageDefault) || "j'aimerais avoir de plus amples informations s'il vous plaît.";
       message += defTpl;
     }
 
@@ -373,20 +389,26 @@ return () => {
             <img src="/logo_lekkrek.png" alt="LekkRek Logo" className="h-14 sm:h-16 w-auto object-contain shrink-0 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} />
             
             {/* BIG SEARCH BAR IN NAVBAR */}
-            <div className="flex w-full max-w-[50rem] mx-2 lg:mx-6 bg-white rounded-full border border-gray-200 shadow-sm hover:shadow-md items-center divide-x divide-gray-100 transition-all h-14 overflow-x-auto [&::-webkit-scrollbar]:hidden">
+            <div className="flex w-full max-w-[50rem] mx-2 lg:mx-6 bg-white rounded-full border border-gray-200 shadow-sm hover:shadow-md items-center divide-x divide-gray-100 transition-all h-14 overflow-x-auto [&::-webkit-scrollbar]:hidden"
+              style={{ flex: '1 1 0%', minWidth: 0, overflowX: 'auto' }}>
               
-              <div className="flex-[1.5] flex items-center pl-4 lg:pl-6 pr-3 h-full cursor-text hover:bg-gray-50 transition-colors shrink-0">
-                <span className="text-gray-400 mr-2 text-sm lg:text-base shrink-0">🔍</span>
-                <div className="flex flex-col w-full text-left justify-center overflow-hidden">
-                  <span className="text-[10px] lg:text-[11px] uppercase tracking-wider font-bold text-gray-800 leading-tight">Quoi ?</span>
-                  <input type="text" placeholder="Plat, ingrédient..." className="bg-transparent border-none outline-none w-full text-gray-500 font-medium text-xs lg:text-sm placeholder-gray-400 truncate leading-tight min-w-[70px]" value={keyword} onChange={(e) => setKeyword(e.target.value)} />
+              {/* Quoi ? */}
+              <div style={{ display: 'flex', alignItems: 'center', minWidth: '140px', flexShrink: 0, padding: '0 12px 0 16px', height: '100%', cursor: 'text' }}>
+                <span style={{ color: '#9ca3af', marginRight: '8px', flexShrink: 0 }}>🔍</span>
+                <div style={{ display: 'flex', flexDirection: 'column', width: '100%', overflow: 'hidden' }}>
+                  <span style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700, color: '#1f2937', lineHeight: 1.2 }}>Quoi ?</span>
+                  <input type="text" placeholder="Plat, ingrédient..." style={{ background: 'transparent', border: 'none', outline: 'none', width: '100%', color: '#6b7280', fontWeight: 500, fontSize: '12px' }} value={keyword} onChange={(e) => setKeyword(e.target.value)} />
                 </div>
               </div>
 
-              <div className="flex-1 flex items-center px-3 lg:px-5 h-full cursor-pointer hover:bg-gray-50 transition-colors shrink-0">
-                <div className="flex flex-col w-full text-left justify-center overflow-hidden">
-                  <span className="text-[10px] lg:text-[11px] uppercase tracking-wider font-bold text-gray-800 leading-tight">Restaurant</span>
-                  <select className="bg-transparent border-none outline-none w-full text-gray-500 font-medium text-xs lg:text-sm appearance-none cursor-pointer truncate leading-tight min-w-[80px]" value={resto} onChange={(e) => setResto(e.target.value)}>
+              {/* Séparateur */}
+              <div style={{ width: '1px', background: '#f3f4f6', height: '60%', flexShrink: 0 }} />
+
+              {/* Restaurant */}
+              <div style={{ display: 'flex', alignItems: 'center', minWidth: '130px', flexShrink: 0, padding: '0 12px', height: '100%', cursor: 'pointer' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', width: '100%', overflow: 'hidden' }}>
+                  <span style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700, color: '#1f2937', lineHeight: 1.2 }}>Restaurant</span>
+                  <select style={{ background: 'transparent', border: 'none', outline: 'none', width: '100%', color: '#6b7280', fontWeight: 500, fontSize: '12px', appearance: 'none', cursor: 'pointer' }} value={resto} onChange={(e) => setResto(e.target.value)}>
                     <option value="">Tous les restos</option>
                     {[...new Set(plats.map(p => p.restaurant?.name).filter(Boolean))].sort().map(name => (
                       <option key={name} value={name}>{name}</option>
@@ -395,21 +417,29 @@ return () => {
                 </div>
               </div>
 
-              <div className="flex-1 flex items-center px-3 lg:px-5 h-full cursor-text hover:bg-gray-50 transition-colors shrink-0">
-                <div className="flex flex-col w-full text-left justify-center overflow-hidden">
-                  <span className="text-[10px] lg:text-[11px] uppercase tracking-wider font-bold text-gray-800 leading-tight">Quartier</span>
-                  <input type="text" placeholder="Où livrer ?" className="bg-transparent border-none outline-none w-full text-gray-500 font-medium text-xs lg:text-sm placeholder-gray-400 truncate leading-tight min-w-[60px]" value={quartier} onChange={(e) => setQuartier(e.target.value)} />
+              {/* Séparateur */}
+              <div style={{ width: '1px', background: '#f3f4f6', height: '60%', flexShrink: 0 }} />
+
+              {/* Quartier */}
+              <div style={{ display: 'flex', alignItems: 'center', minWidth: '110px', flexShrink: 0, padding: '0 12px', height: '100%', cursor: 'text' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', width: '100%', overflow: 'hidden' }}>
+                  <span style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700, color: '#1f2937', lineHeight: 1.2 }}>Quartier</span>
+                  <input type="text" placeholder="Où livrer ?" style={{ background: 'transparent', border: 'none', outline: 'none', width: '100%', color: '#6b7280', fontWeight: 500, fontSize: '12px' }} value={quartier} onChange={(e) => setQuartier(e.target.value)} />
                 </div>
               </div>
 
-              <div className="flex-1 flex items-center px-3 lg:px-5 h-full cursor-text hover:bg-gray-50 transition-colors shrink-0">
-                <div className="flex flex-col w-full text-left justify-center overflow-hidden">
-                  <span className="text-[10px] lg:text-[11px] uppercase tracking-wider font-bold text-gray-800 leading-tight">Budget Max</span>
+              {/* Séparateur */}
+              <div style={{ width: '1px', background: '#f3f4f6', height: '60%', flexShrink: 0 }} />
+
+              {/* Budget Max */}
+              <div style={{ display: 'flex', alignItems: 'center', minWidth: '110px', flexShrink: 0, padding: '0 12px', height: '100%', cursor: 'text' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', width: '100%', overflow: 'hidden' }}>
+                  <span style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700, color: '#1f2937', lineHeight: 1.2 }}>Budget Max</span>
                   <input
                     type="text"
                     inputMode="numeric"
                     placeholder="ex: 2000"
-                    className="bg-transparent border-none outline-none w-full text-gray-500 font-medium text-xs lg:text-sm placeholder-gray-400 truncate leading-tight min-w-[60px]"
+                    style={{ background: 'transparent', border: 'none', outline: 'none', width: '100%', color: '#6b7280', fontWeight: 500, fontSize: '12px' }}
                     value={budgetMax}
                     onChange={(e) => setBudgetMax(e.target.value.replace(/\D/g, ''))}
                     onKeyDown={(e) => {
@@ -507,7 +537,7 @@ return () => {
       </div>
       
       {/* MENU GRID & FILTERS */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12">
+      <div style={{ width: '100%', padding: '0 32px', marginTop: '48px' }}>
         
         {/* MOMENTS FILTER (Pills) */}
         <div className="flex gap-3 overflow-x-auto pb-4 mb-8 hide-scrollbar border-b border-gray-100">
@@ -533,7 +563,7 @@ return () => {
             <h2 className="text-2xl font-black text-gray-900 mb-6 flex items-center gap-2">
               <span>🌟</span> Recommandé pour vous
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-6">
               {recommendations.map(plat => (
                 <div key={`rec-${plat.id}`} className="bg-orange-50/50 rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-orange-100 group flex flex-col relative">
                   <div className="absolute top-2 right-2 bg-orange-500 text-white text-[10px] font-bold px-2 py-1 rounded-full z-10 shadow-sm">Favori</div>
@@ -557,7 +587,7 @@ return () => {
           </div>
         )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8 pb-12">
+        <div className="grid grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-6 lg:gap-8 pb-12">
           {Array.isArray(plats) && plats.length > 0 ? plats.map(plat => (
             <DishCard key={plat.id} plat={plat} onAdd={addToCart} />
           )) : (
@@ -568,7 +598,7 @@ return () => {
                 <p className="text-gray-500">Mais ne vous inquiétez pas, voici quelques autres plats qui pourraient vous plaire :</p>
               </div>
               
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8">
+              <div className="grid grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-6 lg:gap-8">
                 {allPlats.slice(0, 3).map(plat => (
                   <DishCard key={plat.id} plat={plat} onAdd={addToCart} />
                 ))}
@@ -781,9 +811,19 @@ return () => {
               <p className="text-gray-400 text-sm leading-relaxed mb-4">
                 La plateforme n°1 de livraison partout à Ziguinchor. Vos plats préférés, livrés rapidement et encore chauds.
               </p>
-              <div className="text-gray-400 text-sm">
-                <p>📞 {platformSettings?.supportPhone || '+221 77 000 00 00'}</p>
-                <p>✉️ {platformSettings?.supportEmail || 'support@lekkrek.com'}</p>
+              <div className="text-gray-400 text-sm" style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <a href={`tel:${(platformSettings?.supportPhone || '+221 77 000 00 00').replace(/\s/g, '')}`}
+                   style={{ color: '#9ca3af', textDecoration: 'none', transition: 'color 0.2s' }}
+                   onMouseOver={e => e.currentTarget.style.color = '#ffffff'}
+                   onMouseOut={e => e.currentTarget.style.color = '#9ca3af'}>
+                  📞 {platformSettings?.supportPhone || '+221 77 000 00 00'}
+                </a>
+                <a href={`mailto:${platformSettings?.supportEmail || 'support@lekkrek.com'}`}
+                   style={{ color: '#9ca3af', textDecoration: 'none', transition: 'color 0.2s' }}
+                   onMouseOver={e => e.currentTarget.style.color = '#ffffff'}
+                   onMouseOut={e => e.currentTarget.style.color = '#9ca3af'}>
+                  ✉️ {platformSettings?.supportEmail || 'support@lekkrek.com'}
+                </a>
               </div>
             </div>
             
