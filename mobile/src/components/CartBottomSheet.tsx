@@ -40,7 +40,9 @@ interface CartBottomSheetProps {
   cart: Plat[];
   profile: ClientProfile | null;
   onClose: () => void;
-  onRemoveItem: (index: number) => void;
+  onAddItem: (plat: Plat) => void;
+  onRemoveOne: (platId: number) => void;
+  onRemoveAllOfDish: (platId: number) => void;
   onClearCart: () => void;
   onUpdateProfile: (name: string, phone: string, address?: string) => Promise<ClientProfile>;
 }
@@ -52,7 +54,9 @@ function CartBottomSheetContent({
   cart,
   profile,
   onClose,
-  onRemoveItem,
+  onAddItem,
+  onRemoveOne,
+  onRemoveAllOfDish,
   onClearCart,
   onUpdateProfile,
 }: Omit<CartBottomSheetProps, 'visible'>) {
@@ -98,6 +102,20 @@ function CartBottomSheetContent({
       });
     }, 100);
   };
+
+  // Regroupe les plats identiques pour l'affichage en pile avec compteurs
+  const groupedItems = useMemo(() => {
+    const map = new Map<number, { plat: Plat; quantity: number }>();
+    for (const item of cart) {
+      const existing = map.get(item.id);
+      if (existing) {
+        existing.quantity += 1;
+      } else {
+        map.set(item.id, { plat: item, quantity: 1 });
+      }
+    }
+    return Array.from(map.values());
+  }, [cart]);
 
   // Restaurants uniques concernés par le panier
   const uniqueRestaurants = useMemo(() => {
@@ -304,37 +322,86 @@ function CartBottomSheetContent({
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Liste des plats */}
+        {/* Liste des plats empilés */}
         <View style={styles.itemsSection}>
-          {cart.map((item, index) => {
-            const imageUri = formatImageUrl(item.image) || FALLBACK_IMAGE;
+          {groupedItems.map(({ plat, quantity }) => {
+            const imageUri = formatImageUrl(plat.image) || FALLBACK_IMAGE;
             return (
-              <View key={`${item.id}-${index}`} style={styles.cartItem}>
-                <Image
-                  source={{ uri: imageUri }}
-                  style={styles.itemImage}
-                  contentFit="cover"
-                  transition={200}
-                />
-                <View style={styles.itemInfo}>
-                  <Text style={styles.itemName} numberOfLines={1}>
-                    {item.name}
-                  </Text>
-                  {item.restaurant?.name ? (
-                    <Text style={styles.itemRestaurant} numberOfLines={1}>
-                      {item.restaurant.name}
+              <View key={plat.id} style={styles.stackWrapper}>
+                {/* Couche d'empilement 2 (si 3 portions ou plus) */}
+                {quantity >= 3 && <View style={[styles.stackLayer, styles.stackLayerBack]} />}
+
+                {/* Couche d'empilement 1 (si 2 portions ou plus) */}
+                {quantity >= 2 && <View style={[styles.stackLayer, styles.stackLayerMiddle]} />}
+
+                {/* Carte principale */}
+                <View style={styles.cartItem}>
+                  {/* Image avec badge xN si empilé */}
+                  <View style={styles.imageWrap}>
+                    <Image
+                      source={{ uri: imageUri }}
+                      style={styles.itemImage}
+                      contentFit="cover"
+                      transition={200}
+                    />
+                    {quantity > 1 && (
+                      <View style={styles.stackBadge}>
+                        <Text style={styles.stackBadgeText}>x{quantity}</Text>
+                      </View>
+                    )}
+                  </View>
+
+                  {/* Détails du plat */}
+                  <View style={styles.itemInfo}>
+                    <Text style={styles.itemName} numberOfLines={1}>
+                      {plat.name}
                     </Text>
-                  ) : null}
-                  <Text style={styles.itemPrice}>{item.price.toLocaleString()} FCFA</Text>
+                    {plat.restaurant?.name ? (
+                      <Text style={styles.itemRestaurant} numberOfLines={1}>
+                        {plat.restaurant.name}
+                      </Text>
+                    ) : null}
+                    <Text style={styles.itemPrice}>
+                      {(plat.price * quantity).toLocaleString()} FCFA
+                      {quantity > 1 ? (
+                        <Text style={styles.itemUnitPrice}> ({plat.price.toLocaleString()} / u)</Text>
+                      ) : null}
+                    </Text>
+                  </View>
+
+                  {/* Contrôles de quantité : [ − ]  [ Qte ]  [ + ] */}
+                  <View style={styles.quantityControls}>
+                    <Pressable
+                      style={styles.qtyButton}
+                      onPress={() => onRemoveOne(plat.id)}
+                      hitSlop={8}
+                      accessibilityLabel={`Diminuer la quantité de ${plat.name}`}
+                    >
+                      <Text style={styles.qtyButtonText}>−</Text>
+                    </Pressable>
+
+                    <Text style={styles.qtyNumber}>{quantity}</Text>
+
+                    <Pressable
+                      style={[styles.qtyButton, styles.qtyButtonPlus]}
+                      onPress={() => onAddItem(plat)}
+                      hitSlop={8}
+                      accessibilityLabel={`Augmenter la quantité de ${plat.name}`}
+                    >
+                      <Text style={[styles.qtyButtonText, styles.qtyButtonTextPlus]}>+</Text>
+                    </Pressable>
+                  </View>
+
+                  {/* Retrait de toute la pile */}
+                  <Pressable
+                    style={styles.removeButton}
+                    onPress={() => onRemoveAllOfDish(plat.id)}
+                    hitSlop={10}
+                    accessibilityLabel={`Retirer ${plat.name} du panier`}
+                  >
+                    <Text style={styles.removeButtonText}>✕</Text>
+                  </Pressable>
                 </View>
-                <Pressable
-                  style={styles.removeButton}
-                  onPress={() => onRemoveItem(index)}
-                  hitSlop={12}
-                  accessibilityLabel={`Supprimer ${item.name}`}
-                >
-                  <Text style={styles.removeButtonText}>✕</Text>
-                </Pressable>
               </View>
             );
           })}
@@ -600,23 +667,80 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.four,
   },
   itemsSection: {
-    gap: Spacing.two,
+    gap: Spacing.three,
     marginBottom: Spacing.three,
+  },
+  stackWrapper: {
+    position: 'relative',
+    marginVertical: 4,
+  },
+  stackLayer: {
+    position: 'absolute',
+    height: 18,
+    borderRadius: Radius.lg,
+    borderWidth: 1,
+    borderColor: Brand.borderStrong,
+  },
+  stackLayerBack: {
+    top: -6,
+    left: 12,
+    right: 12,
+    backgroundColor: '#E5E7EB',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  stackLayerMiddle: {
+    top: -3,
+    left: 6,
+    right: 6,
+    backgroundColor: '#F3F4F6',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   cartItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Brand.surfaceAlt,
+    backgroundColor: Brand.surface,
     padding: Spacing.three,
     borderRadius: Radius.lg,
     borderWidth: 1,
-    borderColor: Brand.border,
-    gap: Spacing.three,
+    borderColor: Brand.borderStrong,
+    gap: Spacing.two + Spacing.half,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  imageWrap: {
+    position: 'relative',
   },
   itemImage: {
     width: 52,
     height: 52,
     borderRadius: Radius.md,
+  },
+  stackBadge: {
+    position: 'absolute',
+    bottom: -4,
+    right: -4,
+    backgroundColor: Brand.primary,
+    borderRadius: Radius.pill,
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    borderWidth: 1.5,
+    borderColor: Brand.surface,
+  },
+  stackBadgeText: {
+    color: '#ffffff',
+    fontSize: 9,
+    fontWeight: '900',
   },
   itemInfo: {
     flex: 1,
@@ -637,12 +761,55 @@ const styles = StyleSheet.create({
     color: Brand.primary,
     marginTop: 2,
   },
+  itemUnitPrice: {
+    fontSize: 10,
+    color: Brand.textMuted,
+    fontWeight: '500',
+  },
+  quantityControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Brand.surfaceAlt,
+    borderRadius: Radius.pill,
+    borderWidth: 1,
+    borderColor: Brand.borderStrong,
+    paddingHorizontal: 2,
+    paddingVertical: 2,
+  },
+  qtyButton: {
+    width: 26,
+    height: 26,
+    borderRadius: Radius.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'transparent',
+  },
+  qtyButtonPlus: {
+    backgroundColor: Brand.primaryLight,
+  },
+  qtyButtonText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: Brand.textDark,
+    lineHeight: 18,
+  },
+  qtyButtonTextPlus: {
+    color: Brand.primary,
+  },
+  qtyNumber: {
+    fontSize: FontSize.xs,
+    fontWeight: '800',
+    color: Brand.textDark,
+    paddingHorizontal: Spacing.one,
+    minWidth: 18,
+    textAlign: 'center',
+  },
   removeButton: {
-    padding: Spacing.two,
+    padding: Spacing.one,
   },
   removeButtonText: {
     fontSize: FontSize.sm,
-    color: Brand.textMuted,
+    color: Brand.textLight,
     fontWeight: '700',
   },
   summaryCard: {

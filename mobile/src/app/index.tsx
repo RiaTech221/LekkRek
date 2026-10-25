@@ -57,7 +57,16 @@ export default function MenuScreen() {
   }, [plats]);
 
   const handleAdd = (plat: Plat) => setCart((prev) => [...prev, plat]);
-  const handleRemoveItem = (index: number) => setCart((prev) => prev.filter((_, i) => i !== index));
+  const handleRemoveOne = (platId: number) => {
+    setCart((prev) => {
+      const idx = prev.findIndex((p) => p.id === platId);
+      if (idx === -1) return prev;
+      return prev.filter((_, i) => i !== idx);
+    });
+  };
+  const handleRemoveAllOfDish = (platId: number) => {
+    setCart((prev) => prev.filter((p) => p.id !== platId));
+  };
   const handleClearCart = () => setCart([]);
 
   /** En-tête de liste (hero + filtres + pills) — rendu au-dessus de la grille. */
@@ -195,7 +204,9 @@ export default function MenuScreen() {
         cart={cart}
         profile={profile}
         onClose={() => setIsCartOpen(false)}
-        onRemoveItem={handleRemoveItem}
+        onAddItem={handleAdd}
+        onRemoveOne={handleRemoveOne}
+        onRemoveAllOfDish={handleRemoveAllOfDish}
         onClearCart={handleClearCart}
         onUpdateProfile={saveProfile}
       />
