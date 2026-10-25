@@ -31,6 +31,7 @@ import CategoryPills from '@/components/CategoryPills';
 import DishCard from '@/components/DishCard';
 import FilterBar from '@/components/FilterBar';
 import ProfileModal from '@/components/ProfileModal';
+import CartBottomSheet from '@/components/CartBottomSheet';
 import { Brand, FontSize, Radius, Spacing } from '@/constants/theme';
 import { useCategories } from '@/hooks/useCategories';
 import { useClientProfile } from '@/hooks/useClientProfile';
@@ -42,11 +43,11 @@ export default function MenuScreen() {
   const categories = useCategories();
   const { profile, saveProfile, logout } = useClientProfile();
 
-  // État local de la modal profil
+  // États des modals et tiroirs
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
 
-  // État local du panier (liste d'identifiants ajoutés).
-  // TODO(checkout) : brancher sur un hook dédié + écran panier lors de la prochaine itération.
+  // État local du panier (liste des plats ajoutés).
   const [cart, setCart] = useState<Plat[]>([]);
 
   // Noms de restaurants uniques, dérivés des plats chargés (alimente les chips du FilterBar).
@@ -56,6 +57,8 @@ export default function MenuScreen() {
   }, [plats]);
 
   const handleAdd = (plat: Plat) => setCart((prev) => [...prev, plat]);
+  const handleRemoveItem = (index: number) => setCart((prev) => prev.filter((_, i) => i !== index));
+  const handleClearCart = () => setCart([]);
 
   /** En-tête de liste (hero + filtres + pills) — rendu au-dessus de la grille. */
   const ListHeader = (
@@ -159,6 +162,7 @@ export default function MenuScreen() {
 
           {/* Bouton Panier compact : icône + badge flottant */}
           <Pressable
+            onPress={() => setIsCartOpen(true)}
             style={({ pressed }) => [
               styles.cartButton,
               pressed && styles.buttonPressed,
@@ -183,6 +187,17 @@ export default function MenuScreen() {
         onClose={() => setIsProfileModalOpen(false)}
         onSave={saveProfile}
         onLogout={logout}
+      />
+
+      {/* BOTTOM SHEET DU PANIER / CHECKOUT */}
+      <CartBottomSheet
+        visible={isCartOpen}
+        cart={cart}
+        profile={profile}
+        onClose={() => setIsCartOpen(false)}
+        onRemoveItem={handleRemoveItem}
+        onClearCart={handleClearCart}
+        onUpdateProfile={saveProfile}
       />
 
       {/* GRILLE DES PLATS */}
