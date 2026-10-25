@@ -52,8 +52,8 @@ export default function Overview() {
       ).values());
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const headers = { 'Authorization': `Bearer ${token}` };
+    // Auth via cookie HttpOnly (same-origin) : plus besoin d'en-tête Bearer.
+    const headers = {};
 
     // Commandes récentes
     fetch(`${API_URL}/api/v1/operator/orders`, { headers })

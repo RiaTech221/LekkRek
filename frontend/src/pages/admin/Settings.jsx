@@ -79,11 +79,10 @@ export default function Settings() {
       supportPhone: settings.supportPhone ? normalizeSenegalPhone(settings.supportPhone) : ''
     };
     setLoading(true);
-    const token = localStorage.getItem('token');
     try {
       const response = await fetch(`${API_URL}/api/v1/settings`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(cleanSettings)
       });
       if (response.ok) {

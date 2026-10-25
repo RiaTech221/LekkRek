@@ -75,14 +75,11 @@ export default function OperatorDashboard() {
   }, []);
 
   const fetchCommandes = () => {
-    const token = localStorage.getItem('token');
-    fetch(`${API_URL}/api/v1/operator/orders`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    })
+    fetch(`${API_URL}/api/v1/operator/orders`)
       .then(res => {
         if (res.status === 401 || res.status === 403) {
-          localStorage.removeItem('token');
           localStorage.removeItem('user');
+          fetch(`${API_URL}/api/v1/public/auth/logout`, { method: 'POST' }).catch(() => {});
           window.location.href = '/login';
           throw new Error("Session expirée");
         }
@@ -135,10 +132,8 @@ export default function OperatorDashboard() {
   };
 
     const updatePaymentStatus = (id, newStatus) => {
-    const token = localStorage.getItem('token');
     fetch(`${API_URL}/api/v1/operator/orders/${id}/payment-status?status=${newStatus}`, { 
-      method: 'PUT',
-      headers: { 'Authorization': `Bearer ${token}` }
+      method: 'PUT'
     })
       .then(res => { if (!res.ok) throw new Error("Erreur mise à jour paiement"); return res.json(); })
       .then(() => fetchCommandes())
@@ -146,18 +141,19 @@ export default function OperatorDashboard() {
   };
 
   const updateStatus = (id, newStatus) => {
-    const token = localStorage.getItem('token');
     fetch(`${API_URL}/api/v1/operator/orders/${id}/status?status=${newStatus}`, { 
-      method: 'PUT',
-      headers: { 'Authorization': `Bearer ${token}` }
+      method: 'PUT'
     })
       .then(res => { if (!res.ok) throw new Error("Erreur mise à jour du statut"); return res.json(); })
       .then(() => fetchCommandes())
       .catch(err => showToast(err.message, "error"));
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
+  const handleLogout = async () => {
+    // Efface le cookie HttpOnly côté serveur, puis la session locale.
+    try {
+      await fetch(`${API_URL}/api/v1/public/auth/logout`, { method: 'POST' });
+    } catch { /* hors ligne : la session expire de toute façon */ }
     localStorage.removeItem('user');
     navigate('/login');
   };
