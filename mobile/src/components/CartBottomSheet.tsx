@@ -335,7 +335,13 @@ function CartBottomSheetContent({
                 {quantity >= 2 && <View style={[styles.stackLayer, styles.stackLayerMiddle]} />}
 
                 {/* Carte principale */}
-                <View style={styles.cartItem}>
+                <View
+                  style={[
+                    styles.cartItem,
+                    quantity === 2 && styles.cartItemStacked2,
+                    quantity >= 3 && styles.cartItemStacked3,
+                  ]}
+                >
                   {/* Image avec badge xN si empilé */}
                   <View style={styles.imageWrap}>
                     <Image
@@ -672,36 +678,37 @@ const styles = StyleSheet.create({
   },
   stackWrapper: {
     position: 'relative',
-    marginVertical: 4,
+    marginVertical: Spacing.one + 2,
   },
   stackLayer: {
     position: 'absolute',
-    height: 18,
     borderRadius: Radius.lg,
     borderWidth: 1,
     borderColor: Brand.borderStrong,
   },
   stackLayerBack: {
     top: -6,
-    left: 12,
-    right: 12,
+    bottom: -6,
+    left: 10,
+    right: 10,
     backgroundColor: '#E5E7EB',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 1,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.14,
+    shadowRadius: 8,
+    elevation: 3,
   },
   stackLayerMiddle: {
     top: -3,
-    left: 6,
-    right: 6,
+    bottom: -3,
+    left: 5,
+    right: 5,
     backgroundColor: '#F3F4F6',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+    elevation: 4,
   },
   cartItem: {
     flexDirection: 'row',
@@ -714,9 +721,23 @@ const styles = StyleSheet.create({
     gap: Spacing.two + Spacing.half,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    elevation: 3,
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  cartItemStacked2: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  cartItemStacked3: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.22,
+    shadowRadius: 12,
+    elevation: 7,
   },
   imageWrap: {
     position: 'relative',
