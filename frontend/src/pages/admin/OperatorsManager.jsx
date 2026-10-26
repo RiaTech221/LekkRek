@@ -52,10 +52,7 @@ export default function OperatorsManager() {
 
   const fetchOperators = () => {
     setLoading(true);
-    const token = localStorage.getItem('token');
-    fetch(`${API_URL}/api/v1/admin/operators`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    })
+    fetch(`${API_URL}/api/v1/admin/operators`)
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data)) setOperators(data);
@@ -68,10 +65,7 @@ export default function OperatorsManager() {
   };
 
   const fetchRestaurants = () => {
-    const token = localStorage.getItem('token');
-    fetch(`${API_URL}/api/v1/admin/restaurants`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    })
+    fetch(`${API_URL}/api/v1/admin/restaurants`)
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data)) setRestaurants(data);
@@ -102,10 +96,9 @@ export default function OperatorsManager() {
       showToast('Le mot de passe doit contenir au moins 6 caractères.', 'error');
       return;
     }
-    const token = localStorage.getItem('token');
     const res = await fetch(`${API_URL}/api/v1/admin/users/${op.id}/reset-password`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ newPassword })
     });
     if (res.ok) {
@@ -135,7 +128,6 @@ export default function OperatorsManager() {
 
   const handleAddOperator = async (e) => {
     e.preventDefault();
-    const token = localStorage.getItem('token');
     
     let finalImageUrl = image || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(nomComplet) + '&background=fef2f2&color=ef4444';
 
@@ -147,7 +139,6 @@ export default function OperatorsManager() {
       try {
         const uploadRes = await fetch(`${API_URL}/api/v1/upload`, {
           method: 'POST',
-          headers: { 'Authorization': `Bearer ${token}` },
           body: formData
         });
         
@@ -185,8 +176,7 @@ export default function OperatorsManager() {
     fetch(url, {
       method: editingId ? 'PUT' : 'POST',
       headers: { 
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}` 
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify(payload)
     })
@@ -213,10 +203,8 @@ export default function OperatorsManager() {
       isLoading: false,
       onConfirm: () => {
         setConfirmModal(prev => ({ ...prev, isLoading: true }));
-        const token = localStorage.getItem('token');
         fetch(`${API_URL}/api/v1/admin/operators/${id}`, {
-          method: 'DELETE',
-          headers: { 'Authorization': `Bearer ${token}` }
+          method: 'DELETE'
         })
           .then(res => handleApiResponse(res, "Impossible de supprimer cet opérateur"))
           .then(() => {

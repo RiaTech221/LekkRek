@@ -56,6 +56,12 @@ export default defineConfig({
   ],
   server: {
     host: '0.0.0.0',
-    port: 5173
+    port: 5173,
+    // Proxy dev vers Spring Boot : le front et l'API deviennent same-origin,
+    // le cookie HttpOnly d'auth est alors envoyé automatiquement (zéro CORS en dev).
+    proxy: {
+      '/api': 'http://localhost:8080',
+      '/uploads': 'http://localhost:8080'
+    }
   }
 });

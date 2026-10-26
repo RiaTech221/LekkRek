@@ -22,6 +22,13 @@ import com.lekkrek.security.JwtUtils;
 import com.lekkrek.service.AuditService;
 import com.lekkrek.service.OperatorAccessService;
 import jakarta.validation.Valid;
+
+import com.lekkrek.dto.AuthMeDTO;
+import com.lekkrek.dto.JwtResponseDTO;
+import com.lekkrek.dto.LoginRequestDTO;
+import com.lekkrek.security.AuthCookieService;
+import com.lekkrek.security.JwtUtils;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -46,8 +53,7 @@ public class AuthController {
     private final UtilisateurRepository utilisateurRepository;
     private final RestaurantRepository restaurantRepository;
     private final OperatorAccessService operatorAccessService;
-    private final PasswordEncoder passwordEncoder;
-    private final AuditService auditService;
+    private final AuthCookieService authCookieService;
 
     public AuthController(AuthenticationManager authenticationManager,
                           JwtUtils jwtUtils,
@@ -56,6 +62,7 @@ public class AuthController {
                           OperatorAccessService operatorAccessService,
                           PasswordEncoder passwordEncoder,
                           AuditService auditService) {
+                          AuthCookieService authCookieService) {
         this.authenticationManager = authenticationManager;
         this.jwtUtils = jwtUtils;
         this.utilisateurRepository = utilisateurRepository;
@@ -63,6 +70,7 @@ public class AuthController {
         this.operatorAccessService = operatorAccessService;
         this.passwordEncoder = passwordEncoder;
         this.auditService = auditService;
+        this.authCookieService = authCookieService;
     }
 
     /**
@@ -146,5 +154,40 @@ public class AuthController {
         return ResponseEntity.ok(Map.of(
                 "message", "Votre mot de passe a été mis à jour avec succès. Votre espace est désormais déverrouillé."
         ));
+        // Option A : le JWT est décliné en double —
+        //  - cookie HttpOnly pour le web (jamais lisible par le JS → anti-vol par XSS) ;
+        //  - corps JSON pour le mobile Expo (header Authorization: Bearer).
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, authCookieService.buildLoginCookie(jwt).toString())
+                .body(new JwtResponseDTO(jwt, "Bearer", userDetails.getUsername(), roles, restaurantList));
+    }
+
+    /**
+     * Déconnexion : efface le cookie de session côté navigateur.
+     * Le JWT reste valide jusqu'à son expiration (durée configurée) — une
+     * révocation instantanée côté serveur correspond à l'option B (session serveur).
+     */
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout() {
+        return ResponseEntity.noContent()
+                .header(HttpHeaders.SET_COOKIE, authCookieService.buildClearCookie().toString())
+                .build();
+    }
+
+    /**
+     * Session courante : email + rôles de l'utilisateur authentifié.
+     * Le front l'appelle au chargement pour restaurer la session (le JWT n'étant
+     * plus lisible côté JS — stocké en cookie HttpOnly). 401 sinon.
+     */
+    @GetMapping("/me")
+    public ResponseEntity<?> currentUser(Authentication authentication) {
+        if (authentication == null || !(authentication.getPrincipal() instanceof UserDetails principal)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(java.util.Map.of("message", "Non authentifié"));
+        }
+        List<String> roles = principal.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(new AuthMeDTO(principal.getUsername(), roles));
     }
 }

@@ -462,7 +462,7 @@ return () => {
           <div className="flex justify-between h-20 items-center">
             <img src="/logo_lekkrek.png" alt="LekkRek Logo" className="h-12 w-auto object-contain cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} />
             <div className="flex gap-4">
-              {localStorage.getItem('token') && (
+              {localStorage.getItem('user') && (
                 <button onClick={() => window.location.href='/dashboard'} className="flex items-center gap-2 bg-red-50 text-red-600 hover:bg-red-100 px-5 py-2.5 rounded-full font-bold transition-all border border-red-100">
                   ⚙️ Mon Dashboard
                 </button>

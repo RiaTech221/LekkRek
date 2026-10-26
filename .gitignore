@@ -31,3 +31,6 @@ uploads/
 *.log
 *.err
 scratch/
+
+
+AGENTS.md

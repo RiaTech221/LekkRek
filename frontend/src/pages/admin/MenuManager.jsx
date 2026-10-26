@@ -69,10 +69,7 @@ export default function MenuManager() {
   });
 
   const fetchPlats = () => {
-    const token = localStorage.getItem('token');
-    fetch(`${API_URL}/api/v1/operator/plats`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    })
+    fetch(`${API_URL}/api/v1/operator/plats`)
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data)) {
@@ -135,7 +132,6 @@ export default function MenuManager() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const token = localStorage.getItem('token');
     const url = currentPlat 
       ? `${API_URL}/api/v1/operator/plats/${currentPlat.id}`
       : `${API_URL}/api/v1/operator/plats`;
@@ -144,8 +140,7 @@ export default function MenuManager() {
     fetch(url, {
       method,
       headers: { 
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify(formData)
     })
@@ -159,11 +154,9 @@ export default function MenuManager() {
   };
 
   const toggleStatus = (plat) => {
-    const token = localStorage.getItem('token');
     const newStatus = plat.status === 'DISPO' ? 'EPUISE' : 'DISPO';
     fetch(`${API_URL}/api/v1/operator/plats/${plat.id}/status?status=${newStatus}`, {
-      method: 'PUT',
-      headers: { 'Authorization': `Bearer ${token}` }
+      method: 'PUT'
     })
     .then(res => handleApiResponse(res, "Erreur de mise à jour"))
     .then(() => {
@@ -184,10 +177,8 @@ export default function MenuManager() {
       isLoading: false,
       onConfirm: () => {
         setConfirmModal(prev => ({ ...prev, isLoading: true }));
-        const token = localStorage.getItem('token');
         fetch(`${API_URL}/api/v1/operator/restaurants/${selectedRestaurant.id}/plats/duplicate`, {
-          method: 'POST',
-          headers: { 'Authorization': `Bearer ${token}` }
+          method: 'POST'
         })
         .then(res => handleApiResponse(res, "Erreur lors de la duplication"))
         .then(() => {
@@ -213,10 +204,8 @@ export default function MenuManager() {
       isLoading: false,
       onConfirm: () => {
         setConfirmModal(prev => ({ ...prev, isLoading: true }));
-        const token = localStorage.getItem('token');
         fetch(`${API_URL}/api/v1/operator/plats/${id}`, {
-          method: 'DELETE',
-          headers: { 'Authorization': `Bearer ${token}` }
+          method: 'DELETE'
         })
         .then(res => handleApiResponse(res, "Impossible de supprimer ce plat"))
         .then(() => {
@@ -562,10 +551,8 @@ export default function MenuManager() {
                         if (!file) return;
                         const formDataUpload = new FormData();
                         formDataUpload.append('file', file);
-const token = localStorage.getItem('token');
                           fetch(`${API_URL}/api/v1/upload`, {
                           method: 'POST',
-                          headers: { 'Authorization': `Bearer ${token}` },
                           body: formDataUpload
                         }).then(res => res.json()).then(data => setFormData({...formData, image: data.url || data}));
                       }} 

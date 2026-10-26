@@ -39,14 +39,11 @@ export default function ReferenceManager() {
     setTimeout(() => setToast(null), 3500);
   };
 
-  const token = () => localStorage.getItem('token');
-  const headers = () => ({ 'Authorization': `Bearer ${token()}`, 'Content-Type': 'application/json' });
+  const headers = () => ({ 'Content-Type': 'application/json' });
 
   const fetchItems = (type) => {
     setLoading(true);
-    fetch(`${API_URL}/api/v1/admin/reference/${type}`, {
-      headers: { 'Authorization': `Bearer ${token()}` }
-    })
+    fetch(`${API_URL}/api/v1/admin/reference/${type}`)
       .then(res => res.json())
       .then(data => { setItems(Array.isArray(data) ? data : []); setLoading(false); })
       .catch(() => setLoading(false));
@@ -99,8 +96,7 @@ export default function ReferenceManager() {
 
   const handleToggle = async (item) => {
     await fetch(`${API_URL}/api/v1/admin/reference/${item.id}/toggle`, {
-      method: 'PATCH',
-      headers: { 'Authorization': `Bearer ${token()}` }
+      method: 'PATCH'
     });
     fetchItems(activeType);
   };
@@ -116,8 +112,7 @@ export default function ReferenceManager() {
       onConfirm: () => {
         setConfirmModal(prev => ({ ...prev, isLoading: true }));
         fetch(`${API_URL}/api/v1/admin/reference/${item.id}`, {
-          method: 'DELETE',
-          headers: { 'Authorization': `Bearer ${token()}` }
+          method: 'DELETE'
         })
           .then(res => handleApiResponse(res, "Impossible de supprimer cet élément"))
           .then(() => {

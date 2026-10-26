@@ -17,10 +17,7 @@ export default function AuditLogs() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    fetch(`${API_URL}/api/v1/admin/audit`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    })
+    fetch(`${API_URL}/api/v1/admin/audit`)
       .then(res => {
         if (!res.ok) throw new Error("Erreur");
         return res.json();

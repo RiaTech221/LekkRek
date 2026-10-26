@@ -21,7 +21,8 @@ export default function Login() {
       return res.json();
     })
     .then(data => {
-      localStorage.setItem('token', data.token);
+      // Le JWT est reçu en cookie HttpOnly : jamais stocké ni lisible en JS.
+      // On garde uniquement le profil non sensible pour l'affichage.
       localStorage.setItem('user', JSON.stringify({
         email: data.email,
         roles: data.roles,
