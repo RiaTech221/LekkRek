@@ -16,12 +16,14 @@ import com.lekkrek.dto.LoginRequestDTO;
 import com.lekkrek.entity.Utilisateur;
 import com.lekkrek.repository.RestaurantRepository;
 import com.lekkrek.repository.UtilisateurRepository;
+import com.lekkrek.security.AuthCookieService;
 import com.lekkrek.security.JwtUtils;
 import com.lekkrek.service.AuditService;
 import com.lekkrek.service.OperatorAccessService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -48,6 +50,7 @@ class AuthControllerTest {
     private OperatorAccessService operatorAccessService;
     private PasswordEncoder passwordEncoder;
     private AuditService auditService;
+    private AuthCookieService authCookieService;
     private AuthController authController;
 
     @BeforeEach
@@ -59,6 +62,14 @@ class AuthControllerTest {
         operatorAccessService = mock(OperatorAccessService.class);
         passwordEncoder = mock(PasswordEncoder.class);
         auditService = mock(AuditService.class);
+        authCookieService = mock(AuthCookieService.class);
+
+        when(authCookieService.buildLoginCookie(any())).thenReturn(
+                ResponseCookie.from("lekkrek_token", "dummy-cookie").build()
+        );
+        when(authCookieService.buildClearCookie()).thenReturn(
+                ResponseCookie.from("lekkrek_token", "").build()
+        );
 
         authController = new AuthController(
                 authenticationManager,
@@ -67,7 +78,8 @@ class AuthControllerTest {
                 restaurantRepository,
                 operatorAccessService,
                 passwordEncoder,
-                auditService
+                auditService,
+                authCookieService
         );
     }
 
@@ -100,66 +112,79 @@ class AuthControllerTest {
 
     @Test
     void testChangePasswordSuccess() {
+        ChangePasswordRequestDTO request = new ChangePasswordRequestDTO("provisoire123", "NouveauSuperPass2026!");
+
         UserDetails userDetails = new User("awa@lekkrek.com", "encodedOld", List.of(new SimpleGrantedAuthority("ROLE_OPERATEUR")));
         Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 
         Utilisateur operator = new Utilisateur();
-        operator.setId(5L);
+        operator.setId(10L);
         operator.setEmail("awa@lekkrek.com");
         operator.setMotDePasse("encodedOld");
         operator.setDoitChangerMotDePasse(true);
 
         when(utilisateurRepository.findByEmail("awa@lekkrek.com")).thenReturn(Optional.of(operator));
         when(passwordEncoder.matches("provisoire123", "encodedOld")).thenReturn(true);
-        when(passwordEncoder.matches("nouveauPass123", "encodedOld")).thenReturn(false);
-        when(passwordEncoder.encode("nouveauPass123")).thenReturn("encodedNew");
+        when(passwordEncoder.matches("NouveauSuperPass2026!", "encodedOld")).thenReturn(false);
+        when(passwordEncoder.encode("NouveauSuperPass2026!")).thenReturn("encodedNew");
 
-        ChangePasswordRequestDTO request = new ChangePasswordRequestDTO("provisoire123", "nouveauPass123");
         ResponseEntity<?> response = authController.changePassword(request, auth);
-
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertFalse(operator.getDoitChangerMotDePasse(), "Le drapeau doitChangerMotDePasse doit repasser à false après mise à jour");
+
+        assertFalse(operator.getDoitChangerMotDePasse(), "Le drapeau doit être remis à false après changement");
         assertEquals("encodedNew", operator.getMotDePasse());
 
-        verify(utilisateurRepository).save(operator);
-        verify(auditService).logCurrentAction(eq("CHANGE_PASSWORD"), eq("Utilisateur"), eq("5"), isNull(), any());
+        verify(utilisateurRepository, times(1)).save(operator);
+        verify(auditService, times(1)).logCurrentAction(eq("CHANGE_PASSWORD"), eq("Utilisateur"), eq("10"), isNull(), anyString());
     }
 
     @Test
-    void testChangePasswordFailsIfWrongCurrentPassword() {
+    void testChangePasswordWithWrongCurrentPasswordFails() {
+        ChangePasswordRequestDTO request = new ChangePasswordRequestDTO("mauvaisPass", "NouveauSuperPass2026!");
+
         UserDetails userDetails = new User("awa@lekkrek.com", "encodedOld", List.of(new SimpleGrantedAuthority("ROLE_OPERATEUR")));
         Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 
         Utilisateur operator = new Utilisateur();
         operator.setEmail("awa@lekkrek.com");
         operator.setMotDePasse("encodedOld");
+        operator.setDoitChangerMotDePasse(true);
 
         when(utilisateurRepository.findByEmail("awa@lekkrek.com")).thenReturn(Optional.of(operator));
-        when(passwordEncoder.matches("wrongPass", "encodedOld")).thenReturn(false);
+        when(passwordEncoder.matches("mauvaisPass", "encodedOld")).thenReturn(false);
 
-        ChangePasswordRequestDTO request = new ChangePasswordRequestDTO("wrongPass", "nouveauPass123");
         ResponseEntity<?> response = authController.changePassword(request, auth);
-
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+
+        assertTrue(response.getBody() instanceof Map);
+        Map<?, ?> body = (Map<?, ?>) response.getBody();
+        assertTrue(body.get("message").toString().contains("incorrect"));
+
         verify(utilisateurRepository, never()).save(any());
     }
 
     @Test
-    void testChangePasswordFailsIfNewMatchesOld() {
+    void testChangePasswordWithSamePasswordFails() {
+        ChangePasswordRequestDTO request = new ChangePasswordRequestDTO("provisoire123", "provisoire123");
+
         UserDetails userDetails = new User("awa@lekkrek.com", "encodedOld", List.of(new SimpleGrantedAuthority("ROLE_OPERATEUR")));
         Authentication auth = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 
         Utilisateur operator = new Utilisateur();
         operator.setEmail("awa@lekkrek.com");
         operator.setMotDePasse("encodedOld");
+        operator.setDoitChangerMotDePasse(true);
 
         when(utilisateurRepository.findByEmail("awa@lekkrek.com")).thenReturn(Optional.of(operator));
-        when(passwordEncoder.matches("samePassword123", "encodedOld")).thenReturn(true);
+        when(passwordEncoder.matches("provisoire123", "encodedOld")).thenReturn(true);
 
-        ChangePasswordRequestDTO request = new ChangePasswordRequestDTO("samePassword123", "samePassword123");
         ResponseEntity<?> response = authController.changePassword(request, auth);
-
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+
+        assertTrue(response.getBody() instanceof Map);
+        Map<?, ?> body = (Map<?, ?>) response.getBody();
+        assertTrue(body.get("message").toString().contains("différent"));
+
         verify(utilisateurRepository, never()).save(any());
     }
 }

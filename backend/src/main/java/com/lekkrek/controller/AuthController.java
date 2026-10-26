@@ -4,13 +4,15 @@ package com.lekkrek.controller;
  * ============================================================================
  * 📁 Fichier : AuthController.java
  * 📝 Description : Contrôleur d'authentification pour LekkRek.
- *                 Gère la connexion, la génération de tokens JWT, et le changement
- *                 obligatoire de mot de passe lors de la 1ère connexion d'un opérateur.
+ *                 Gère la connexion, la génération de tokens JWT (cookie HttpOnly & Bearer),
+ *                 la session /me, le logout, et le changement obligatoire de mot de passe
+ *                 lors de la 1ère connexion d'un opérateur.
  * 🔒 Rôle : Fait partie de l'architecture Backend Spring Boot.
  * 💡 Auteur : Standard Enterprise Security
  * ============================================================================
  */
 
+import com.lekkrek.dto.AuthMeDTO;
 import com.lekkrek.dto.ChangePasswordRequestDTO;
 import com.lekkrek.dto.JwtResponseDTO;
 import com.lekkrek.dto.LoginRequestDTO;
@@ -18,16 +20,11 @@ import com.lekkrek.dto.RestaurantSummaryDTO;
 import com.lekkrek.entity.Utilisateur;
 import com.lekkrek.repository.RestaurantRepository;
 import com.lekkrek.repository.UtilisateurRepository;
+import com.lekkrek.security.AuthCookieService;
 import com.lekkrek.security.JwtUtils;
 import com.lekkrek.service.AuditService;
 import com.lekkrek.service.OperatorAccessService;
 import jakarta.validation.Valid;
-
-import com.lekkrek.dto.AuthMeDTO;
-import com.lekkrek.dto.JwtResponseDTO;
-import com.lekkrek.dto.LoginRequestDTO;
-import com.lekkrek.security.AuthCookieService;
-import com.lekkrek.security.JwtUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -53,6 +50,8 @@ public class AuthController {
     private final UtilisateurRepository utilisateurRepository;
     private final RestaurantRepository restaurantRepository;
     private final OperatorAccessService operatorAccessService;
+    private final PasswordEncoder passwordEncoder;
+    private final AuditService auditService;
     private final AuthCookieService authCookieService;
 
     public AuthController(AuthenticationManager authenticationManager,
@@ -61,7 +60,7 @@ public class AuthController {
                           RestaurantRepository restaurantRepository,
                           OperatorAccessService operatorAccessService,
                           PasswordEncoder passwordEncoder,
-                          AuditService auditService) {
+                          AuditService auditService,
                           AuthCookieService authCookieService) {
         this.authenticationManager = authenticationManager;
         this.jwtUtils = jwtUtils;
@@ -75,7 +74,8 @@ public class AuthController {
 
     /**
      * Authentification utilisateur par email et mot de passe.
-     * Renvoie le token JWT, les rôles, les restaurants assignés et l'état doitChangerMotDePasse.
+     * Renvoie le token JWT (dans le corps et en cookie HttpOnly pour le web),
+     * les rôles, les restaurants assignés et l'état doitChangerMotDePasse.
      */
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequestDTO loginRequest) {
@@ -101,20 +101,25 @@ public class AuthController {
 
         boolean doitChangerMotDePasse = user != null && Boolean.TRUE.equals(user.getDoitChangerMotDePasse());
 
-        return ResponseEntity.ok(new JwtResponseDTO(
-                jwt,
-                "Bearer",
-                userDetails.getUsername(),
-                roles,
-                restaurantList,
-                doitChangerMotDePasse
-        ));
+        // Option A : le JWT est décliné en double —
+        //  - cookie HttpOnly pour le web (jamais lisible par le JS → anti-vol par XSS) ;
+        //  - corps JSON pour le mobile Expo (header Authorization: Bearer).
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, authCookieService.buildLoginCookie(jwt).toString())
+                .body(new JwtResponseDTO(
+                        jwt,
+                        "Bearer",
+                        userDetails.getUsername(),
+                        roles,
+                        restaurantList,
+                        doitChangerMotDePasse
+                ));
     }
 
     /**
      * Endpoint sécurisé de modification de mot de passe (notamment lors de la première connexion
      * d'un opérateur avec un mot de passe provisoire).
-     * Requiert une authentification valide (Bearer Token).
+     * Requiert une authentification valide (Bearer Token ou cookie de session).
      */
     @PostMapping("/change-password")
     public ResponseEntity<?> changePassword(@Valid @RequestBody ChangePasswordRequestDTO request,
@@ -154,12 +159,6 @@ public class AuthController {
         return ResponseEntity.ok(Map.of(
                 "message", "Votre mot de passe a été mis à jour avec succès. Votre espace est désormais déverrouillé."
         ));
-        // Option A : le JWT est décliné en double —
-        //  - cookie HttpOnly pour le web (jamais lisible par le JS → anti-vol par XSS) ;
-        //  - corps JSON pour le mobile Expo (header Authorization: Bearer).
-        return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, authCookieService.buildLoginCookie(jwt).toString())
-                .body(new JwtResponseDTO(jwt, "Bearer", userDetails.getUsername(), roles, restaurantList));
     }
 
     /**
@@ -175,7 +174,7 @@ public class AuthController {
     }
 
     /**
-     * Session courante : email + rôles de l'utilisateur authentifié.
+     * Session courante : email + rôles + restaurants + doitChangerMotDePasse de l'utilisateur authentifié.
      * Le front l'appelle au chargement pour restaurer la session (le JWT n'étant
      * plus lisible côté JS — stocké en cookie HttpOnly). 401 sinon.
      */
@@ -183,11 +182,22 @@ public class AuthController {
     public ResponseEntity<?> currentUser(Authentication authentication) {
         if (authentication == null || !(authentication.getPrincipal() instanceof UserDetails principal)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(java.util.Map.of("message", "Non authentifié"));
+                    .body(Map.of("message", "Non authentifié"));
         }
         List<String> roles = principal.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList());
-        return ResponseEntity.ok(new AuthMeDTO(principal.getUsername(), roles));
+
+        Utilisateur user = utilisateurRepository.findByEmail(principal.getUsername()).orElse(null);
+        List<RestaurantSummaryDTO> restaurantList = (user != null && user.getRestaurants() != null)
+                ? user.getRestaurants().stream()
+                        .map(r -> new RestaurantSummaryDTO(r.getId(), r.getName()))
+                        .sorted(java.util.Comparator.comparing(RestaurantSummaryDTO::name, String.CASE_INSENSITIVE_ORDER))
+                        .collect(Collectors.toList())
+                : List.of();
+
+        boolean doitChangerMotDePasse = user != null && Boolean.TRUE.equals(user.getDoitChangerMotDePasse());
+
+        return ResponseEntity.ok(new AuthMeDTO(principal.getUsername(), roles, restaurantList, doitChangerMotDePasse));
     }
 }
