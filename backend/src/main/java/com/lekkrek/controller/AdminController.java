@@ -66,6 +66,8 @@ public class AdminController {
         operator.setRole(operator.getRole() != null ? operator.getRole() : Utilisateur.Role.OPERATEUR);
         operator.setMotDePasse(passwordEncoder.encode(operator.getMotDePasse()));
         operator.setActif(true);
+        // Le premier mot de passe est provisoire : exiger le changement des la premiere connexion
+        operator.setDoitChangerMotDePasse(true);
 
         java.util.Set<Long> idsToAssign = new java.util.HashSet<>();
         if (operator.getRestaurantIds() != null) {
@@ -173,6 +175,8 @@ public class AdminController {
         }
         return utilisateurRepository.findById(id).map(user -> {
             user.setMotDePasse(passwordEncoder.encode(newPassword));
+            // Le mot de passe reinitialise est provisoire : exiger le changement a la reconnexion
+            user.setDoitChangerMotDePasse(true);
             utilisateurRepository.save(user);
             auditService.logCurrentAction("RESET_PASSWORD", "Utilisateur", id.toString(), null, "Réinitialisation mot de passe: " + user.getEmail());
             return ResponseEntity.ok().build();

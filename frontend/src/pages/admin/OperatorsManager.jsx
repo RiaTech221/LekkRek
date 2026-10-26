@@ -90,7 +90,7 @@ export default function OperatorsManager() {
 
   // SOL-195 : Réinitialiser l'accès d'un utilisateur
   const handleResetPassword = async (op) => {
-    const newPassword = window.prompt(`Nouveau mot de passe pour ${op.nomComplet} :`);
+    const newPassword = window.prompt(`Nouveau mot de passe provisoire pour ${op.nomComplet} (changement exigé dès sa prochaine connexion) :`);
     if (!newPassword) return;
     if (newPassword.length < 6) {
       showToast('Le mot de passe doit contenir au moins 6 caractères.', 'error');
@@ -102,7 +102,7 @@ export default function OperatorsManager() {
       body: JSON.stringify({ newPassword })
     });
     if (res.ok) {
-      showToast(`Mot de passe de ${op.nomComplet} réinitialisé avec succès !`);
+      showToast(`Mot de passe provisoire défini pour ${op.nomComplet} (changement exigé à sa reconnexion).`);
     } else {
       showToast('Erreur lors de la réinitialisation.', 'error');
     }

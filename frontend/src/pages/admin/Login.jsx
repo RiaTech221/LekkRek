@@ -28,7 +28,8 @@ export default function Login() {
         roles: data.roles,
         restaurants: data.restaurants || [],
         restaurantAssigne: data.restaurants && data.restaurants.length > 0 ? data.restaurants[0].name : null,
-        restaurantId: data.restaurants && data.restaurants.length > 0 ? data.restaurants[0].id : null
+        restaurantId: data.restaurants && data.restaurants.length > 0 ? data.restaurants[0].id : null,
+        doitChangerMotDePasse: Boolean(data.doitChangerMotDePasse)
       }));
       localStorage.setItem('lekkrek_admin_tab', 'overview');
       const isAdmin = Array.isArray(data.roles) && data.roles.includes('ROLE_ADMIN');
