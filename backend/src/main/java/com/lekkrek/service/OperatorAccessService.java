@@ -4,7 +4,8 @@ package com.lekkrek.service;
  * ============================================================================
  * 📁 Fichier : OperatorAccessService.java
  * 📝 Description : Contrôle d'accès centralisé et réutilisable pour le rôle OPERATEUR
- *                 basé sur la relation 0..n par identifiant (Set<Long> restaurantIds).
+ *                 basé sur la relation 0..n par identifiant (Set<Long> restaurantIds)
+ *                 et vérification de changement de mot de passe obligatoire.
  * 🔒 Rôle : Isole les vérifications d'appartenance et journalise les refus (ACCESS_DENIED).
  * 💡 Auteur : Standard Enterprise Security
  * ============================================================================
@@ -88,7 +89,12 @@ public class OperatorAccessService {
             return; // L'administrateur a un accès total
         }
 
-        // Cas OPERATEUR
+        // Cas OPERATEUR : Exigence du changement de mot de passe provisoire dès la 1ère connexion
+        if (Boolean.TRUE.equals(user.getDoitChangerMotDePasse())) {
+            logAccessDenied(user, endpoint, requestedId, "Changement de mot de passe obligatoire requis avant toute opération.");
+            throw new AccessDeniedException("Accès refusé : vous devez obligatoirement modifier votre mot de passe provisoire avant d'effectuer des opérations.");
+        }
+
         Set<Long> assignedIds = getRestaurantIdsOf(user);
         if (assignedIds.isEmpty()) {
             logAccessDenied(user, endpoint, requestedId, "Opérateur sans restaurant assigné");

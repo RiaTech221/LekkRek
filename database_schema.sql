@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS utilisateurs (
     mot_de_passe VARCHAR(255) NOT NULL,
     role VARCHAR(50) NOT NULL, -- ADMIN, OPERATEUR
     actif BOOLEAN NOT NULL DEFAULT TRUE,
+    doit_changer_mot_de_passe BOOLEAN NOT NULL DEFAULT FALSE,
     photo_url VARCHAR(255),
     restaurant_assigne VARCHAR(255),
     date_creation DATETIME DEFAULT CURRENT_TIMESTAMP
