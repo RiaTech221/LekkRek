@@ -2,7 +2,7 @@ import { API_URL } from '../../config';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../../index.css';
-import MenuManager from './MenuManager';
+import MenuManager from '../operator/MenuManager';
 import Accounting from './Accounting';
 import OperatorsManager from './OperatorsManager';
 import RestaurantsManager from './RestaurantsManager';
@@ -12,7 +12,7 @@ import Overview from './Overview';
 import AuditLogs from './AuditLogs';
 import PartnerRequests from './PartnerRequests';
 import ReferenceManager from './ReferenceManager';
-import OrderDetailsModal from './OrderDetailsModal';
+import OrderDetailsModal from '../operator/OrderDetailsModal';
 import ToastNotification from '../../components/ToastNotification';
 import ForceChangePasswordModal from '../../components/ForceChangePasswordModal';
 import {
