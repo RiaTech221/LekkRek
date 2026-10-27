@@ -1,237 +1,57 @@
-# LekkRek — Plateforme de Gestion de Restaurants & CMS
+<p align="center">
+  <img src="frontend/public/logo_lekkrek.png" alt="LekkRek Logo" width="130" />
+</p>
 
-**LekkRek** est une solution métier de bout en bout destinée à la gestion de restaurants, des commandes en temps réel et à la publication de contenu dynamique (CMS). Elle couvre l'espace vitrine client, le dashboard opérateur et le panneau d'administration.
+<h1 align="center">LekkRek — Plateforme de Gestion de Restaurants & CMS</h1>
+
+<p align="center">
+  <b>Solution métier de bout en bout pour la restauration à Ziguinchor : Vitrine Client PWA, Application Mobile Native Expo, Dashboard Opérateur cloisonné & Panneau d'Administration.</b>
+</p>
+
+<p align="center">
+  <a href="https://github.com/RiaTech221/LekkRek/actions/workflows/ci.yml">
+    <img src="https://img.shields.io/github/actions/workflow/status/RiaTech221/LekkRek/ci.yml?branch=develop&label=CI%20Build&logo=githubactions&logoColor=white&style=for-the-badge" alt="CI Status" />
+  </a>
+  <img src="https://img.shields.io/badge/Java-21-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white" alt="Java 21" />
+  <img src="https://img.shields.io/badge/Spring_Boot-3.2-6DB33F?style=for-the-badge&logo=springboot&logoColor=white" alt="Spring Boot 3" />
+  <img src="https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React 18" />
+  <img src="https://img.shields.io/badge/Expo-SDK_58-000020?style=for-the-badge&logo=expo&logoColor=white" alt="Expo SDK 58" />
+  <img src="https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql&logoColor=white" alt="MySQL 8" />
+  <img src="https://img.shields.io/badge/Docker-Production_Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker" />
+  <img src="https://img.shields.io/badge/SSL-HTTPS_%2F_Let's_Encrypt-success?style=for-the-badge&logo=letsencrypt&logoColor=white" alt="HTTPS" />
+</p>
+
+<p align="center">
+  <a href="#architecture"><b>📐 Architecture</b></a> •
+  <a href="docs/ARCHITECTURE.md"><b>📊 Diagrammes UML</b></a> •
+  <a href="#fonctionnalités"><b>✨ Fonctionnalités</b></a> •
+  <a href="#installation"><b>🚀 Démarrage Rapide</b></a> •
+  <a href="DEPLOYMENT.md"><b>🐳 Guide Déploiement VPS & HTTPS</b></a>
+</p>
 
 ---
 
 ## Architecture
 
-Le projet suit une architecture découplée Frontend / Backend :
+Le projet suit une architecture découplée Frontend / Backend / Mobile :
 
 | Couche | Technologie | Rôle |
 |---|---|---|
-| **Frontend** | React.js (Vite) + Tailwind CSS | Vitrine client, dashboard admin & opérateur |
+| **Frontend** | React.js (Vite) + Tailwind CSS | Vitrine client PWA, dashboard admin & opérateur |
 | **Mobile** | React Native (Expo SDK 58) + TypeScript | App mobile native client (menus, filtres, panier) |
 | **Backend** | Java 21 + Spring Boot 3 + Spring Security | API REST, sécurité JWT, logique métier, KPI |
 | **Base de données** | MySQL + Hibernate/JPA | Persistance des données (13 entités + 1 table de liaison) |
-| **CI/CD** | GitHub Actions | Validation backend (Maven), frontend (Vite) et mobile (Expo) sur chaque PR |
+| **CI/CD** | GitHub Actions | Validation automatique backend (Maven), frontend (Vite) et mobile (Expo) |
 
-### Diagramme d'Architecture Globale (UML)
+### 📐 Spécifications & Modélisation UML
 
-```mermaid
-flowchart TB
-  subgraph Clients["📱 Couche Présentation (Multi-plateformes)"]
-    WebClient["🌐 Web Client PWA<br/>(React / Vite / Tailwind)"]
-    MobileClient["📱 Mobile Client Natif<br/>(React Native / Expo SDK 58)"]
-    AdminBackoffice["🖥️ Dashboard Admin & Opérateur<br/>(React / Vite / Tailwind)"]
-  end
+Les diagrammes complets d'architecture technique et de modélisation relationnelle sont documentés dans le dossier dédié :
 
-  subgraph Gateway["🛡️ Sécurité & Filtrage"]
-    CorsFilter["Filtre CORS"]
-    JwtFilter["Filtre JWT (HMAC-SHA256)"]
-    SecurityGuard["Contrôle d'accès RBAC<br/>(@PreAuthorize ADMIN / OPERATEUR)"]
-  end
+👉 **[Consulter les Diagrammes UML Complets (Architecture & Entité-Relation) dans `docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)**
 
-  subgraph Backend["⚙️ Backend REST API (Spring Boot 3 / Java 21)"]
-    Controllers["Contrôleurs REST<br/>(/api/v1/public/**, /operator/**, /admin/**)"]
-    Services["Services Métier<br/>(PlatService, CommandeService, AuditService, etc.)"]
-    Repositories["Spring Data JPA Repositories"]
-  end
-
-  subgraph Database["🗄️ Persistance des Données (MySQL 8)"]
-    DB[("lekkrek_db<br/>13 tables métier + 1 table de liaison")]
-  end
-
-  subgraph External["🔗 Services Tiers"]
-    WhatsApp["WhatsApp Web / Liens pré-remplis"]
-    FileSystem["Stockage Disque (Uploads images)"]
-  end
-
-  WebClient -->|Requêtes REST| CorsFilter
-  MobileClient -->|Requêtes REST| CorsFilter
-  AdminBackoffice -->|Requêtes REST + Bearer JWT| CorsFilter
-
-  CorsFilter --> JwtFilter --> SecurityGuard --> Controllers
-  Controllers --> Services --> Repositories --> DB
-  WebClient -.->|Redirection commande / panier| WhatsApp
-  Services -.->|Gestion des photos| FileSystem
-```
-
-### Architecture des Données (Diagramme Entité-Relation UML)
-
-```mermaid
-erDiagram
-    UTILISATEURS ||--o{ OPERATEUR_RESTAURANTS : "possede"
-    RESTAURANTS ||--o{ OPERATEUR_RESTAURANTS : "est assigne a"
-    
-    RESTAURANTS ||--o{ PLATS : "propose"
-    RESTAURANTS ||--o{ COMMANDES : "recoit"
-    RESTAURANTS ||--o{ OFFRES : "programme"
-    
-    PLATS ||--o{ OFFRES : "fait l'objet de"
-    PLATS ||--o{ PLAT_DISPONIBILITES_HEBDO : "possede"
-    PLATS ||--o{ COMMANDE_ITEMS : "est commande dans"
-    
-    COMMANDES ||--|{ COMMANDE_ITEMS : "se compose de"
-
-    UTILISATEURS {
-        bigint id PK
-        string nom_complet
-        string email UK
-        string telephone
-        string mot_de_passe
-        string role "ADMIN | OPERATEUR"
-        boolean actif
-        string photo_url
-        datetime date_creation
-    }
-
-    OPERATEUR_RESTAURANTS {
-        bigint utilisateur_id PK,FK
-        bigint restaurant_id PK,FK
-    }
-
-    RESTAURANTS {
-        bigint id PK
-        string name
-        string location
-        string repere
-        string telephone
-        string image
-        string operator_name
-        boolean active
-        decimal commission_rate
-        string subscription_plan
-        date subscription_end_date
-        boolean sur_place
-        boolean a_emporter
-        boolean livraison
-        decimal supplement_livraison
-        string notes
-        datetime created_at
-    }
-
-    PLATS {
-        bigint id PK
-        bigint restaurant_id FK
-        string name
-        string description
-        decimal price
-        string image
-        string status "DISPO | EPUISE"
-        string moment
-        string variantes
-    }
-
-    PLAT_DISPONIBILITES_HEBDO {
-        bigint id PK
-        bigint plat_id FK
-        string jour_semaine "LUNDI..DIMANCHE"
-        string moment "dejeuner | etc."
-        boolean actif
-    }
-
-    OFFRES {
-        bigint id PK
-        bigint restaurant_id FK
-        bigint plat_id FK
-        date date_offre
-        string moment
-        decimal prix
-        decimal prix_emporter
-        string statut "DISPO | EPUISE"
-        datetime created_at
-    }
-
-    COMMANDES {
-        bigint id PK
-        bigint restaurant_id FK
-        string order_number UK
-        string client_name
-        string client_phone
-        string client_address
-        string type "LIVRAISON | EMPORTER | SUR_PLACE"
-        string status "NOUVELLE | EN_PREPARATION | PRETE | LIVREE | ANNULEE"
-        string payment_method "WAVE | ORANGE_MONEY | ESPECES"
-        string payment_status "ATTENTE | PAYE | ECHOUE"
-        decimal total_amount
-        datetime created_at
-    }
-
-    COMMANDE_ITEMS {
-        bigint id PK
-        bigint commande_id FK
-        bigint plat_id FK
-        int quantity
-        decimal unit_price
-    }
-
-    PARTNER_REQUESTS {
-        bigint id PK
-        string nom_restaurant
-        string nom_contact
-        string telephone
-        string ville
-        string status "PENDING | APPROVED | REJECTED"
-        datetime created_at
-    }
-
-    PAGE_CONTENTS {
-        bigint id PK
-        string slug UK
-        string title
-        string seo_keywords
-        string content
-        datetime created_at
-        datetime updated_at
-    }
-
-    PLATFORM_SETTINGS {
-        bigint id PK
-        string platform_name
-        string support_email
-        string support_phone
-        string default_currency
-        string instagram_url
-        string facebook_url
-        string tiktok_url
-        string whatsapp_message_greeting
-        string whatsapp_message_cart
-        string whatsapp_message_order
-        string whatsapp_message_default
-        string hero_title
-        string hero_subtitle
-    }
-
-    ANALYTICS_EVENTS {
-        bigint id PK
-        string event_type
-        string entity_id
-        string context
-        datetime timestamp
-    }
-
-    AUDIT_LOGS {
-        bigint id PK
-        string actor_email
-        string role
-        string action
-        string entity_type
-        string entity_id
-        string old_value
-        string new_value
-        datetime timestamp
-    }
-
-    REFERENCE_DATA {
-        bigint id PK
-        string type "QUARTIER | CRENEAU | CATEGORIE"
-        string valeur
-        string description
-        boolean actif
-        datetime created_at
-    }
-```
+Ce document inclut :
+1. **Le diagramme d'architecture globale (Mermaid)** : clients multi-plateformes, pipeline de filtres de sécurité (CORS, JWT HttpOnly, RBAC), contrôleurs REST et persistance.
+2. **Le diagramme Entité-Relation (ERD)** : les 13 tables métier et la table de liaison `operateur_restaurants` (gestion du périmètre cloisonné `0..n`).
 
 ---
 
