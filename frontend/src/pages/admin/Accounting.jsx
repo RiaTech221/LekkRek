@@ -204,16 +204,26 @@ export default function Accounting() {
     <div className="p-8 w-full min-h-screen" style={{ background: '#f8fafc' }}>
       <ToastNotification toast={toast} onClose={() => setToast(null)} />
       {/* Header */}
-      <header className="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-8">
-        <div>
+      <header 
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          marginBottom: '32px',
+          width: '100%',
+          flexWrap: 'wrap',
+          gap: '24px'
+        }}
+      >
+        <div style={{ textAlign: 'left' }}>
           <h1 className="text-3xl font-black text-gray-900 leading-tight">Comptabilité & Commissions</h1>
           <p className="text-gray-500 text-sm mt-1">Suivi financier et répartition des commissions par restaurant.</p>
         </div>
 
         {!selectedResto && (
-          <div className="flex flex-col items-end gap-3 shrink-0">
-            {/* Barre de recherche positionnée au-dessus des indicateurs de revenus */}
-            <div className="flex items-center gap-3">
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '12px', flexShrink: 0, marginLeft: 'auto' }}>
+            {/* Barre de recherche positionnée au-dessus des indicateurs de revenus (Alignée à droite) */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <span className="text-xs text-gray-400 font-medium">
                 {filteredRestaurants.length} restaurant{filteredRestaurants.length > 1 ? 's' : ''}
               </span>
@@ -223,7 +233,8 @@ export default function Accounting() {
                   placeholder="Rechercher un restaurant par nom ou localisation..." 
                   value={searchTerm} 
                   onChange={e => setSearchTerm(e.target.value)}
-                  className="bg-white border border-gray-200 rounded-xl pl-9 pr-4 py-2 text-sm w-72 sm:w-80 shadow-xs focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/10 transition-all font-medium"
+                  className="bg-white border border-gray-200 rounded-xl pl-9 pr-4 py-2.5 text-sm shadow-xs focus:outline-none focus:border-red-500 font-medium"
+                  style={{ width: '320px' }}
                 />
                 <svg className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -231,8 +242,8 @@ export default function Accounting() {
               </div>
             </div>
 
-            {/* Cartes de totaux générés brut et bénéfice net LekkRek */}
-            <div className="flex gap-3 mt-1">
+            {/* Cartes de totaux générés brut et bénéfice net LekkRek (Positionnées sous la recherche à droite) */}
+            <div style={{ display: 'flex', gap: '12px', marginTop: '4px' }}>
               <div className="bg-white border border-gray-200 px-5 py-2.5 rounded-xl shadow-xs text-right">
                  <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">Total Généré Brut</p>
                  <p className="text-xl font-black text-gray-900">{Number(globalCa).toLocaleString('fr-FR')} FCFA</p>

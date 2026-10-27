@@ -73,16 +73,27 @@ export default function AuditLogs() {
 
   return (
     <div className="p-8 w-full" style={{ background: '#f9fafb', minHeight: '100vh' }}>
-      <header className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <TbShieldSearch className="w-6 h-6 text-gray-700" aria-hidden="true" /> Journal d'Audit & Sécurité
+      <header 
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '32px',
+          width: '100%',
+          flexWrap: 'wrap',
+          gap: '16px'
+        }}
+      >
+        <div style={{ textAlign: 'left' }}>
+          <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2" style={{ justifyContent: 'flex-start' }}>
+            <TbShieldSearch className="w-6 h-6 text-gray-700" aria-hidden="true" />
+            <span>Journal d'Audit & Sécurité</span>
           </h2>
           <p className="text-gray-500 text-sm mt-1">Traçabilité complète des actions sensibles sur la plateforme.</p>
         </div>
 
-        {/* Barre de recherche (Personne, Activité, Date) */}
-        <div className="flex items-center gap-3">
+        {/* Barre de recherche (Personne, Activité, Date) positionnée à droite */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
           <span className="text-xs text-gray-400 font-medium">
             {filteredLogs.length} événement{filteredLogs.length > 1 ? 's' : ''}
           </span>
@@ -92,7 +103,8 @@ export default function AuditLogs() {
               placeholder="Rechercher une personne, action ou date..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              className="bg-white border border-gray-200 rounded-xl pl-10 pr-9 py-2.5 text-sm w-72 sm:w-96 shadow-xs focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/10 transition-all font-medium"
+              className="bg-white border border-gray-200 rounded-xl pl-10 pr-9 py-2.5 text-sm shadow-xs focus:outline-none focus:border-red-500 font-medium"
+              style={{ width: '320px' }}
             />
             <svg className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
