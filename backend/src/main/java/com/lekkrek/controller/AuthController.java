@@ -6,7 +6,7 @@ package com.lekkrek.controller;
  * 📝 Description : Contrôleur d'authentification pour LekkRek.
  *                 Gère la connexion, la génération de tokens JWT (cookie HttpOnly & Bearer),
  *                 la session /me, le logout, et le changement obligatoire de mot de passe
- *                 lors de la 1ère connexion d'un opérateur.
+ *                 sécurisé lors de la 1ère connexion d'un opérateur.
  * 🔒 Rôle : Fait partie de l'architecture Backend Spring Boot.
  * 💡 Auteur : Standard Enterprise Security
  * ============================================================================
@@ -147,18 +147,47 @@ public class AuthController {
                     .body(Map.of("message", "Le nouveau mot de passe doit être différent du mot de passe provisoire."));
         }
 
-        // 3. Mise à jour sécurisée du mot de passe et levée du drapeau d'obligation
-        user.setMotDePasse(passwordEncoder.encode(request.newPassword()));
+        // 3. Exigence stricte de sécurité (mot de passe fort)
+        String newPwd = request.newPassword();
+        if (newPwd.length() < 8) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("message", "Le mot de passe doit comporter au moins 8 caractères."));
+        }
+        if (!newPwd.matches(".*[A-Z].*")) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("message", "Le mot de passe doit contenir au moins une lettre majuscule."));
+        }
+        if (!newPwd.matches(".*[a-z].*")) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("message", "Le mot de passe doit contenir au moins une lettre minuscule."));
+        }
+        if (!newPwd.matches(".*\\d.*")) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("message", "Le mot de passe doit contenir au moins un chiffre."));
+        }
+        if (!newPwd.matches(".*[^A-Za-z0-9].*")) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("message", "Le mot de passe doit contenir au moins un caractère spécial (ex: @, #, $, !, %, etc.)."));
+        }
+
+        // 4. Mise à jour sécurisée du mot de passe et levée du drapeau d'obligation
+        user.setMotDePasse(passwordEncoder.encode(newPwd));
         user.setDoitChangerMotDePasse(false);
         utilisateurRepository.save(user);
 
-        // 4. Audit de sécurité
+        // 5. Audit de sécurité
         auditService.logCurrentAction("CHANGE_PASSWORD", "Utilisateur", user.getId().toString(), null,
                 "Changement de mot de passe réussi pour : " + user.getEmail());
 
-        return ResponseEntity.ok(Map.of(
-                "message", "Votre mot de passe a été mis à jour avec succès. Votre espace est désormais déverrouillé."
-        ));
+        // 6. Régénération du token et rafraîchissement du cookie de session pour continuer la navigation
+        String newJwt = jwtUtils.generateJwtToken(authentication);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, authCookieService.buildLoginCookie(newJwt).toString())
+                .body(Map.of(
+                        "message", "Votre mot de passe a été mis à jour avec succès. Votre espace est désormais déverrouillé.",
+                        "token", newJwt
+                ));
     }
 
     /**
