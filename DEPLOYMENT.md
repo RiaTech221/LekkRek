@@ -79,6 +79,11 @@ Copiez-y ceci, en remplaçant le mot de passe par un mot de passe très sécuris
 
 ```env
 DB_PASSWORD=MonMotDePasseUltraSecret2026!
+
+# HTTPS (à remplir quand vous aurez le nom de domaine — voir section 8)
+# DOMAIN=lekkrek.com
+# CERTBOT_EMAIL=votre@email.com
+# INCLUDE_WWW=1
 ```
 
 Enregistrez et quittez (`Ctrl+O`, `Entrée`, `Ctrl+X`).
@@ -96,7 +101,8 @@ docker compose -f docker-compose.prod.yml up -d --build
 **Que fait cette commande ?**
 - `db` : Lance MySQL 8.0 en arrière-plan.
 - `backend` : Compile votre code Java Spring Boot et le lance sur le port 8080 en interne.
-- `frontend` : Compile votre code React (Vite) de production et lance Nginx sur le port 80 public.
+- `frontend` : Compile votre code React (Vite) de production et lance Nginx sur les ports 80 (redirection) et 443 (HTTPS).
+- `certbot` : Renouvelle automatiquement le certificat HTTPS.
 
 L'opération peut prendre 2 à 3 minutes la première fois (le temps de télécharger les dépendances Java et NPM).
 
@@ -104,21 +110,42 @@ L'opération peut prendre 2 à 3 minutes la première fois (le temps de téléch
 
 ## 7. Vérification
 
-Une fois le processus terminé, ouvrez votre navigateur et tapez : `http://VOTRE_ADRESSE_IP` ou `http://votre-domaine.com`. 
+Ouvrez `https://VOTRE_ADRESSE_IP` (`http://` redirige automatiquement vers `https://`).
+
+> ⚠️ Tant que le domaine n'est pas configuré (section 8), le certificat est **auto-signé** : le navigateur affiche un avertissement. Cliquez sur « Avancé → Continuer » pour tester. La connexion admin fonctionne.
+
 La plateforme Lekk Rek devrait s'afficher ! 🎉
 
 ---
 
-## 8. Activation du HTTPS (Sécurité SSL) - Option Cloudflare
+## 8. Activation du HTTPS (Let's Encrypt, gratuit et automatique)
 
-Pour que votre site soit en `https://`, la méthode la plus simple et gratuite est d'utiliser **Cloudflare** :
-1. Créez un compte gratuit sur [Cloudflare](https://dash.cloudflare.com/sign-up).
-2. Ajoutez votre nom de domaine.
-3. Modifiez les serveurs DNS (Nameservers) chez votre registraire pour ceux fournis par Cloudflare.
-4. Dans le tableau de bord Cloudflare, allez dans **SSL/TLS** -> **Onglet Overview**, et choisissez le mode **Flexible** ou **Full**.
-5. Allez dans **Edge Certificates** et activez "Always Use HTTPS".
+**Prérequis :**
+1. Un nom de domaine (ex : `lekkrek.com`).
+2. Chez votre registraire, un enregistrement DNS **A** `lekkrek.com → IP_DU_VPS` (et `www` → même IP si vous le voulez). Attendez la propagation (`ping lekkrek.com` doit renvoyer l'IP du VPS).
+3. Ports **80** et **443** ouverts sur le pare-feu du VPS :
+   ```bash
+   sudo ufw allow 80 && sudo ufw allow 443
+   ```
 
-Votre plateforme est désormais chiffrée avec le petit cadenas vert !
+**Activation (une seule fois) :**
+```bash
+# 1. Renseigner le domaine dans .env
+nano .env        # décommentez DOMAIN, CERTBOT_EMAIL (et INCLUDE_WWW=1 si www)
+
+# 2. Relancer le site pour qu'il prenne le domaine en compte
+docker compose -f docker-compose.prod.yml up -d --build
+
+# 3. Obtenir le certificat
+chmod +x init-letsencrypt.sh
+./init-letsencrypt.sh
+```
+
+> 💡 Pour un premier essai sans risquer les limites de Let's Encrypt (5 échecs/heure), lancez d'abord `STAGING=1 ./init-letsencrypt.sh`, puis relancez sans `STAGING=1`.
+
+**Renouvellement :** automatique. Le conteneur `certbot` vérifie toutes les 12 h et Nginx recharge le certificat toutes les 6 h. Rien à faire.
+
+Votre plateforme est désormais chiffrée avec le petit cadenas ! 🔒
 
 ---
 
