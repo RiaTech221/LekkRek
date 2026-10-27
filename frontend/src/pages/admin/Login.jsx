@@ -35,7 +35,11 @@ export default function Login() {
       }));
       localStorage.setItem('lekkrek_admin_tab', 'overview');
       const isAdmin = Array.isArray(data.roles) && data.roles.includes('ROLE_ADMIN');
-      navigate(isAdmin ? '/admin' : '/dashboard');
+      if (Boolean(data.doitChangerMotDePasse)) {
+        navigate('/first-login', { replace: true });
+      } else {
+        navigate(isAdmin ? '/admin' : '/dashboard', { replace: true });
+      }
     })
     .catch(err => setError(err.message));
   };

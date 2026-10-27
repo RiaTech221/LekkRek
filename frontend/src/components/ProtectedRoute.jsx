@@ -3,19 +3,22 @@ import { Navigate } from 'react-router-dom';
 import { API_URL } from '../config';
 
 /**
- * Composant ProtectedRoute pour protéger les routes React par rôle.
- * - Vérifie la session via GET /auth/me : le JWT étant en cookie HttpOnly, le JS
- *   ne peut ni le lire ni en vérifier l'expiration — c'est le serveur qui valide.
- * - En cas d'échec (401) : on purge le profil local et on redirige vers /login.
- * - Vérifie ensuite si l'utilisateur possède l'un des rôles autorisés (allowedRoles).
- * - En cas de rôle non autorisé, redirige vers la route de secours (fallbackPath).
+ * ============================================================================
+ * 📁 Fichier : ProtectedRoute.jsx
+ * 📝 Description : Composant de protection et de contrôle d'accès aux routes.
+ * - Vérifie la session via GET /auth/me (cookie HttpOnly).
+ * - Exige le changement de mot de passe obligatoire : si l'utilisateur doit changer
+ *   son mot de passe provisoire, il est immédiatement redirigé vers /first-login.
+ * - Contrôle des rôles autorisés (allowedRoles).
+ * 💡 Auteur : Standard Enterprise Security
+ * ============================================================================
  */
-export default function ProtectedRoute({ children, allowedRoles = [] }) {
+export default function ProtectedRoute({ children, allowedRoles = [], allowPendingPasswordChange = false }) {
   const [status, setStatus] = useState('checking'); // checking | ok | ko
 
   useEffect(() => {
     let cancelled = false;
-    fetch(`${API_URL}/api/v1/public/auth/me`)
+    fetch(`${API_URL}/api/v1/public/auth/me`, { credentials: 'include' })
       .then(res => (res.ok ? res.json() : null))
       .then(user => {
         if (cancelled) return;
@@ -62,7 +65,8 @@ export default function ProtectedRoute({ children, allowedRoles = [] }) {
       if (parsed && typeof parsed === 'object') {
         user = {
           ...parsed,
-          roles: Array.isArray(parsed.roles) ? parsed.roles : []
+          roles: Array.isArray(parsed.roles) ? parsed.roles : [],
+          doitChangerMotDePasse: Boolean(parsed.doitChangerMotDePasse)
         };
       }
     }
@@ -72,11 +76,21 @@ export default function ProtectedRoute({ children, allowedRoles = [] }) {
     return <Navigate to="/login" replace />;
   }
 
-  // Si des rôles spécifiques sont requis, vérifier l'autorisation
+  // 1. Contrôle du mot de passe provisoire obligatoire
+  if (user.doitChangerMotDePasse && !allowPendingPasswordChange) {
+    return <Navigate to="/first-login" replace />;
+  }
+
+  // 2. Si l'utilisateur a déjà changé son mot de passe et tente de revenir sur /first-login
+  if (!user.doitChangerMotDePasse && allowPendingPasswordChange) {
+    const isAdmin = user.roles.includes('ROLE_ADMIN');
+    return <Navigate to={isAdmin ? "/admin" : "/dashboard"} replace />;
+  }
+
+  // 3. Contrôle des rôles autorisés
   if (allowedRoles.length > 0) {
     const hasRequiredRole = user.roles.some(role => allowedRoles.includes(role));
     if (!hasRequiredRole) {
-      // Redirection intelligente selon le rôle possédé
       const isOperator = user.roles.includes('ROLE_OPERATEUR');
       return <Navigate to={isOperator ? "/dashboard" : "/"} replace />;
     }
