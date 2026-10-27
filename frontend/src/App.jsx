@@ -7,16 +7,16 @@ import MobileClientView from './pages/client/MobileClientView';
 import PublicPage from './pages/client/PublicPage';
 import OperatorDashboard from './pages/admin/OperatorDashboard';
 import Login from './pages/admin/Login';
+import FirstLoginPasswordChange from './pages/admin/FirstLoginPasswordChange';
 
 /**
  * ============================================================================
  * 📁 Fichier : App.jsx
- * 📝 Description : Composant React gérant l'interface utilisateur pour App.
- * 🎨 Rôle : Vue Frontend (Vite/Tailwind) pour l'expérience client/admin LekkRek.
- * 💡 Auteur : Documenté automatiquement (Standard Enterprise)
+ * 📝 Description : Routeur principal de l'application LekkRek.
+ * 🎨 Rôle : Définition des routes publiques, d'authentification et d'administration.
+ * 💡 Auteur : Standard Enterprise Security
  * ============================================================================
  */
-
 
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -34,6 +34,13 @@ function App() {
         
         {/* Connexion Opérateur / Admin */}
         <Route path="/login" element={<Login />} />
+
+        {/* Page dédiée au changement de mot de passe obligatoire (1ère connexion) */}
+        <Route path="/first-login" element={
+          <ProtectedRoute allowedRoles={['ROLE_ADMIN', 'ROLE_OPERATEUR']} allowPendingPasswordChange={true}>
+            <FirstLoginPasswordChange />
+          </ProtectedRoute>
+        } />
         
         {/* Espace Administration Globale - Réservé aux Administrateurs */}
         <Route path="/admin" element={

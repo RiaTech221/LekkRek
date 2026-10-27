@@ -3,12 +3,13 @@ package com.lekkrek.security;
 /**
  * ============================================================================
  * 📁 Fichier : JwtAuthFilter.java
- * 📝 Description : Classe métier pour la gestion de JwtAuthFilter dans LekkRek.
- * 🔒 Rôle : Fait partie de l'architecture Backend Spring Boot.
- * 💡 Auteur : Documenté automatiquement (Standard Enterprise)
+ * 📝 Description : Filtre de sécurité interceptant chaque requête HTTP pour valider
+ *                  le JWT reçu soit via l'en-tête Bearer (mobile), soit via le cookie
+ *                  HttpOnly sécurisé (web).
+ * 🔒 Rôle : Fait partie de l'architecture Backend Spring Boot (Spring Security).
+ * 💡 Auteur : Standard Enterprise Security
  * ============================================================================
  */
-
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -19,7 +20,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
-import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -58,11 +58,17 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     }
 
     private String parseJwt(HttpServletRequest request) {
-        // 1) Priorité au header Authorization — canail du mobile Expo (Bearer depuis SecureStore).
+        // 1) Priorité au header Authorization valide — canal du mobile Expo ou client API.
         String headerAuth = request.getHeader("Authorization");
 
         if (StringUtils.hasText(headerAuth) && headerAuth.startsWith("Bearer ")) {
-            return headerAuth.substring(7);
+            String candidate = headerAuth.substring(7).trim();
+            // Ignorer les valeurs corrompues ou nulles transmises par le frontend
+            if (StringUtils.hasText(candidate)
+                    && !"null".equalsIgnoreCase(candidate)
+                    && !"undefined".equalsIgnoreCase(candidate)) {
+                return candidate;
+            }
         }
 
         // 2) Repli sur le cookie HttpOnly posé au login (web) — invisible pour le JS.
