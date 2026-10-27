@@ -247,7 +247,7 @@ export default function MenuManager() {
         <header className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-3xl font-black text-gray-900 tracking-tight">
-              {isAdmin ? "Gestion des Restaurants" : "Mes Restaurants"}
+              {isAdmin ? "Gestion des Menus" : "Gestion de mes Menus"}
             </h1>
             <p className="text-gray-500 text-sm mt-1">
               {isAdmin 

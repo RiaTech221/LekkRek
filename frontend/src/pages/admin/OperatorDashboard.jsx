@@ -270,10 +270,10 @@ export default function OperatorDashboard() {
           <Overview />
         ) : activeTab === 'kanban' ? (
           <div className="flex-1 p-8 flex flex-col h-full overflow-hidden">
-            <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-              <div>
+            <header className="flex items-center justify-between gap-4 mb-8 w-full text-left" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+              <div className="text-left">
                 <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
-                  Commandes en direct
+                  <span>Commandes en direct</span>
                   <span className="flex h-3 w-3 relative">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
@@ -283,7 +283,7 @@ export default function OperatorDashboard() {
               </div>
 
               {hasMultipleRestaurants && (
-                <div className="flex items-center gap-2.5">
+                <div className="flex items-center gap-2.5 shrink-0" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <span className="text-xs font-bold text-gray-500 whitespace-nowrap">Restaurant :</span>
                   <select
                     value={restaurantFilter}
