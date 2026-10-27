@@ -706,66 +706,90 @@ return () => {
         </div>
       </div>
 
-      {/* PANIER MODAL */}
+      {/* =========================================================================
+          🛒 PANIER & CHECKOUT DRAWER MOBILE (Standard Enterprise Layout)
+          - Structure plein écran / tiroir latéral avec contrainte stricte de hauteur (h-full overflow-hidden)
+          - Header épinglé en haut (shrink-0)
+          - Corps de panier et options scrollable de manière fluide (flex-1 min-h-0 overflow-y-auto)
+          - Pied de commande épinglé en bas (shrink-0) pour garantir que le bouton
+            "Confirmer la Commande" et le total restent 100% visibles et accessibles,
+            particulièrement lors de la sélection du mode "Livraison" (avec l'adresse).
+         ========================================================================= */}
       {isCheckoutOpen && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex justify-end transition-opacity">
-          <div className="w-full max-w-md bg-white h-full shadow-2xl flex flex-col animate-slide-in-right">
-            <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-              <h2 className="text-xl font-black text-gray-900">Votre Panier <span className="text-red-600">({cart.length})</span></h2>
-              <button onClick={() => setCheckoutOpen(false)} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold transition-colors">✕</button>
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex justify-end transition-opacity"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setCheckoutOpen(false);
+          }}
+        >
+          <div className="w-full max-w-md bg-white h-full shadow-2xl flex flex-col animate-slide-in-right overflow-hidden">
+            
+            {/* Header du panier (Épinglé en haut) */}
+            <div className="p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/70 shrink-0">
+              <h2 className="text-xl font-black text-gray-900 flex items-center gap-2">
+                <span>Votre Panier</span>
+                <span className="px-2.5 py-0.5 text-xs font-black rounded-full bg-red-100 text-red-600">({cart.length})</span>
+              </h2>
+              <button 
+                type="button"
+                onClick={() => setCheckoutOpen(false)} 
+                className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold transition-colors"
+                aria-label="Fermer le panier"
+              >
+                ✕
+              </button>
             </div>
             
-            <div className="flex-1 overflow-y-auto p-6">
-              {cart.length === 0 ? (
-                <div className="h-full flex flex-col items-center justify-center text-gray-400">
-                  <span className="text-6xl mb-4">🛒</span>
-                  <p className="font-medium text-lg">Votre panier est vide</p>
-                </div>
-              ) : (
-                <ul className="space-y-4">
-                  {cart.map((item, idx) => (
-                    <li key={idx} className="flex justify-between items-center bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
-                      <div className="flex items-center gap-4">
-                        {item.image && formatImageUrl(item.image) ? (
-                          <img src={formatImageUrl(item.image)} alt="" className="w-16 h-16 rounded-xl object-cover shrink-0" onError={(e) => { e.target.style.display = 'none'; }} />
-                        ) : (
-                          <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-slate-900 to-rose-950 text-rose-400 font-black flex items-center justify-center text-lg shrink-0">
-                            {(item.name || 'P').trim().charAt(0).toUpperCase()}
+            {cart.length === 0 ? (
+              <div className="flex-1 flex flex-col items-center justify-center p-6 text-gray-400">
+                <span className="text-6xl mb-4">🛒</span>
+                <p className="font-semibold text-lg text-gray-700">Votre panier est vide</p>
+                <p className="text-xs text-gray-400 mt-1">Sélectionnez de délicieux plats pour commander</p>
+              </div>
+            ) : (
+              <form 
+                className="flex-1 flex flex-col min-h-0" 
+                onSubmit={(e) => { e.preventDefault(); handleCheckout(); }}
+              >
+                {/* Zone scrollable contenant les articles, le mode de service, coordonnées et détails */}
+                <div className="flex-1 overflow-y-auto p-5 space-y-5">
+                  
+                  {/* Articles commandés */}
+                  <div>
+                    <h3 className="text-xs font-black uppercase tracking-wider text-gray-400 mb-3">Articles commandés</h3>
+                    <ul className="space-y-3">
+                      {cart.map((item, idx) => (
+                        <li key={idx} className="flex justify-between items-center bg-white p-3.5 rounded-2xl border border-gray-100 shadow-xs">
+                          <div className="flex items-center gap-3">
+                            {item.image && formatImageUrl(item.image) ? (
+                              <img src={formatImageUrl(item.image)} alt="" className="w-14 h-14 rounded-xl object-cover shrink-0" onError={(e) => { e.target.style.display = 'none'; }} />
+                            ) : (
+                              <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-slate-900 to-rose-950 text-rose-400 font-black flex items-center justify-center text-base shrink-0">
+                                {(item.name || 'P').trim().charAt(0).toUpperCase()}
+                              </div>
+                            )}
+                            <div>
+                              <p className="font-bold text-gray-900 text-sm leading-snug">{item.name}</p>
+                              <p className="text-red-600 font-bold text-xs mt-0.5">{item.price} FCFA</p>
+                            </div>
                           </div>
-                        )}
-                        <div>
-                          <p className="font-bold text-gray-900 text-sm">{item.name}</p>
-                          <p className="text-red-600 font-bold text-sm">{item.price} FCFA</p>
-                        </div>
-                      </div>
-                      <button onClick={() => setCart(cart.filter((_, i) => i !== idx))} className="text-gray-400 hover:text-red-600 p-2 text-sm">✕</button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-            
-            {cart.length > 0 && (
-              <div className="p-6 border-t border-gray-100 bg-gray-50/50">
-                <div className="space-y-1.5 mb-5 bg-white p-3.5 rounded-2xl border border-gray-100 shadow-xs">
-                  <div className="flex justify-between items-center text-xs text-gray-500">
-                    <span>Sous-total plats</span>
-                    <span className="font-semibold text-gray-800">{subtotal.toLocaleString()} FCFA</span>
+                          <button 
+                            type="button"
+                            onClick={() => setCart(cart.filter((_, i) => i !== idx))} 
+                            className="text-gray-400 hover:text-red-600 p-2 text-sm transition-colors rounded-lg hover:bg-red-50"
+                            title="Supprimer du panier"
+                          >
+                            ✕
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
-                  {formData.type === 'LIVRAISON' && (
-                    <div className="flex justify-between items-center text-xs text-emerald-600">
-                      <span>Frais de livraison</span>
-                      <span className="font-semibold">{deliverySupplement > 0 ? `+${deliverySupplement.toLocaleString()} FCFA` : 'Inclus / 0 FCFA'}</span>
-                    </div>
-                  )}
-                  <div className="flex justify-between items-center pt-2 border-t border-gray-100">
-                    <span className="text-gray-900 font-bold text-sm">Total à payer</span>
-                    <span className="text-xl font-black text-gray-900">{total.toLocaleString()} FCFA</span>
-                  </div>
-                </div>
 
-                <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); handleCheckout(); }}>
-                    <div className="flex gap-2 mb-4">
+                  {/* Mode de commande (Sur place / À emporter / Livraison) */}
+                  <div className="pt-2 border-t border-gray-100">
+                    <label className="block text-xs font-black uppercase tracking-wider text-gray-400 mb-2.5">Mode de commande</label>
+                    <div className="grid grid-cols-3 gap-2">
                       {[
                         { type: 'SUR_PLACE', label: 'Sur place', allowed: canSurPlace },
                         { type: 'EMPORTER', label: 'À emporter', allowed: canEmporter },
@@ -776,11 +800,11 @@ return () => {
                           type="button"
                           disabled={!allowed}
                           onClick={() => setFormData({...formData, type})}
-                          className={`flex-1 py-2 text-xs font-bold rounded-xl border transition-all ${
+                          className={`py-2.5 px-2 text-xs font-bold rounded-xl border transition-all text-center ${
                             !allowed 
                               ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed opacity-50' 
                               : formData.type === type 
-                                ? 'bg-red-50 border-red-200 text-red-600 shadow-xs' 
+                                ? 'bg-red-50 border-red-300 text-red-600 shadow-xs ring-1 ring-red-500/20' 
                                 : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
                           }`}
                           title={!allowed ? "Non proposé par l'un des restaurants de votre panier" : label}
@@ -789,40 +813,131 @@ return () => {
                         </button>
                       ))}
                     </div>
+                  </div>
 
-                    <input type="text" placeholder="Votre Nom Complet" required className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-red-600" value={formData.clientName} onChange={e => setFormData({...formData, clientName: e.target.value})} />
-                    <input
-                      type="tel"
-                      inputMode="numeric"
-                      maxLength={9}
-                      placeholder="Ex: 771234567"
-                      required
-                      className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-red-600"
-                      value={formData.clientPhone}
-                      onChange={e => setFormData({...formData, clientPhone: e.target.value.replace(/\D/g, '').slice(0, 9)})}
-                      onKeyDown={e => {
-                        if (!/[0-9]/.test(e.key) && !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key) && !e.ctrlKey && !e.metaKey) {
-                          e.preventDefault();
-                        }
-                      }}
-                    />
+                  {/* Coordonnées du client */}
+                  <div className="space-y-3 pt-2 border-t border-gray-100">
+                    <label className="block text-xs font-black uppercase tracking-wider text-gray-400">Vos coordonnées</label>
+                    
+                    <div>
+                      <input 
+                        type="text" 
+                        placeholder="Votre Nom Complet" 
+                        required 
+                        className="w-full bg-gray-50/60 border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:bg-white focus:border-red-600 focus:ring-2 focus:ring-red-600/10 transition-all font-medium" 
+                        value={formData.clientName} 
+                        onChange={e => setFormData({...formData, clientName: e.target.value})} 
+                      />
+                    </div>
+
+                    <div>
+                      <input
+                        type="tel"
+                        inputMode="numeric"
+                        maxLength={9}
+                        placeholder="Ex: 771234567"
+                        required
+                        className="w-full bg-gray-50/60 border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:bg-white focus:border-red-600 focus:ring-2 focus:ring-red-600/10 transition-all font-medium"
+                        value={formData.clientPhone}
+                        onChange={e => setFormData({...formData, clientPhone: e.target.value.replace(/\D/g, '').slice(0, 9)})}
+                        onKeyDown={e => {
+                          if (!/[0-9]/.test(e.key) && !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key) && !e.ctrlKey && !e.metaKey) {
+                            e.preventDefault();
+                          }
+                        }}
+                      />
+                    </div>
                     
                     {formData.type === 'LIVRAISON' && (
-                      <textarea placeholder="Adresse de livraison complète (Quartier, Repère)" required className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-red-600" value={formData.clientAddress} onChange={e => setFormData({...formData, clientAddress: e.target.value})} />
+                      <div className="animate-fade-in-up">
+                        <textarea 
+                          rows={2}
+                          placeholder="Adresse de livraison complète (Quartier, Repère)" 
+                          required 
+                          className="w-full bg-gray-50/60 border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:bg-white focus:border-red-600 focus:ring-2 focus:ring-red-600/10 transition-all font-medium resize-none" 
+                          value={formData.clientAddress} 
+                          onChange={e => setFormData({...formData, clientAddress: e.target.value})} 
+                        />
+                      </div>
                     )}
-                    
-                    <select className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-red-600" value={formData.paymentMethod} onChange={e => setFormData({...formData, paymentMethod: e.target.value})}>
+                  </div>
+
+                  {/* Mode de paiement */}
+                  <div className="space-y-2 pt-2 border-t border-gray-100">
+                    <label className="block text-xs font-black uppercase tracking-wider text-gray-400">Mode de paiement</label>
+                    <select 
+                      className="w-full bg-gray-50/60 border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:bg-white focus:border-red-600 focus:ring-2 focus:ring-red-600/10 transition-all font-semibold text-gray-800 cursor-pointer" 
+                      value={formData.paymentMethod} 
+                      onChange={e => setFormData({...formData, paymentMethod: e.target.value})}
+                    >
                       <option value="WAVE">Payer par Wave</option>
                       <option value="ORANGE_MONEY">Payer par Orange Money</option>
                       <option value="SAMIR_PAY">Payer par Samir Pay</option>
                       <option value="ESPECES">Paiement en Espèces (À la réception)</option>
                     </select>
-                    
-                    <button type="submit" disabled={isProcessingPayment} className={`w-full text-white font-bold py-4 rounded-xl shadow-lg transition-colors mt-4 ${isProcessingPayment ? "bg-gray-400 shadow-none cursor-not-allowed" : "bg-red-600 shadow-red-600/30 hover:bg-red-700"}`}>
-                      {isProcessingPayment ? "Paiement en cours..." : "Confirmer la Commande"}
-                    </button>
-                  </form>
-              </div>
+                  </div>
+
+                  {/* Récapitulatif tarifaire détaillé */}
+                  <div className="bg-gray-50/80 p-3.5 rounded-2xl border border-gray-100 space-y-1.5">
+                    <div className="flex justify-between items-center text-xs text-gray-500">
+                      <span>Sous-total plats</span>
+                      <span className="font-semibold text-gray-800">{subtotal.toLocaleString()} FCFA</span>
+                    </div>
+                    {formData.type === 'LIVRAISON' && (
+                      <div className="flex justify-between items-center text-xs text-emerald-600">
+                        <span>Frais de livraison</span>
+                        <span className="font-semibold">{deliverySupplement > 0 ? `+${deliverySupplement.toLocaleString()} FCFA` : 'Inclus / 0 FCFA'}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between items-center pt-2 border-t border-gray-200">
+                      <span className="text-gray-900 font-bold text-sm">Total à payer</span>
+                      <span className="text-lg font-black text-gray-900">{total.toLocaleString()} FCFA</span>
+                    </div>
+                  </div>
+
+                </div>
+
+                {/* Footer fixé en bas (Pinned) - TOUJOURS visible et accessible sans débordement */}
+                <div className="p-4 border-t border-gray-100 bg-white shrink-0 shadow-[0_-4px_20px_rgba(0,0,0,0.06)]">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex flex-col">
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-gray-400">Total à payer</span>
+                      <span className="text-xl font-black text-gray-900 leading-none">{total.toLocaleString()} FCFA</span>
+                    </div>
+                    {formData.type === 'LIVRAISON' && (
+                      <span className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        {deliverySupplement > 0 ? `Livraison +${deliverySupplement.toLocaleString()} F` : 'Livraison incluse'}
+                      </span>
+                    )}
+                  </div>
+
+                  <button 
+                    type="submit" 
+                    disabled={isProcessingPayment} 
+                    className={`w-full py-3.5 px-4 text-white font-bold text-sm rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 ${
+                      isProcessingPayment 
+                        ? "bg-gray-400 shadow-none cursor-not-allowed" 
+                        : "bg-red-600 shadow-red-600/30 hover:bg-red-700 active:scale-[0.99]"
+                    }`}
+                  >
+                    {isProcessingPayment ? (
+                      <>
+                        <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span>Paiement en cours...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>Confirmer la Commande</span>
+                        <span className="text-white/80 font-bold">→</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
+              </form>
             )}
           </div>
         </div>
