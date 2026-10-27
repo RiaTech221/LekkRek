@@ -9,7 +9,6 @@ package com.lekkrek.entity;
  * ============================================================================
  */
 
-
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -45,6 +44,13 @@ public class Utilisateur {
 
     @Column(nullable = false)
     private Boolean actif = true;
+
+    /**
+     * Indique si l'utilisateur doit obligatoirement changer son mot de passe
+     * lors de sa prochaine connexion (par exemple après création d'un compte avec mot de passe provisoire).
+     */
+    @Column(name = "doit_changer_mot_de_passe", nullable = false)
+    private Boolean doitChangerMotDePasse = false;
 
     private String photoUrl;
 

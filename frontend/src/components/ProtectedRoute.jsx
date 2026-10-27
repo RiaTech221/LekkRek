@@ -20,7 +20,18 @@ export default function ProtectedRoute({ children, allowedRoles = [] }) {
       .then(user => {
         if (cancelled) return;
         if (user && user.email) {
-          localStorage.setItem('user', JSON.stringify({ email: user.email, roles: user.roles || [] }));
+          const prev = (() => {
+            try { return JSON.parse(localStorage.getItem('user') || '{}'); } catch (_) { return {}; }
+          })();
+          localStorage.setItem('user', JSON.stringify({
+            ...prev,
+            email: user.email,
+            roles: user.roles || [],
+            restaurants: user.restaurants || prev.restaurants || [],
+            restaurantAssigne: (user.restaurants && user.restaurants.length > 0) ? user.restaurants[0].name : prev.restaurantAssigne,
+            restaurantId: (user.restaurants && user.restaurants.length > 0) ? user.restaurants[0].id : prev.restaurantId,
+            doitChangerMotDePasse: user.doitChangerMotDePasse !== undefined ? Boolean(user.doitChangerMotDePasse) : Boolean(prev.doitChangerMotDePasse)
+          }));
           setStatus('ok');
         } else {
           localStorage.removeItem('user');

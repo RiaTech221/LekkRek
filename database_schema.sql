@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS utilisateurs (
     mot_de_passe VARCHAR(255) NOT NULL,
     role VARCHAR(50) NOT NULL, -- ADMIN, OPERATEUR
     actif BOOLEAN NOT NULL DEFAULT TRUE,
+    doit_changer_mot_de_passe BOOLEAN NOT NULL DEFAULT FALSE,
     photo_url VARCHAR(255),
     restaurant_assigne VARCHAR(255),
     date_creation DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -259,7 +260,7 @@ INSERT IGNORE INTO reference_data (type, valeur, description) VALUES
 
 -- Administrateur initial (Mot de passe: password123)
 INSERT INTO utilisateurs (nom_complet, email, mot_de_passe, role, actif) 
-VALUES ('Administrateur', 'admin@lekkrek.com', '$2a$10$T2kP6.J6C6o6/L5G9Z5.uO/7.4.7/7/7/7/7.7/7/7/7/7/7', 'ADMIN', 1) 
+VALUES ('Administrateur', 'admin@lekkrek.com', '$2a$10$tnnysKF.9cV5p6YIByeecOILpvuTWGdCI6FuETug5soyAqBLiY.Sa', 'ADMIN', 1) 
 ON DUPLICATE KEY UPDATE email=email;
 
 -- Configuration globale par défaut (ID = 1)

@@ -219,4 +219,33 @@ class OperatorAccessServiceTest {
 
         verify(auditLogRepository, atLeastOnce()).save(any());
     }
+
+    @Test
+    void testOperatorWithMustChangePasswordThrowsAccessDenied() {
+        Utilisateur opProvisoire = new Utilisateur();
+        opProvisoire.setEmail("provisoire@lekkrek.com");
+        opProvisoire.setRole(Utilisateur.Role.OPERATEUR);
+        opProvisoire.setRestaurants(Set.of(resto1));
+        opProvisoire.setDoitChangerMotDePasse(true);
+
+        // Toute opération métier sur un restaurant assigné doit être bloquée avec 403 tant que le mot de passe n'est pas changé
+        assertThrows(AccessDeniedException.class, () ->
+                accessService.assertCanAccessRestaurant(opProvisoire, resto1, "/test", "10"));
+        assertThrows(AccessDeniedException.class, () ->
+                accessService.assertCanAccessRestaurant(opProvisoire, 10L, "/test", "10"));
+
+        Plat plat = new Plat();
+        plat.setId(101L);
+        plat.setRestaurant(resto1);
+        assertThrows(AccessDeniedException.class, () ->
+                accessService.assertCanAccessPlat(opProvisoire, plat, "/test", "101"));
+
+        Commande cmd = new Commande();
+        cmd.setId(201L);
+        cmd.setRestaurant(resto1);
+        assertThrows(AccessDeniedException.class, () ->
+                accessService.assertCanAccessCommande(opProvisoire, cmd, "/test", "201"));
+
+        verify(auditLogRepository, atLeastOnce()).save(any());
+    }
 }

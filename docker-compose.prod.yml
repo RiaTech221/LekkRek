@@ -32,9 +32,31 @@ services:
     container_name: lekkrek_prod_frontend
     ports:
       - "80:80"
+      - "443:443"
+    environment:
+      # Nom de domaine du site (sans https://). Tant qu'il n'est pas défini,
+      # Nginx sert un certificat auto-signé temporaire.
+      - DOMAIN=${DOMAIN:-localhost}
+    volumes:
+      - certbot_conf:/etc/letsencrypt:ro
+      - certbot_www:/var/www/certbot:ro
     depends_on:
       - backend
     restart: always
 
+  # Renouvellement automatique du certificat Let's Encrypt (vérifie toutes les 12 h,
+  # ne renouvelle que s'il expire dans moins de 30 jours). Nginx recharge le
+  # certificat de lui-même (toutes les 6 h). Obtention initiale : ./init-letsencrypt.sh
+  certbot:
+    image: certbot/certbot:latest
+    container_name: lekkrek_prod_certbot
+    volumes:
+      - certbot_conf:/etc/letsencrypt
+      - certbot_www:/var/www/certbot
+    entrypoint: /bin/sh -c "trap exit TERM; while :; do certbot renew --webroot -w /var/www/certbot --quiet; sleep 12h & wait $${!}; done"
+    restart: always
+
 volumes:
   db_data:
+  certbot_conf:
+  certbot_www:

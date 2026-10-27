@@ -14,6 +14,7 @@ export default function Settings() {
     localStorage.getItem('lekkrek_refresh') !== 'false'
   );
 
+  const [currentPassword, setCurrentPassword] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [message, setMessage] = useState('');

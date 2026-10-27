@@ -2,7 +2,7 @@ import { API_URL } from '../../config';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../../index.css';
-import MenuManager from './MenuManager';
+import MenuManager from '../operator/MenuManager';
 import Accounting from './Accounting';
 import OperatorsManager from './OperatorsManager';
 import RestaurantsManager from './RestaurantsManager';
@@ -12,8 +12,9 @@ import Overview from './Overview';
 import AuditLogs from './AuditLogs';
 import PartnerRequests from './PartnerRequests';
 import ReferenceManager from './ReferenceManager';
-import OrderDetailsModal from './OrderDetailsModal';
+import OrderDetailsModal from '../operator/OrderDetailsModal';
 import ToastNotification from '../../components/ToastNotification';
+import ForceChangePasswordModal from '../../components/ForceChangePasswordModal';
 import {
   TbHome, TbChartBar, TbToolsKitchen2, TbBuildingStore, TbUsers, TbHeartHandshake,
   TbMapPin, TbTrendingUp, TbFileText, TbShieldSearch, TbSettings, TbLogout,
@@ -57,6 +58,7 @@ export default function OperatorDashboard() {
   const operatorRestaurants = Array.isArray(user.restaurants) ? user.restaurants : [];
   const hasMultipleRestaurants = isAdmin || operatorRestaurants.length > 1;
   const [restaurantFilter, setRestaurantFilter] = useState('ALL');
+  const [mustChangePassword, setMustChangePassword] = useState(() => Boolean(user.doitChangerMotDePasse));
 
   // Sécurité : Un opérateur ne peut pas accéder aux onglets réservés à l'administrateur
   const adminOnlyTabs = ['restaurants', 'operateurs', 'partners', 'referentiel', 'comptabilite', 'content', 'audit', 'parametres'];
@@ -115,10 +117,11 @@ export default function OperatorDashboard() {
   };
 
   useEffect(() => {
+    if (mustChangePassword) return;
     fetchCommandes();
     const interval = setInterval(fetchCommandes, 10000);
     return () => clearInterval(interval);
-  }, []);
+  }, [mustChangePassword]);
 
 
   const getPaymentBadge = (cmd) => {
@@ -161,6 +164,13 @@ export default function OperatorDashboard() {
   return (
     <div id="desktop-dashboard" className="flex bg-gray-50 font-sans" style={{ position: "fixed", top: 0, left: 0, width: "100%", height: "100vh", zIndex: 50 }}>
       <ToastNotification toast={toast} onClose={() => setToast(null)} />
+      <ForceChangePasswordModal
+        isOpen={mustChangePassword}
+        onSuccess={() => {
+          setMustChangePassword(false);
+          showToast('Votre mot de passe a été personnalisé avec succès ! Bienvenue sur votre espace.', 'success');
+        }}
+      />
       
       {/* Sidebar */}
       <div className={`bg-white border-r border-gray-200 flex flex-col h-full flex-shrink-0 transition-all duration-300 relative overflow-x-hidden`} style={{ width: isSidebarOpen ? "256px" : "80px" }}>
