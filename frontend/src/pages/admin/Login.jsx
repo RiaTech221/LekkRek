@@ -13,6 +13,7 @@ export default function Login() {
     setError('');
     fetch(`${API_URL}/api/v1/public/auth/login`, {
       method: 'POST',
+      credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
     })
@@ -21,8 +22,9 @@ export default function Login() {
       return res.json();
     })
     .then(data => {
-      // Le JWT est reçu en cookie HttpOnly : jamais stocké ni lisible en JS.
-      // On garde uniquement le profil non sensible pour l'affichage.
+      if (data.token) {
+        localStorage.setItem('token', data.token);
+      }
       localStorage.setItem('user', JSON.stringify({
         email: data.email,
         roles: data.roles,

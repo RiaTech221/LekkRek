@@ -156,9 +156,15 @@ public class AuthController {
         auditService.logCurrentAction("CHANGE_PASSWORD", "Utilisateur", user.getId().toString(), null,
                 "Changement de mot de passe réussi pour : " + user.getEmail());
 
-        return ResponseEntity.ok(Map.of(
-                "message", "Votre mot de passe a été mis à jour avec succès. Votre espace est désormais déverrouillé."
-        ));
+        // 5. Régénération du token et rafraîchissement du cookie de session pour continuer la navigation
+        String newJwt = jwtUtils.generateJwtToken(authentication);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, authCookieService.buildLoginCookie(newJwt).toString())
+                .body(Map.of(
+                        "message", "Votre mot de passe a été mis à jour avec succès. Votre espace est désormais déverrouillé.",
+                        "token", newJwt
+                ));
     }
 
     /**
