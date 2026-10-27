@@ -204,24 +204,46 @@ export default function Accounting() {
     <div className="p-8 w-full min-h-screen" style={{ background: '#f8fafc' }}>
       <ToastNotification toast={toast} onClose={() => setToast(null)} />
       {/* Header */}
-      <header className="flex flex-row items-center justify-between gap-6 mb-6">
-        <div className="flex items-center gap-3">
-          <div>
-            <span className="text-red-600 text-xs font-bold uppercase tracking-wider">Dashboard Administrateur</span>
-            <h1 className="text-2xl font-black text-gray-900 leading-tight">Comptabilité & Commissions</h1>
-          </div>
+      <header className="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-8">
+        <div>
+          <h1 className="text-3xl font-black text-gray-900 leading-tight">Comptabilité & Commissions</h1>
+          <p className="text-gray-500 text-sm mt-1">Suivi financier et répartition des commissions par restaurant.</p>
         </div>
 
-        <div className="flex gap-3 shrink-0">
-          <div className="bg-white border border-gray-200 px-5 py-2.5 rounded-xl shadow-sm text-right">
-             <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">Total Généré Brut</p>
-             <p className="text-xl font-black text-gray-900">{Number(globalCa).toLocaleString('fr-FR')} FCFA</p>
+        {!selectedResto && (
+          <div className="flex flex-col items-end gap-3 shrink-0">
+            {/* Barre de recherche positionnée au-dessus des indicateurs de revenus */}
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-gray-400 font-medium">
+                {filteredRestaurants.length} restaurant{filteredRestaurants.length > 1 ? 's' : ''}
+              </span>
+              <div className="relative">
+                <input 
+                  type="text" 
+                  placeholder="Rechercher un restaurant par nom ou localisation..." 
+                  value={searchTerm} 
+                  onChange={e => setSearchTerm(e.target.value)}
+                  className="bg-white border border-gray-200 rounded-xl pl-9 pr-4 py-2 text-sm w-72 sm:w-80 shadow-xs focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/10 transition-all font-medium"
+                />
+                <svg className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+            </div>
+
+            {/* Cartes de totaux générés brut et bénéfice net LekkRek */}
+            <div className="flex gap-3 mt-1">
+              <div className="bg-white border border-gray-200 px-5 py-2.5 rounded-xl shadow-xs text-right">
+                 <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-0.5">Total Généré Brut</p>
+                 <p className="text-xl font-black text-gray-900">{Number(globalCa).toLocaleString('fr-FR')} FCFA</p>
+              </div>
+              <div className="bg-red-600 text-white px-5 py-2.5 rounded-xl shadow-md text-right">
+                 <p className="text-[10px] text-red-200 font-bold uppercase tracking-wider mb-0.5">Bénéfice Net LekkRek</p>
+                 <p className="text-xl font-black">{Number(globalBenefice).toLocaleString('fr-FR')} FCFA</p>
+              </div>
+            </div>
           </div>
-          <div className="bg-red-600 text-white px-5 py-2.5 rounded-xl shadow-lg text-right">
-             <p className="text-[10px] text-red-200 font-bold uppercase tracking-wider mb-0.5">Bénéfice Net LekkRek</p>
-             <p className="text-xl font-black">{Number(globalBenefice).toLocaleString('fr-FR')} FCFA</p>
-          </div>
-        </div>
+        )}
       </header>
 
       {selectedResto ? (
@@ -325,17 +347,7 @@ export default function Accounting() {
         </div>
       ) : (
         /* VUE MAITRE */
-        <div className="space-y-6 mt-6">
-          <div className="flex justify-between items-center">
-            <input 
-              type="text" 
-              placeholder="Rechercher un restaurant par nom ou localisation..." 
-              value={searchTerm} 
-              onChange={e => setSearchTerm(e.target.value)}
-              className="bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm w-80 focus:outline-none focus:border-red-500"
-            />
-            <span className="text-xs text-gray-400 font-medium">{filteredRestaurants.length} restaurants</span>
-          </div>
+        <div className="space-y-6">
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {filteredRestaurants.map(resto => (
