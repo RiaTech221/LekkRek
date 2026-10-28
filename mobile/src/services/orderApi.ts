@@ -20,6 +20,7 @@ export async function submitOrder(order: OrderRequest): Promise<OrderResponse> {
       Accept: 'application/json',
     },
     body: JSON.stringify(order),
+    credentials: 'include',
   });
 
   if (!response.ok) {

@@ -45,7 +45,7 @@ async function fetchWithTimeout(url: string): Promise<Response> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
   try {
-    return await fetch(url, { signal: controller.signal });
+    return await fetch(url, { signal: controller.signal, credentials: 'include' });
   } catch {
     // Timeout (abort) ou erreur réseau : dans les deux cas, serveur injoignable.
     throw new ApiError('Serveur injoignable (vérifiez le réseau et l\'adresse de l\'API).', 0);
