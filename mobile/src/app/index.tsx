@@ -18,6 +18,7 @@
 import { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   Pressable,
   RefreshControl,
@@ -30,6 +31,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import CategoryPills from '@/components/CategoryPills';
 import DishCard from '@/components/DishCard';
 import FilterBar from '@/components/FilterBar';
+import FloatingTrackingBanner from '@/components/FloatingTrackingBanner';
 import ProfileModal from '@/components/ProfileModal';
 import CartBottomSheet from '@/components/CartBottomSheet';
 import { Brand, FontSize, Radius, Spacing } from '@/constants/theme';
@@ -37,6 +39,7 @@ import { useCategories } from '@/hooks/useCategories';
 import { useClientProfile } from '@/hooks/useClientProfile';
 import { useMenu } from '@/hooks/useMenu';
 import type { Plat } from '@/types/menu';
+import type { ActiveOrderInfo, OrderResponse, OrderTrackingStatus } from '@/types/order';
 
 export default function MenuScreen() {
   const { plats, isLoading, error, filters, setFilter, reload } = useMenu();
@@ -46,6 +49,14 @@ export default function MenuScreen() {
   // États des modals et tiroirs
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
+
+  // Commande active suivie via la bannière flottante (Option 1)
+  const [activeOrder, setActiveOrder] = useState<ActiveOrderInfo | null>({
+    orderNumber: 'CMD-849201',
+    status: 'EN_PREPARATION',
+    restaurantName: 'Le Régal de Ziguinchor',
+    totalAmount: 7500,
+  });
 
   // État local du panier (liste des plats ajoutés).
   const [cart, setCart] = useState<Plat[]>([]);
@@ -68,6 +79,24 @@ export default function MenuScreen() {
     setCart((prev) => prev.filter((p) => p.id !== platId));
   };
   const handleClearCart = () => setCart([]);
+
+  const handleOrderPlaced = (order: OrderResponse) => {
+    setActiveOrder({
+      orderNumber: order.orderNumber,
+      status: (order.status as OrderTrackingStatus) || 'EN_PREPARATION',
+      restaurantName: order.restaurantName,
+      totalAmount: order.totalAmount,
+    });
+  };
+
+  const handlePressTracking = () => {
+    if (!activeOrder) return;
+    Alert.alert(
+      '🛵 Suivi de commande',
+      `Commande #${activeOrder.orderNumber}\nRestaurant : ${activeOrder.restaurantName || 'Partenaire'}\nStatut : En cours de préparation`,
+      [{ text: "D'accord", style: 'default' }]
+    );
+  };
 
   /** En-tête de liste (hero + filtres + pills) — rendu au-dessus de la grille. */
   const ListHeader = (
@@ -209,6 +238,7 @@ export default function MenuScreen() {
         onRemoveAllOfDish={handleRemoveAllOfDish}
         onClearCart={handleClearCart}
         onUpdateProfile={saveProfile}
+        onOrderPlaced={handleOrderPlaced}
       />
 
       {/* GRILLE DES PLATS */}
@@ -218,12 +248,23 @@ export default function MenuScreen() {
         renderItem={({ item }) => <DishCard plat={item} onAdd={handleAdd} />}
         ListHeaderComponent={ListHeader}
         ListEmptyComponent={renderEmpty}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[styles.listContent, activeOrder ? styles.listContentWithBanner : null]}
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={isLoading} onRefresh={reload} tintColor={Brand.primary} />}
         // Grille 1 colonne sur mobile (comme la vue mobile web).
         numColumns={1}
       />
+
+      {/* BANNIÈRE FLOTTANTE DE SUIVI (OPTION 1) */}
+      {activeOrder && (
+        <FloatingTrackingBanner
+          orderNumber={activeOrder.orderNumber}
+          status={activeOrder.status}
+          restaurantName={activeOrder.restaurantName}
+          onPress={handlePressTracking}
+          onDismiss={() => setActiveOrder(null)}
+        />
+      )}
     </SafeAreaView>
   );
 }
@@ -390,6 +431,9 @@ const styles = StyleSheet.create({
   /* ---------- LISTE ---------- */
   listContent: {
     paddingBottom: Spacing.six,
+  },
+  listContentWithBanner: {
+    paddingBottom: 110,
   },
 
   /* ---------- ÉTATS VIDES / ERREUR ---------- */

@@ -45,6 +45,7 @@ interface CartBottomSheetProps {
   onRemoveAllOfDish: (platId: number) => void;
   onClearCart: () => void;
   onUpdateProfile: (name: string, phone: string, address?: string) => Promise<ClientProfile>;
+  onOrderPlaced?: (order: OrderResponse) => void;
 }
 
 const FALLBACK_IMAGE =
@@ -59,6 +60,7 @@ function CartBottomSheetContent({
   onRemoveAllOfDish,
   onClearCart,
   onUpdateProfile,
+  onOrderPlaced,
 }: Omit<CartBottomSheetProps, 'visible'>) {
   const insets = useSafeAreaInsets();
   const scrollViewRef = useRef<React.ComponentRef<typeof ScrollView>>(null);
@@ -203,6 +205,7 @@ function CartBottomSheetContent({
       // Vide le panier et affiche la confirmation de succès
       onClearCart();
       setConfirmedOrder(result);
+      onOrderPlaced?.(result);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Erreur lors de la commande.');
     } finally {
