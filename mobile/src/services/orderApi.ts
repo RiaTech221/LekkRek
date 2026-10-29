@@ -8,7 +8,7 @@
  */
 
 import { API_PREFIX, API_URL } from '@/services/config';
-import type { OrderRequest, OrderResponse } from '@/types/order';
+import type { OrderRequest, OrderResponse, OrderTrackingDTO } from '@/types/order';
 
 export async function submitOrder(order: OrderRequest): Promise<OrderResponse> {
   const url = `${API_URL}${API_PREFIX}/orders`;
@@ -20,6 +20,7 @@ export async function submitOrder(order: OrderRequest): Promise<OrderResponse> {
       Accept: 'application/json',
     },
     body: JSON.stringify(order),
+    credentials: 'include',
   });
 
   if (!response.ok) {
@@ -36,4 +37,31 @@ export async function submitOrder(order: OrderRequest): Promise<OrderResponse> {
   }
 
   return (await response.json()) as OrderResponse;
+}
+
+export async function trackOrder(orderNumber: string): Promise<OrderTrackingDTO> {
+  const cleanNumber = orderNumber.trim();
+  if (!cleanNumber) {
+    throw new Error('Veuillez renseigner un numéro de commande.');
+  }
+
+  const url = `${API_URL}${API_PREFIX}/orders/track/${encodeURIComponent(cleanNumber)}`;
+
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: {
+      Accept: 'application/json',
+    },
+    credentials: 'include',
+  });
+
+  if (response.status === 404) {
+    throw new Error('Commande introuvable. Vérifiez votre numéro de commande.');
+  }
+
+  if (!response.ok) {
+    throw new Error(`Erreur lors du suivi de commande (${response.status})`);
+  }
+
+  return (await response.json()) as OrderTrackingDTO;
 }

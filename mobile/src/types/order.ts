@@ -28,3 +28,28 @@ export interface OrderResponse {
   totalAmount: number;
   message?: string;
 }
+
+export type OrderTrackingStatus =
+  | 'NOUVELLE'
+  | 'EN_PREPARATION'
+  | 'PRETE'
+  | 'LIVREE'
+  | 'ANNULEE';
+
+export interface ActiveOrderInfo {
+  orderNumber: string;
+  status: OrderTrackingStatus;
+  restaurantName?: string;
+  totalAmount?: number;
+  createdAt?: string;
+}
+
+export interface OrderTrackingDTO {
+  orderNumber: string;
+  status: OrderTrackingStatus;
+  type: string;
+  restaurantName: string;
+  restaurantLocation?: string;
+  totalAmount: number;
+  createdAt?: string;
+}

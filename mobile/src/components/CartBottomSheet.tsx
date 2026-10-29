@@ -24,6 +24,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
 import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -45,6 +46,8 @@ interface CartBottomSheetProps {
   onRemoveAllOfDish: (platId: number) => void;
   onClearCart: () => void;
   onUpdateProfile: (name: string, phone: string, address?: string) => Promise<ClientProfile>;
+  onOrderPlaced?: (order: OrderResponse) => void;
+  onTrackOrder?: (orderNumber: string) => void;
 }
 
 const FALLBACK_IMAGE =
@@ -59,6 +62,8 @@ function CartBottomSheetContent({
   onRemoveAllOfDish,
   onClearCart,
   onUpdateProfile,
+  onOrderPlaced,
+  onTrackOrder,
 }: Omit<CartBottomSheetProps, 'visible'>) {
   const insets = useSafeAreaInsets();
   const scrollViewRef = useRef<React.ComponentRef<typeof ScrollView>>(null);
@@ -73,6 +78,14 @@ function CartBottomSheetContent({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirmedOrder, setConfirmedOrder] = useState<OrderResponse | null>(null);
+  const [hasCopied, setHasCopied] = useState(false);
+
+  const handleCopyOrderNumber = async () => {
+    if (!confirmedOrder?.orderNumber) return;
+    await Clipboard.setStringAsync(confirmedOrder.orderNumber);
+    setHasCopied(true);
+    setTimeout(() => setHasCopied(false), 2500);
+  };
 
   // Détecte l'ouverture du clavier pour passer en plein écran dynamique
   useEffect(() => {
@@ -203,6 +216,7 @@ function CartBottomSheetContent({
       // Vide le panier et affiche la confirmation de succès
       onClearCart();
       setConfirmedOrder(result);
+      onOrderPlaced?.(result);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Erreur lors de la commande.');
     } finally {
@@ -227,6 +241,20 @@ function CartBottomSheetContent({
           <View style={styles.orderBadge}>
             <Text style={styles.orderBadgeLabel}>Numéro de commande</Text>
             <Text style={styles.orderBadgeNumber}>{confirmedOrder.orderNumber}</Text>
+            <Pressable
+              style={({ pressed }) => [
+                styles.copyButton,
+                hasCopied && styles.copyButtonSuccess,
+                pressed && styles.copyButtonPressed,
+              ]}
+              onPress={handleCopyOrderNumber}
+              accessibilityRole="button"
+              accessibilityLabel="Copier le numéro de commande"
+            >
+              <Text style={[styles.copyButtonText, hasCopied && styles.copyButtonTextSuccess]}>
+                {hasCopied ? '✅ Numéro copié !' : '📋 Copier le numéro'}
+              </Text>
+            </Pressable>
           </View>
 
           <View style={styles.summaryCard}>
@@ -246,9 +274,21 @@ function CartBottomSheetContent({
             </View>
           </View>
 
-          <Pressable style={[styles.primaryButton, styles.emptyActionButton]} onPress={onClose}>
-            <Text style={styles.primaryButtonText}>Retour au menu</Text>
-          </Pressable>
+          <View style={styles.successActions}>
+            <Pressable
+              style={[styles.primaryButton, styles.trackSuccessButton]}
+              onPress={() => {
+                onClose();
+                onTrackOrder?.(confirmedOrder.orderNumber);
+              }}
+            >
+              <Text style={styles.primaryButtonText}>🛵 Suivre ma commande</Text>
+            </Pressable>
+
+            <Pressable style={styles.secondaryButton} onPress={onClose}>
+              <Text style={styles.secondaryButtonText}>Retour au menu</Text>
+            </Pressable>
+          </View>
         </View>
       </View>
     );
@@ -1151,5 +1191,54 @@ const styles = StyleSheet.create({
     color: Brand.primary,
     marginTop: 2,
     letterSpacing: 0.5,
+  },
+  copyButton: {
+    marginTop: Spacing.two,
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: Brand.borderStrong,
+    paddingHorizontal: Spacing.three,
+    paddingVertical: Spacing.one,
+    borderRadius: Radius.pill,
+  },
+  copyButtonSuccess: {
+    backgroundColor: '#DCFCE7', // green-100
+    borderColor: '#86EFAC',
+  },
+  copyButtonPressed: {
+    opacity: 0.8,
+  },
+  copyButtonText: {
+    fontSize: FontSize.xs,
+    fontWeight: '700',
+    color: Brand.textDark,
+  },
+  copyButtonTextSuccess: {
+    color: '#166534', // green-800
+  },
+  successActions: {
+    width: '100%',
+    maxWidth: 320,
+    gap: Spacing.two,
+    marginTop: Spacing.two,
+  },
+  trackSuccessButton: {
+    width: '100%',
+    minHeight: 52,
+  },
+  secondaryButton: {
+    width: '100%',
+    minHeight: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Brand.surfaceAlt,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: Brand.borderStrong,
+  },
+  secondaryButtonText: {
+    fontSize: FontSize.sm,
+    fontWeight: '700',
+    color: Brand.textMuted,
   },
 });

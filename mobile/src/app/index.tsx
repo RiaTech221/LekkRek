@@ -30,22 +30,29 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import CategoryPills from '@/components/CategoryPills';
 import DishCard from '@/components/DishCard';
 import FilterBar from '@/components/FilterBar';
+import FloatingTrackingBanner from '@/components/FloatingTrackingBanner';
+import OrderTrackingModal from '@/components/OrderTrackingModal';
 import ProfileModal from '@/components/ProfileModal';
 import CartBottomSheet from '@/components/CartBottomSheet';
 import { Brand, FontSize, Radius, Spacing } from '@/constants/theme';
 import { useCategories } from '@/hooks/useCategories';
 import { useClientProfile } from '@/hooks/useClientProfile';
 import { useMenu } from '@/hooks/useMenu';
+import { useOrderTracking } from '@/hooks/useOrderTracking';
 import type { Plat } from '@/types/menu';
+import type { OrderResponse, OrderTrackingStatus } from '@/types/order';
 
 export default function MenuScreen() {
   const { plats, isLoading, error, filters, setFilter, reload } = useMenu();
   const categories = useCategories();
   const { profile, saveProfile, logout } = useClientProfile();
+  const { activeOrder, recentOrders, saveOrder, refreshStatus, dismissActiveOrder } = useOrderTracking();
 
   // États des modals et tiroirs
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isTrackModalOpen, setIsTrackModalOpen] = useState(false);
+  const [selectedTrackingNumber, setSelectedTrackingNumber] = useState<string | null>(null);
 
   // État local du panier (liste des plats ajoutés).
   const [cart, setCart] = useState<Plat[]>([]);
@@ -68,6 +75,23 @@ export default function MenuScreen() {
     setCart((prev) => prev.filter((p) => p.id !== platId));
   };
   const handleClearCart = () => setCart([]);
+
+  const handleOrderPlaced = (order: OrderResponse) => {
+    void saveOrder({
+      orderNumber: order.orderNumber,
+      status: (order.status as OrderTrackingStatus) || 'EN_PREPARATION',
+      restaurantName: order.restaurantName,
+      totalAmount: order.totalAmount,
+    });
+  };
+
+  const handleOpenTracking = (orderNum?: string) => {
+    const target = orderNum || activeOrder?.orderNumber;
+    if (target) {
+      setSelectedTrackingNumber(target);
+      setIsTrackModalOpen(true);
+    }
+  };
 
   /** En-tête de liste (hero + filtres + pills) — rendu au-dessus de la grille. */
   const ListHeader = (
@@ -209,6 +233,8 @@ export default function MenuScreen() {
         onRemoveAllOfDish={handleRemoveAllOfDish}
         onClearCart={handleClearCart}
         onUpdateProfile={saveProfile}
+        onOrderPlaced={handleOrderPlaced}
+        onTrackOrder={handleOpenTracking}
       />
 
       {/* GRILLE DES PLATS */}
@@ -218,11 +244,31 @@ export default function MenuScreen() {
         renderItem={({ item }) => <DishCard plat={item} onAdd={handleAdd} />}
         ListHeaderComponent={ListHeader}
         ListEmptyComponent={renderEmpty}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[styles.listContent, activeOrder ? styles.listContentWithBanner : null]}
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={isLoading} onRefresh={reload} tintColor={Brand.primary} />}
         // Grille 1 colonne sur mobile (comme la vue mobile web).
         numColumns={1}
+      />
+
+      {/* BANNIÈRE FLOTTANTE DE SUIVI (OPTION 1) */}
+      {activeOrder && (
+        <FloatingTrackingBanner
+          orderNumber={activeOrder.orderNumber}
+          status={activeOrder.status}
+          restaurantName={activeOrder.restaurantName}
+          onPress={() => handleOpenTracking(activeOrder.orderNumber)}
+          onDismiss={dismissActiveOrder}
+        />
+      )}
+
+      {/* MODAL DE SUIVI EN DIRECT ZÉRO SAISIE */}
+      <OrderTrackingModal
+        visible={isTrackModalOpen}
+        orderNumber={selectedTrackingNumber || activeOrder?.orderNumber}
+        recentOrders={recentOrders}
+        onClose={() => setIsTrackModalOpen(false)}
+        onOrderUpdated={(updated) => void refreshStatus(updated.orderNumber)}
       />
     </SafeAreaView>
   );
@@ -390,6 +436,9 @@ const styles = StyleSheet.create({
   /* ---------- LISTE ---------- */
   listContent: {
     paddingBottom: Spacing.six,
+  },
+  listContentWithBanner: {
+    paddingBottom: 110,
   },
 
   /* ---------- ÉTATS VIDES / ERREUR ---------- */
