@@ -9,7 +9,7 @@
  * ============================================================================
  */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Modal,
@@ -105,10 +105,15 @@ function OrderTrackingModalContent({
     }
   }, [onOrderUpdated]);
 
-  // Chargement automatique dès l'ouverture
+  // Garde-fou pour ne pas re-fetcher la même commande en boucle
+  const lastFetchedNumRef = useRef<string | null>(null);
+  const firstRecentOrderNumber = recentOrders[0]?.orderNumber;
+
+  // Chargement automatique uniquement si le numéro cible a changé
   useEffect(() => {
-    const target = orderNumber || recentOrders[0]?.orderNumber;
-    if (!target) return;
+    const target = orderNumber || firstRecentOrderNumber;
+    if (!target || lastFetchedNumRef.current === target) return;
+    lastFetchedNumRef.current = target;
 
     const timer = setTimeout(() => {
       setSelectedNumber(target);
@@ -116,7 +121,7 @@ function OrderTrackingModalContent({
     }, 0);
 
     return () => clearTimeout(timer);
-  }, [orderNumber, recentOrders, fetchTracking]);
+  }, [orderNumber, firstRecentOrderNumber, fetchTracking]);
 
   const handleCopy = async () => {
     if (!selectedNumber) return;
@@ -176,9 +181,9 @@ function OrderTrackingModalContent({
           </View>
         )}
 
-        {/* Badge numéro de commande et bouton copier */}
+        {/* Badge numéro de commande et boutons d'action */}
         <View style={styles.orderBadgeCard}>
-          <View>
+          <View style={styles.orderBadgeTop}>
             <Text style={styles.orderBadgeLabel}>Numéro de suivi</Text>
             <Text style={styles.orderBadgeNumber}>#{selectedNumber || '---'}</Text>
           </View>
@@ -186,6 +191,8 @@ function OrderTrackingModalContent({
             <Pressable
               style={({ pressed }) => [styles.copyBtn, hasCopied && styles.copyBtnSuccess, pressed && styles.btnPressed]}
               onPress={handleCopy}
+              accessibilityRole="button"
+              accessibilityLabel="Copier le numéro de commande"
             >
               <Text style={[styles.copyBtnText, hasCopied && styles.copyBtnTextSuccess]}>
                 {hasCopied ? '✅ Copié' : '📋 Copier'}
@@ -431,14 +438,15 @@ const styles = StyleSheet.create({
     color: Brand.primary,
   },
   orderBadgeCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
     backgroundColor: Brand.surfaceAlt,
     borderWidth: 1,
     borderColor: Brand.borderStrong,
     borderRadius: Radius.lg,
     padding: Spacing.three,
+    gap: Spacing.two,
+  },
+  orderBadgeTop: {
+    marginBottom: Spacing.half,
   },
   orderBadgeLabel: {
     fontSize: 10,
@@ -447,7 +455,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   orderBadgeNumber: {
-    fontSize: FontSize.base,
+    fontSize: FontSize.lg,
     fontWeight: '900',
     color: Brand.primary,
     marginTop: 2,
@@ -457,14 +465,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.two,
+    width: '100%',
   },
   copyBtn: {
+    flex: 1,
     backgroundColor: '#ffffff',
     borderWidth: 1,
     borderColor: Brand.borderStrong,
-    paddingHorizontal: Spacing.two + Spacing.half,
-    paddingVertical: Spacing.one,
+    paddingVertical: Spacing.two,
+    paddingHorizontal: Spacing.two,
     borderRadius: Radius.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 36,
   },
   copyBtnSuccess: {
     backgroundColor: '#DCFCE7',
@@ -479,15 +492,16 @@ const styles = StyleSheet.create({
     color: '#166534',
   },
   refreshBtn: {
+    flex: 1,
     backgroundColor: '#ffffff',
     borderWidth: 1,
     borderColor: Brand.borderStrong,
-    paddingHorizontal: Spacing.two + Spacing.half,
-    paddingVertical: Spacing.one,
+    paddingVertical: Spacing.two,
+    paddingHorizontal: Spacing.two,
     borderRadius: Radius.pill,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 28,
+    minHeight: 36,
   },
   refreshBtnText: {
     fontSize: FontSize.xs,

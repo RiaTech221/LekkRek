@@ -68,6 +68,10 @@ export default function OrderTrackingModal({ isOpen, onClose, initialOrderNumber
         throw new Error('Commande introuvable. Vérifiez le numéro saisi.');
       }
 
+      if (response.status === 429) {
+        throw new Error('Trop de requêtes. Veuillez patienter quelques secondes avant de réactualiser.');
+      }
+
       if (!response.ok) {
         throw new Error('Erreur lors du suivi de commande.');
       }

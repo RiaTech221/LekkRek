@@ -119,6 +119,28 @@ export function useOrderTracking() {
   }, []);
 
   /**
+   * Met à jour les données d'une commande en local sans déclencher de nouvel appel API.
+   */
+  const updateOrderLocally = useCallback((updated: ActiveOrderInfo) => {
+    setRecentOrders((prev) => {
+      const exists = prev.some((o) => o.orderNumber === updated.orderNumber);
+      if (!exists) return prev;
+      const next = prev.map((o) => (o.orderNumber === updated.orderNumber ? { ...o, ...updated } : o));
+      void AsyncStorage.setItem(RECENT_ORDERS_STORAGE_KEY, JSON.stringify(next));
+      return next;
+    });
+
+    setActiveOrder((current) => {
+      if (current && current.orderNumber === updated.orderNumber) {
+        const next = { ...current, ...updated };
+        void AsyncStorage.setItem(ACTIVE_ORDER_STORAGE_KEY, JSON.stringify(next));
+        return next;
+      }
+      return current;
+    });
+  }, []);
+
+  /**
    * Clôture ou masque la commande active lorsque le client le souhaite ou après livraison.
    */
   const dismissActiveOrder = useCallback(async () => {
@@ -132,6 +154,7 @@ export function useOrderTracking() {
     isLoading,
     saveOrder,
     refreshStatus,
+    updateOrderLocally,
     dismissActiveOrder,
     reloadOrders: loadOrders,
   };

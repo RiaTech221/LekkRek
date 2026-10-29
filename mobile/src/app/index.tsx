@@ -46,7 +46,7 @@ export default function MenuScreen() {
   const { plats, isLoading, error, filters, setFilter, reload } = useMenu();
   const categories = useCategories();
   const { profile, saveProfile, logout } = useClientProfile();
-  const { activeOrder, recentOrders, saveOrder, refreshStatus, dismissActiveOrder } = useOrderTracking();
+  const { activeOrder, recentOrders, saveOrder, updateOrderLocally, dismissActiveOrder } = useOrderTracking();
 
   // États des modals et tiroirs
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
@@ -268,7 +268,7 @@ export default function MenuScreen() {
         orderNumber={selectedTrackingNumber || activeOrder?.orderNumber}
         recentOrders={recentOrders}
         onClose={() => setIsTrackModalOpen(false)}
-        onOrderUpdated={(updated) => void refreshStatus(updated.orderNumber)}
+        onOrderUpdated={updateOrderLocally}
       />
     </SafeAreaView>
   );

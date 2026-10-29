@@ -59,8 +59,19 @@ export async function trackOrder(orderNumber: string): Promise<OrderTrackingDTO>
     throw new Error('Commande introuvable. Vérifiez votre numéro de commande.');
   }
 
+  if (response.status === 429) {
+    throw new Error('Trop de requêtes. Veuillez patienter quelques secondes avant de réactualiser.');
+  }
+
   if (!response.ok) {
-    throw new Error(`Erreur lors du suivi de commande (${response.status})`);
+    let msg = `Erreur lors du suivi de commande (${response.status})`;
+    try {
+      const errJson = (await response.json()) as { message?: string };
+      if (errJson.message) msg = errJson.message;
+    } catch {
+      // Ignorer l'erreur de parsing
+    }
+    throw new Error(msg);
   }
 
   return (await response.json()) as OrderTrackingDTO;
