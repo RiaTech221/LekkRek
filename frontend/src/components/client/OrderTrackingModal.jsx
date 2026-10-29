@@ -191,10 +191,11 @@ export default function OrderTrackingModal({ isOpen, onClose, initialOrderNumber
               type="button"
               onClick={() => void fetchOrderDetails(trackOrderNumber)}
               disabled={isSearching}
-              title="Actualiser le statut"
-              className="w-8 h-8 rounded-full bg-white hover:bg-gray-100 text-gray-700 border border-gray-200 shadow-sm flex items-center justify-center text-sm disabled:opacity-60"
+              title="Actualiser le statut de la commande"
+              className="px-3 py-1.5 rounded-full text-xs font-bold transition-all bg-white hover:bg-gray-100 text-gray-700 border border-gray-200 shadow-sm flex items-center gap-1.5 disabled:opacity-60"
             >
-              {isSearching ? '...' : '🔄'}
+              <span className={`inline-block ${isSearching ? 'animate-spin' : ''}`}>↻</span>
+              <span>{isSearching ? 'En cours...' : 'Actualiser'}</span>
             </button>
           </div>
         </div>

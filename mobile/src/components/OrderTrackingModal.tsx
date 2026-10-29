@@ -195,8 +195,14 @@ function OrderTrackingModalContent({
               style={({ pressed }) => [styles.refreshBtn, pressed && styles.btnPressed]}
               onPress={() => void fetchTracking(selectedNumber)}
               disabled={isLoading}
+              accessibilityRole="button"
+              accessibilityLabel="Actualiser le statut de la commande"
             >
-              <Text style={styles.refreshBtnText}>{isLoading ? '...' : '🔄'}</Text>
+              {isLoading ? (
+                <ActivityIndicator size="small" color={Brand.textDark} />
+              ) : (
+                <Text style={styles.refreshBtnText}>↻ Actualiser</Text>
+              )}
             </Pressable>
           </View>
         </View>
@@ -473,17 +479,20 @@ const styles = StyleSheet.create({
     color: '#166534',
   },
   refreshBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: Radius.pill,
     backgroundColor: '#ffffff',
     borderWidth: 1,
     borderColor: Brand.borderStrong,
+    paddingHorizontal: Spacing.two + Spacing.half,
+    paddingVertical: Spacing.one,
+    borderRadius: Radius.pill,
     alignItems: 'center',
     justifyContent: 'center',
+    minHeight: 28,
   },
   refreshBtnText: {
-    fontSize: 14,
+    fontSize: FontSize.xs,
+    fontWeight: '700',
+    color: Brand.textDark,
   },
   btnPressed: {
     opacity: 0.8,
