@@ -366,7 +366,20 @@ return () => {
           phone: formData.clientPhone, 
           address: formData.clientAddress 
         }));
+        try {
+          const rawRecent = localStorage.getItem('lekkrek_recent_orders');
+          const recentList = rawRecent ? JSON.parse(rawRecent) : [];
+          const updatedList = [
+            { orderNumber: data.orderNumber, restaurantName: data.restaurantName, totalAmount: data.totalAmount, date: new Date().toISOString() },
+            ...recentList.filter(o => o.orderNumber !== data.orderNumber)
+          ].slice(0, 5);
+          localStorage.setItem('lekkrek_recent_orders', JSON.stringify(updatedList));
+          localStorage.setItem('lekkrek_active_order', JSON.stringify({ orderNumber: data.orderNumber, restaurantName: data.restaurantName }));
+        } catch {
+          // Ignorer
+        }
         setOrderInfo(data);
+        setTrackOrderNumber(data.orderNumber);
         setCart([]);
         setCheckoutOpen(false);
         setIsProcessingPayment(false);
@@ -945,7 +958,15 @@ return () => {
 
             {/* SUCCÈS MODAL */}
       {isSuccessOpen && orderInfo && (
-        <SuccessModal orderInfo={orderInfo} onClose={() => setSuccessOpen(false)} />
+        <SuccessModal
+          orderInfo={orderInfo}
+          onClose={() => setSuccessOpen(false)}
+          onTrackOrder={(num) => {
+            setSuccessOpen(false);
+            setTrackOrderNumber(num);
+            setTrackModalOpen(true);
+          }}
+        />
       )}
 
       {/* LOGIN/PROFILE MODAL */}
@@ -1013,8 +1034,9 @@ return () => {
       )}
 
       {/* SUIVI MODAL */}
-           <OrderTrackingModal
+      <OrderTrackingModal
         isOpen={isTrackModalOpen}
+        initialOrderNumber={trackOrderNumber}
         onClose={() => setTrackModalOpen(false)}
         onOrderNumberChange={setTrackOrderNumber}
       />

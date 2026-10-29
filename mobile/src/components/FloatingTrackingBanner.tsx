@@ -117,8 +117,8 @@ export default function FloatingTrackingBanner({
           <Text style={styles.actionChevron}>›</Text>
         </View>
 
-        {/* Bouton de masquage discret (optionnel) */}
-        {onDismiss && (
+        {/* Bouton de clôture uniquement quand la commande est terminée (livrée ou annulée) */}
+        {onDismiss && (status === 'LIVREE' || status === 'ANNULEE') && (
           <Pressable
             onPress={(e) => {
               e.stopPropagation();
@@ -126,7 +126,7 @@ export default function FloatingTrackingBanner({
             }}
             hitSlop={8}
             accessibilityRole="button"
-            accessibilityLabel="Masquer la bannière de suivi"
+            accessibilityLabel="Fermer le suivi de commande"
             style={({ pressed }) => [styles.dismissButton, pressed && styles.dismissButtonPressed]}
           >
             <Text style={styles.dismissButtonText}>✕</Text>

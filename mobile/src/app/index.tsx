@@ -18,7 +18,6 @@
 import { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   FlatList,
   Pressable,
   RefreshControl,
@@ -32,31 +31,28 @@ import CategoryPills from '@/components/CategoryPills';
 import DishCard from '@/components/DishCard';
 import FilterBar from '@/components/FilterBar';
 import FloatingTrackingBanner from '@/components/FloatingTrackingBanner';
+import OrderTrackingModal from '@/components/OrderTrackingModal';
 import ProfileModal from '@/components/ProfileModal';
 import CartBottomSheet from '@/components/CartBottomSheet';
 import { Brand, FontSize, Radius, Spacing } from '@/constants/theme';
 import { useCategories } from '@/hooks/useCategories';
 import { useClientProfile } from '@/hooks/useClientProfile';
 import { useMenu } from '@/hooks/useMenu';
+import { useOrderTracking } from '@/hooks/useOrderTracking';
 import type { Plat } from '@/types/menu';
-import type { ActiveOrderInfo, OrderResponse, OrderTrackingStatus } from '@/types/order';
+import type { OrderResponse, OrderTrackingStatus } from '@/types/order';
 
 export default function MenuScreen() {
   const { plats, isLoading, error, filters, setFilter, reload } = useMenu();
   const categories = useCategories();
   const { profile, saveProfile, logout } = useClientProfile();
+  const { activeOrder, recentOrders, saveOrder, refreshStatus, dismissActiveOrder } = useOrderTracking();
 
   // États des modals et tiroirs
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
-
-  // Commande active suivie via la bannière flottante (Option 1)
-  const [activeOrder, setActiveOrder] = useState<ActiveOrderInfo | null>({
-    orderNumber: 'CMD-849201',
-    status: 'EN_PREPARATION',
-    restaurantName: 'Le Régal de Ziguinchor',
-    totalAmount: 7500,
-  });
+  const [isTrackModalOpen, setIsTrackModalOpen] = useState(false);
+  const [selectedTrackingNumber, setSelectedTrackingNumber] = useState<string | null>(null);
 
   // État local du panier (liste des plats ajoutés).
   const [cart, setCart] = useState<Plat[]>([]);
@@ -81,7 +77,7 @@ export default function MenuScreen() {
   const handleClearCart = () => setCart([]);
 
   const handleOrderPlaced = (order: OrderResponse) => {
-    setActiveOrder({
+    void saveOrder({
       orderNumber: order.orderNumber,
       status: (order.status as OrderTrackingStatus) || 'EN_PREPARATION',
       restaurantName: order.restaurantName,
@@ -89,13 +85,12 @@ export default function MenuScreen() {
     });
   };
 
-  const handlePressTracking = () => {
-    if (!activeOrder) return;
-    Alert.alert(
-      '🛵 Suivi de commande',
-      `Commande #${activeOrder.orderNumber}\nRestaurant : ${activeOrder.restaurantName || 'Partenaire'}\nStatut : En cours de préparation`,
-      [{ text: "D'accord", style: 'default' }]
-    );
+  const handleOpenTracking = (orderNum?: string) => {
+    const target = orderNum || activeOrder?.orderNumber;
+    if (target) {
+      setSelectedTrackingNumber(target);
+      setIsTrackModalOpen(true);
+    }
   };
 
   /** En-tête de liste (hero + filtres + pills) — rendu au-dessus de la grille. */
@@ -239,6 +234,7 @@ export default function MenuScreen() {
         onClearCart={handleClearCart}
         onUpdateProfile={saveProfile}
         onOrderPlaced={handleOrderPlaced}
+        onTrackOrder={handleOpenTracking}
       />
 
       {/* GRILLE DES PLATS */}
@@ -261,10 +257,19 @@ export default function MenuScreen() {
           orderNumber={activeOrder.orderNumber}
           status={activeOrder.status}
           restaurantName={activeOrder.restaurantName}
-          onPress={handlePressTracking}
-          onDismiss={() => setActiveOrder(null)}
+          onPress={() => handleOpenTracking(activeOrder.orderNumber)}
+          onDismiss={dismissActiveOrder}
         />
       )}
+
+      {/* MODAL DE SUIVI EN DIRECT ZÉRO SAISIE */}
+      <OrderTrackingModal
+        visible={isTrackModalOpen}
+        orderNumber={selectedTrackingNumber || activeOrder?.orderNumber}
+        recentOrders={recentOrders}
+        onClose={() => setIsTrackModalOpen(false)}
+        onOrderUpdated={(updated) => void refreshStatus(updated.orderNumber)}
+      />
     </SafeAreaView>
   );
 }
