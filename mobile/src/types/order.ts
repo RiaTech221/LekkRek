@@ -41,4 +41,15 @@ export interface ActiveOrderInfo {
   status: OrderTrackingStatus;
   restaurantName?: string;
   totalAmount?: number;
+  createdAt?: string;
+}
+
+export interface OrderTrackingDTO {
+  orderNumber: string;
+  status: OrderTrackingStatus;
+  type: string;
+  restaurantName: string;
+  restaurantLocation?: string;
+  totalAmount: number;
+  createdAt?: string;
 }
