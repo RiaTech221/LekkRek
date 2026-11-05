@@ -202,7 +202,7 @@ L'interface est accessible sur `http://localhost:5173`.
 | `DB_URL` | URL JDBC de la base MySQL | `jdbc:mysql://localhost:3306/lekkrek_db` |
 | `DB_USER` | Utilisateur MySQL | `lekkrek_app` |
 | `DB_PASSWORD` | Mot de passe MySQL | `lekkrek_app_password` |
-| `JWT_SECRET` | Clé secrète de signature des tokens JWT (min. 32 chars) | Valeur dev générée |
+| `JWT_SECRET` | Clé secrète de signature des tokens JWT (min. 32 chars, `openssl rand -hex 64`) | Aucune — clé aléatoire temporaire en dev, **obligatoire** en prod |
 | `JWT_EXPIRATION_MS` | Durée de validité des tokens JWT en ms | `14400000` (4h) |
 | `PAYTECH_API_KEY` | Clé API PayTech (Wave, Orange Money) | À définir dans `.env` |
 | `PAYTECH_API_SECRET` | Clé secrète PayTech | À définir dans `.env` |

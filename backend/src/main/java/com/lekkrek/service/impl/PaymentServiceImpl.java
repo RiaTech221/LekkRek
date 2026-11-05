@@ -39,6 +39,15 @@ public class PaymentServiceImpl implements PaymentService {
 
     private static final Logger log = LoggerFactory.getLogger(PaymentServiceImpl.class);
 
+    /**
+     * Message affiché au client final en cas d'échec d'initiation du paiement.
+     * Volontairement non technique : le détail réel (clés manquantes, erreur PayTech,
+     * erreur réseau) est uniquement écrit dans les logs du backend.
+     */
+    private static final String MESSAGE_PAIEMENT_INDISPONIBLE =
+            "Le paiement en ligne est momentanément indisponible. "
+            + "Veuillez réessayer dans quelques instants ou choisir le paiement en espèces.";
+
     private final PaymentConfig paymentConfig;
     private final PaymentTransactionRepository paymentTransactionRepository;
     private final CommandeRepository commandeRepository;
@@ -131,7 +140,7 @@ public class PaymentServiceImpl implements PaymentService {
                     null,
                     null,
                     commande.getOrderNumber(),
-                    "Configuration incomplète : Les clés PayTech (PAYTECH_API_KEY et PAYTECH_API_SECRET) doivent être définies dans votre fichier .env"
+                    MESSAGE_PAIEMENT_INDISPONIBLE
             );
         }
 
@@ -181,14 +190,14 @@ public class PaymentServiceImpl implements PaymentService {
                 );
             } else {
                 String errors = json.has("errors") ? json.get("errors").toString() : "Erreur inconnue PayTech";
-                log.error("Erreur PayTech pour commande {} — réponse: {}", commande.getOrderNumber(), response.getBody());
+                log.error("Erreur PayTech pour commande {} — erreurs: {} — réponse: {}", commande.getOrderNumber(), errors, response.getBody());
 
                 return new PaymentInitiateResponseDTO(
                         false,
                         null,
                         null,
                         commande.getOrderNumber(),
-                        "Erreur PayTech : " + errors
+                        MESSAGE_PAIEMENT_INDISPONIBLE
                 );
             }
         } catch (Exception e) {
@@ -197,12 +206,13 @@ public class PaymentServiceImpl implements PaymentService {
             if (e instanceof org.springframework.web.client.HttpStatusCodeException httpEx) {
                 errorDetail = "HTTP " + httpEx.getStatusCode() + " : " + httpEx.getResponseBodyAsString();
             }
+            log.error("Détail technique PayTech (commande {}) : {}", commande.getOrderNumber(), errorDetail);
             return new PaymentInitiateResponseDTO(
                     false,
                     null,
                     null,
                     commande.getOrderNumber(),
-                    "Erreur technique lors de l'initiation du paiement : " + errorDetail
+                    MESSAGE_PAIEMENT_INDISPONIBLE
             );
         }
     }

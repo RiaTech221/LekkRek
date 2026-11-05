@@ -81,8 +81,10 @@ Copiez-y ceci, en remplaçant le mot de passe par un mot de passe très sécuris
 # Base de données
 DB_PASSWORD=VotreMotDePasseSecuriseProd2026!
 
-# JWT Secret (minimum 32 caractères aléatoires forts)
-JWT_SECRET=VotreCleJwtTresLongueEtSecuriseeMinimum256BitsHS256!
+# JWT Secret : générer une clé unique sur le serveur avec `openssl rand -hex 64`
+# et coller le résultat ici. Le backend refuse de démarrer si la clé est absente,
+# trop courte ou recopiée depuis le dépôt.
+JWT_SECRET=<résultat de openssl rand -hex 64>
 
 # PayTech Production (Wave, Orange Money, etc.)
 PAYTECH_API_KEY=votre_cle_api_paytech_prod
