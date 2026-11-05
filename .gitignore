@@ -5,6 +5,8 @@ dist-ssr/
 *.local
 .env
 .env.*
+!.env.example
+!*.example
 
 # Java / Spring Boot (Backend)
 target/
@@ -31,6 +33,5 @@ uploads/
 *.log
 *.err
 scratch/
-
 
 AGENTS.md

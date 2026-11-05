@@ -29,6 +29,13 @@ services:
       - DB_USER=${DB_USER:-lekkrek_app}
       - DB_PASSWORD=${DB_PASSWORD:-lekkrek_app_password}
       - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-prod}
+      - JWT_SECRET=${JWT_SECRET:-}
+      - PAYTECH_API_KEY=${PAYTECH_API_KEY:-}
+      - PAYTECH_API_SECRET=${PAYTECH_API_SECRET:-}
+      - PAYTECH_ENV=${PAYTECH_ENV:-test}
+      - PAYTECH_IPN_URL=${PAYTECH_IPN_URL:-https://lekkrek.com/api/v1/public/payments/ipn}
+      - PAYTECH_SUCCESS_URL=${PAYTECH_SUCCESS_URL:-http://localhost:5173/?payment=success}
+      - PAYTECH_CANCEL_URL=${PAYTECH_CANCEL_URL:-http://localhost:5173/?payment=cancel}
     restart: unless-stopped
 
   # Frontend React (Vite)
@@ -44,7 +51,7 @@ services:
     depends_on:
       - backend
     environment:
-      - VITE_API_URL=http://localhost:8080/api/v1
+      - VITE_API_URL=${VITE_API_URL:-http://localhost:8080/api/v1}
     restart: unless-stopped
 
 volumes:
