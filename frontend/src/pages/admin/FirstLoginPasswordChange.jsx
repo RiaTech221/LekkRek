@@ -80,7 +80,8 @@ export default function FirstLoginPasswordChange() {
   }, [strengthScore]);
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
+    // Le cookie HttpOnly est supprimé côté serveur via /logout.
+    // Pas de token dans localStorage (sécurité anti-XSS).
     localStorage.removeItem('user');
     fetch(`${API_URL}/api/v1/public/auth/logout`, {
       method: 'POST',
@@ -101,14 +102,10 @@ export default function FirstLoginPasswordChange() {
     setLoading(true);
 
     try {
-      const token = localStorage.getItem('token');
       const headers = {
         'Content-Type': 'application/json'
       };
-
-      if (token && token !== 'null' && token !== 'undefined') {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
+      // Auth via cookie HttpOnly (credentials: 'include') — pas besoin de header Bearer.
 
       const response = await fetch(`${API_URL}/api/v1/public/auth/change-password`, {
         method: 'POST',
@@ -126,10 +123,8 @@ export default function FirstLoginPasswordChange() {
         throw new Error(data.message || "Erreur lors du changement de mot de passe.");
       }
 
-      // 1. Mémorisation du nouveau token
-      if (data.token) {
-        localStorage.setItem('token', data.token);
-      }
+      // Le nouveau token est automatiquement posé en cookie HttpOnly par le backend.
+      // Ne PAS le stocker dans localStorage (sécurité anti-XSS).
 
       // 2. Mise à jour de l'objet utilisateur en local
       const userStr = localStorage.getItem('user');

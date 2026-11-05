@@ -22,9 +22,9 @@ export default function Login() {
       return res.json();
     })
     .then(data => {
-      if (data.token) {
-        localStorage.setItem('token', data.token);
-      }
+      // Le token JWT est transporté automatiquement par le cookie HttpOnly
+      // (posé par le backend via Set-Cookie). Ne PAS le stocker dans localStorage
+      // car cela annulerait la protection anti-XSS du cookie.
       localStorage.setItem('user', JSON.stringify({
         email: data.email,
         roles: data.roles,
