@@ -19,11 +19,11 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/settings")
-@CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 public class PlatformSettingsController {
 
     private final PlatformSettingsService service;
+    private final com.lekkrek.service.AuditService auditService;
 
     // Public : pour que la vitrine puisse afficher les liens sociaux et le tel
     @GetMapping
@@ -34,7 +34,15 @@ public class PlatformSettingsController {
     // Protégé : Seul l'admin peut modifier
     @PutMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<PlatformSettings> updateSettings(@RequestBody PlatformSettings settings) {
-        return ResponseEntity.ok(service.updateSettings(settings));
+    public ResponseEntity<?> updateSettings(@RequestBody PlatformSettings settings) {
+        if (settings.getSupportPhone() != null && !settings.getSupportPhone().isBlank()) {
+            if (!com.lekkrek.util.PhoneNumberUtil.isValid(settings.getSupportPhone())) {
+                return ResponseEntity.badRequest().body("Le numéro de téléphone de support doit être un numéro sénégalais valide (ex: 771234567 ou +221 77 123 45 67).");
+            }
+            settings.setSupportPhone(com.lekkrek.util.PhoneNumberUtil.normalize(settings.getSupportPhone()));
+        }
+        PlatformSettings updated = service.updateSettings(settings);
+        auditService.logCurrentAction("UPDATE_SETTINGS", "PlatformSettings", "1", null, "Mise à jour des paramètres de la plateforme");
+        return ResponseEntity.ok(updated);
     }
 }

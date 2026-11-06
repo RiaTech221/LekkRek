@@ -11,6 +11,9 @@ package com.lekkrek.entity;
 
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
 
 @Entity
@@ -20,9 +23,21 @@ public class PartnerRequest {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
+    @NotBlank(message = "Le nom du restaurant est obligatoire")
+    @Size(min = 2, message = "Le nom du restaurant doit contenir au moins 2 caractères")
     private String nomRestaurant;
+    
+    @NotBlank(message = "Le nom du contact est obligatoire")
+    @Size(min = 2, message = "Le nom du contact doit contenir au moins 2 caractères")
     private String nomContact;
+    
+    @NotBlank(message = "Le téléphone est obligatoire")
+    @Pattern(regexp = "^(?:(?:\\+|00)?221)?[\\s.-]?(70|75|76|77|78|33)[\\s.-]?[0-9]{3}[\\s.-]?[0-9]{2}[\\s.-]?[0-9]{2}$", message = "Format de téléphone sénégalais invalide")
+    @Column(nullable = false, length = 9)
     private String telephone;
+    
+    @NotBlank(message = "La ville est obligatoire")
+    @Size(min = 3, message = "La ville doit contenir au moins 3 caractères")
     private String ville;
     
     private String status = "PENDING";

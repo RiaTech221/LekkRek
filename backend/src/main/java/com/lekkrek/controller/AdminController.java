@@ -15,24 +15,30 @@ import com.lekkrek.entity.Restaurant;
 import com.lekkrek.repository.UtilisateurRepository;
 import com.lekkrek.repository.RestaurantRepository;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import com.lekkrek.service.AuditService;
 
 @RestController
 @RequestMapping("${api.prefix.admin:/api/v1/admin}")
-@CrossOrigin(origins = "*")
+@PreAuthorize("hasRole('ADMIN')")
 public class AdminController {
 
     private final UtilisateurRepository utilisateurRepository;
     private final RestaurantRepository restaurantRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AuditService auditService;
 
-    public AdminController(UtilisateurRepository utilisateurRepository, RestaurantRepository restaurantRepository, PasswordEncoder passwordEncoder) {
+    public AdminController(UtilisateurRepository utilisateurRepository, RestaurantRepository restaurantRepository, PasswordEncoder passwordEncoder, AuditService auditService) {
         this.utilisateurRepository = utilisateurRepository;
         this.restaurantRepository = restaurantRepository;
         this.passwordEncoder = passwordEncoder;
+        this.auditService = auditService;
     }
 
     // ==========================================
@@ -49,22 +55,57 @@ public class AdminController {
         if (utilisateurRepository.findByEmail(operator.getEmail()).isPresent()) {
             return ResponseEntity.badRequest().body("Cet email est déjà utilisé.");
         }
+
+        if (operator.getTelephone() != null && !operator.getTelephone().isBlank()) {
+            if (!com.lekkrek.util.PhoneNumberUtil.isValid(operator.getTelephone())) {
+                return ResponseEntity.badRequest().body("Le numéro de téléphone doit être un numéro sénégalais valide (ex: 771234567 ou +221 77 123 45 67).");
+            }
+            operator.setTelephone(com.lekkrek.util.PhoneNumberUtil.normalize(operator.getTelephone()));
+        }
         
-        operator.setRole(Utilisateur.Role.OPERATEUR);
+        operator.setRole(operator.getRole() != null ? operator.getRole() : Utilisateur.Role.OPERATEUR);
         operator.setMotDePasse(passwordEncoder.encode(operator.getMotDePasse()));
         operator.setActif(true);
+        // Le premier mot de passe est provisoire : exiger le changement des la premiere connexion
+        operator.setDoitChangerMotDePasse(true);
+
+        java.util.Set<Long> idsToAssign = new java.util.HashSet<>();
+        if (operator.getRestaurantIds() != null) {
+            idsToAssign.addAll(operator.getRestaurantIds());
+        }
+        if (operator.getRestaurants() != null) {
+            operator.getRestaurants().forEach(r -> { if (r.getId() != null) idsToAssign.add(r.getId()); });
+        }
+        if (!idsToAssign.isEmpty()) {
+            java.util.List<Restaurant> targetRestos = restaurantRepository.findAllById(idsToAssign);
+            operator.setRestaurants(new java.util.HashSet<>(targetRestos));
+        }
         
         Utilisateur saved = utilisateurRepository.save(operator);
+        String restosStr = (saved.getRestaurants() != null && !saved.getRestaurants().isEmpty())
+                ? saved.getRestaurants().stream().map(Restaurant::getName).collect(Collectors.joining(", "))
+                : "Aucun";
+        auditService.logCurrentAction("CREATE_OPERATOR", "Utilisateur", saved.getId().toString(), null,
+                "Création opérateur: " + saved.getEmail() + " (" + saved.getNomComplet() + ") - Restaurants: " + restosStr);
         return ResponseEntity.ok(saved);
     }
 
-    @DeleteMapping("/operators/{id}")
-    
     @PutMapping("/operators/{id}")
-    public ResponseEntity<Utilisateur> updateOperator(@PathVariable Long id, @RequestBody Utilisateur operatorDetails) {
+    public ResponseEntity<?> updateOperator(@PathVariable Long id, @RequestBody Utilisateur operatorDetails) {
         return utilisateurRepository.findById(id).map(op -> {
             op.setNomComplet(operatorDetails.getNomComplet());
             op.setEmail(operatorDetails.getEmail());
+            if (operatorDetails.getRole() != null) {
+                op.setRole(operatorDetails.getRole());
+            }
+            if (operatorDetails.getTelephone() != null && !operatorDetails.getTelephone().isBlank()) {
+                if (!com.lekkrek.util.PhoneNumberUtil.isValid(operatorDetails.getTelephone())) {
+                    return ResponseEntity.badRequest().body("Le numéro de téléphone doit être un numéro sénégalais valide (ex: 771234567 ou +221 77 123 45 67).");
+                }
+                op.setTelephone(com.lekkrek.util.PhoneNumberUtil.normalize(operatorDetails.getTelephone()));
+            } else if (operatorDetails.getTelephone() != null && operatorDetails.getTelephone().isBlank()) {
+                op.setTelephone(null);
+            }
             if (operatorDetails.getMotDePasse() != null && !operatorDetails.getMotDePasse().isEmpty()) {
                 op.setMotDePasse(passwordEncoder.encode(operatorDetails.getMotDePasse()));
             }
@@ -75,14 +116,86 @@ public class AdminController {
             if (operatorDetails.getRestaurantAssigne() != null) {
                 op.setRestaurantAssigne(operatorDetails.getRestaurantAssigne());
             }
-            return ResponseEntity.ok(utilisateurRepository.save(op));
+
+            // Gestion de l'assignation 0..n des restaurants
+            java.util.Set<Long> oldRestoIds = op.getRestaurants() != null
+                    ? op.getRestaurants().stream().map(Restaurant::getId).collect(Collectors.toSet())
+                    : java.util.Collections.emptySet();
+            String oldRestosStr = (op.getRestaurants() != null && !op.getRestaurants().isEmpty())
+                    ? op.getRestaurants().stream().map(Restaurant::getName).collect(Collectors.joining(", "))
+                    : "Aucun";
+
+            java.util.Set<Long> newRestoIds = new java.util.HashSet<>();
+            boolean assignmentSpecified = false;
+            if (operatorDetails.getRestaurantIds() != null) {
+                newRestoIds.addAll(operatorDetails.getRestaurantIds());
+                assignmentSpecified = true;
+            }
+            if (operatorDetails.getRestaurants() != null && !operatorDetails.getRestaurants().isEmpty()) {
+                operatorDetails.getRestaurants().forEach(r -> { if (r.getId() != null) newRestoIds.add(r.getId()); });
+                assignmentSpecified = true;
+            }
+
+            if (assignmentSpecified) {
+                java.util.List<Restaurant> targetRestos = newRestoIds.isEmpty()
+                        ? java.util.Collections.emptyList()
+                        : restaurantRepository.findAllById(newRestoIds);
+                op.setRestaurants(new java.util.HashSet<>(targetRestos));
+                String newRestosStr = targetRestos.isEmpty()
+                        ? "Aucun"
+                        : targetRestos.stream().map(Restaurant::getName).collect(Collectors.joining(", "));
+
+                if (!oldRestoIds.equals(newRestoIds)) {
+                    auditService.logCurrentAction("UPDATE_OPERATOR_ASSIGNMENT", "Utilisateur", id.toString(),
+                            oldRestosStr, newRestosStr);
+                }
+            }
+
+            Utilisateur updated = utilisateurRepository.save(op);
+            auditService.logCurrentAction("UPDATE_OPERATOR", "Utilisateur", id.toString(), null, "Modification opérateur: " + op.getEmail());
+            return ResponseEntity.ok(updated);
         }).orElse(ResponseEntity.notFound().build());
     }
 
-public ResponseEntity<?> deleteOperator(@PathVariable Long id) {
+    @DeleteMapping("/operators/{id}")
+    public ResponseEntity<?> deleteOperator(@PathVariable Long id) {
         return utilisateurRepository.findById(id).map(op -> {
             utilisateurRepository.delete(op);
+            auditService.logCurrentAction("DELETE_OPERATOR", "Utilisateur", id.toString(), op.getEmail(), "Suppression opérateur: " + op.getEmail());
             return ResponseEntity.ok().build();
+        }).orElse(ResponseEntity.notFound().build());
+    }
+
+    // SOL-195 : Réinitialiser l'accès d'un utilisateur interne
+    @PatchMapping("/users/{id}/reset-password")
+    public ResponseEntity<?> resetUserPassword(@PathVariable Long id, @RequestBody Map<String, String> body) {
+        String newPassword = body.get("newPassword");
+        if (newPassword == null || newPassword.length() < 6) {
+            return ResponseEntity.badRequest().body("Le mot de passe doit contenir au moins 6 caractères.");
+        }
+        return utilisateurRepository.findById(id).map(user -> {
+            user.setMotDePasse(passwordEncoder.encode(newPassword));
+            // Le mot de passe reinitialise est provisoire : exiger le changement a la reconnexion
+            user.setDoitChangerMotDePasse(true);
+            utilisateurRepository.save(user);
+            auditService.logCurrentAction("RESET_PASSWORD", "Utilisateur", id.toString(), null, "Réinitialisation mot de passe: " + user.getEmail());
+            return ResponseEntity.ok().build();
+        }).orElse(ResponseEntity.notFound().build());
+    }
+
+    // SOL-196 : Toggle actif/inactif d'un utilisateur
+    @PatchMapping("/users/{id}/toggle-active")
+    public ResponseEntity<Utilisateur> toggleUserActive(@PathVariable Long id) {
+        return utilisateurRepository.findById(id).map(user -> {
+            boolean newState = !Boolean.TRUE.equals(user.getActif());
+            user.setActif(newState);
+            utilisateurRepository.save(user);
+            auditService.logCurrentAction(
+                newState ? "ACTIVATE_USER" : "DEACTIVATE_USER",
+                "Utilisateur", id.toString(), null,
+                (newState ? "Activation" : "Désactivation") + " utilisateur: " + user.getEmail()
+            );
+            return ResponseEntity.ok(user);
         }).orElse(ResponseEntity.notFound().build());
     }
 
@@ -96,23 +209,47 @@ public ResponseEntity<?> deleteOperator(@PathVariable Long id) {
     }
 
     @PostMapping("/restaurants")
-    public ResponseEntity<Restaurant> createRestaurant(@RequestBody Restaurant restaurant) {
+    public ResponseEntity<?> createRestaurant(@RequestBody Restaurant restaurant) {
+        if (restaurant.getTelephone() != null && !restaurant.getTelephone().isBlank()) {
+            if (!com.lekkrek.util.PhoneNumberUtil.isValid(restaurant.getTelephone())) {
+                return ResponseEntity.badRequest().body("Le numéro de téléphone du restaurant doit être un numéro sénégalais valide (ex: 771234567 ou +221 77 123 45 67).");
+            }
+            restaurant.setTelephone(com.lekkrek.util.PhoneNumberUtil.normalize(restaurant.getTelephone()));
+        }
         restaurant.setActive(true);
-        return ResponseEntity.ok(restaurantRepository.save(restaurant));
+        Restaurant saved = restaurantRepository.save(restaurant);
+        auditService.logCurrentAction("CREATE_RESTAURANT", "Restaurant", saved.getId().toString(), null, "Création restaurant: " + saved.getName());
+        return ResponseEntity.ok(saved);
     }
 
     @PutMapping("/restaurants/{id}")
-    public ResponseEntity<Restaurant> updateRestaurant(@PathVariable Long id, @RequestBody Restaurant restaurantDetails) {
+    public ResponseEntity<?> updateRestaurant(@PathVariable Long id, @RequestBody Restaurant restaurantDetails) {
         return restaurantRepository.findById(id).map(resto -> {
             resto.setName(restaurantDetails.getName());
             resto.setLocation(restaurantDetails.getLocation());
             resto.setOperatorName(restaurantDetails.getOperatorName());
+            if (restaurantDetails.getTelephone() != null && !restaurantDetails.getTelephone().isBlank()) {
+                if (!com.lekkrek.util.PhoneNumberUtil.isValid(restaurantDetails.getTelephone())) {
+                    return ResponseEntity.badRequest().body("Le numéro de téléphone du restaurant doit être un numéro sénégalais valide (ex: 771234567 ou +221 77 123 45 67).");
+                }
+                resto.setTelephone(com.lekkrek.util.PhoneNumberUtil.normalize(restaurantDetails.getTelephone()));
+            } else if (restaurantDetails.getTelephone() != null && restaurantDetails.getTelephone().isBlank()) {
+                resto.setTelephone(null);
+            }
             resto.setImage(restaurantDetails.getImage());
             if (restaurantDetails.getCommissionRate() != null) {
                 resto.setCommissionRate(restaurantDetails.getCommissionRate());
             }
             resto.setActive(restaurantDetails.isActive());
-            return ResponseEntity.ok(restaurantRepository.save(resto));
+            resto.setRepere(restaurantDetails.getRepere());
+            resto.setSurPlace(restaurantDetails.getSurPlace());
+            resto.setAEmporter(restaurantDetails.getAEmporter());
+            resto.setLivraison(restaurantDetails.getLivraison());
+            resto.setSupplementLivraison(restaurantDetails.getSupplementLivraison());
+            resto.setNotes(restaurantDetails.getNotes());
+            Restaurant updated = restaurantRepository.save(resto);
+            auditService.logCurrentAction("UPDATE_RESTAURANT", "Restaurant", id.toString(), null, "Modification restaurant: " + resto.getName() + " (Commission: " + resto.getCommissionRate() + "%)");
+            return ResponseEntity.ok(updated);
         }).orElse(ResponseEntity.notFound().build());
     }
 
@@ -120,6 +257,7 @@ public ResponseEntity<?> deleteOperator(@PathVariable Long id) {
     public ResponseEntity<?> deleteRestaurant(@PathVariable Long id) {
         return restaurantRepository.findById(id).map(resto -> {
             restaurantRepository.delete(resto);
+            auditService.logCurrentAction("DELETE_RESTAURANT", "Restaurant", id.toString(), resto.getName(), "Suppression restaurant: " + resto.getName());
             return ResponseEntity.ok().build();
         }).orElse(ResponseEntity.notFound().build());
     }

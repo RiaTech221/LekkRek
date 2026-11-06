@@ -10,6 +10,7 @@ package com.lekkrek.entity;
  */
 
 
+import java.math.BigDecimal;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -31,7 +32,7 @@ public class Plat {
     private String description;
 
     @Column(nullable = false)
-    private Double price;
+    private BigDecimal price;
 
     private String image;
 
@@ -40,6 +41,9 @@ public class Plat {
     private DishStatus status = DishStatus.DISPO;
 
     private String moment; // e.g., dejeuner, diner, gouter
+
+    @Column(length = 255)
+    private String variantes; // Liste de synonymes séparés par des virgules
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "restaurant_id", nullable = false)

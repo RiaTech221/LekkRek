@@ -18,15 +18,24 @@ import java.util.List;
 
 public interface PlatRepository extends JpaRepository<Plat, Long> {
 
+    List<Plat> findByRestaurantId(Long restaurantId);
+    List<Plat> findByRestaurantIdIn(java.util.Collection<Long> restaurantIds);
+
     @Query("SELECT p FROM Plat p WHERE " +
-           "(:keyword IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%'))) AND " +
+           "(:keyword IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(p.variantes) LIKE LOWER(CONCAT('%', :keyword, '%'))) AND " +
            "(:resto IS NULL OR p.restaurant.name = :resto) AND " +
            "(:budgetMax IS NULL OR p.price <= :budgetMax) AND " +
            "(:quartier IS NULL OR LOWER(p.restaurant.location) LIKE LOWER(CONCAT('%', :quartier, '%'))) AND " +
            "(:moment IS NULL OR p.moment = :moment)")
     List<Plat> searchPlats(@Param("keyword") String keyword, 
                            @Param("resto") String resto, 
-                           @Param("budgetMax") Double budgetMax, 
+                           @Param("budgetMax") java.math.BigDecimal budgetMax, 
                            @Param("quartier") String quartier,
                            @Param("moment") String moment);
+
+    @Query("SELECT p FROM Plat p JOIN CommandeItem ci ON ci.plat.id = p.id JOIN Commande c ON ci.commande.id = c.id WHERE c.clientPhone = :phone GROUP BY p ORDER BY SUM(ci.quantity) DESC")
+    List<Plat> findMostOrderedByPhone(@Param("phone") String phone, org.springframework.data.domain.Pageable pageable);
+
+    @Query("SELECT p FROM Plat p JOIN CommandeItem ci ON ci.plat.id = p.id GROUP BY p ORDER BY SUM(ci.quantity) DESC")
+    List<Plat> findPopularPlats(org.springframework.data.domain.Pageable pageable);
 }

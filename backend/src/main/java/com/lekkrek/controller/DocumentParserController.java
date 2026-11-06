@@ -4,8 +4,8 @@ package com.lekkrek.controller;
  * ============================================================================
  * 📁 Fichier : DocumentParserController.java
  * 📝 Description : Classe métier pour la gestion de DocumentParserController dans LekkRek.
- * 🔒 Rôle : Fait partie de l'architecture Backend Spring Boot.
- * 💡 Auteur : Documenté automatiquement (Standard Enterprise)
+ * 🛠 Rôle : Fait partie de l'architecture Backend Spring Boot.
+ * 👨‍💻 Auteur : Standard Enterprise Security
  * ============================================================================
  */
 
@@ -14,12 +14,12 @@ import org.apache.tika.Tika;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
 import java.util.HashMap;
 import java.util.Map;
 
 @RestController
 @RequestMapping("${api.prefix.admin:/api/v1/admin}/documents")
-@CrossOrigin(origins = "*")
 public class DocumentParserController {
 
     @PostMapping("/parse")
@@ -28,6 +28,9 @@ public class DocumentParserController {
         Map<String, String> response = new HashMap<>();
         try {
             Tika tika = new Tika();
+            // Limiter la taille du texte extrait pour éviter les attaques par épuisement de mémoire (Billion laughs / Zip bomb)
+            tika.setMaxStringLength(5 * 1024 * 1024); // Limite à 5 Mo de texte
+
             String extractedText = tika.parseToString(file.getInputStream());
             
             // Basic formatting: wrap paragraphs in <p> to adapt to Rich Text Editor

@@ -4,8 +4,8 @@ package com.lekkrek.security;
  * ============================================================================
  * 📁 Fichier : CustomUserDetailsService.java
  * 📝 Description : Classe métier pour la gestion de CustomUserDetailsService dans LekkRek.
- * 🔒 Rôle : Fait partie de l'architecture Backend Spring Boot.
- * 💡 Auteur : Documenté automatiquement (Standard Enterprise)
+ * 🛠 Rôle : Fait partie de l'architecture Backend Spring Boot.
+ * 👨‍💻 Auteur : Documenté automatiquement (Standard Enterprise)
  * ============================================================================
  */
 
@@ -38,6 +38,10 @@ public class CustomUserDetailsService implements UserDetailsService {
         return new User(
                 utilisateur.getEmail(),
                 utilisateur.getMotDePasse(),
+                utilisateur.getActif() != null ? utilisateur.getActif() : false, // enabled
+                true,  // accountNonExpired
+                true,  // credentialsNonExpired
+                true,  // accountNonLocked
                 Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + utilisateur.getRole().name()))
         );
     }

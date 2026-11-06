@@ -10,6 +10,7 @@ package com.lekkrek.entity;
  */
 
 
+import java.math.BigDecimal;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -33,7 +34,7 @@ public class Commande {
     @Column(nullable = false)
     private String clientName;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 9)
     private String clientPhone;
 
     private String clientAddress;
@@ -54,7 +55,7 @@ public class Commande {
     @Column(nullable = false)
     private PaymentStatus paymentStatus = PaymentStatus.ATTENTE;
 
-    private Double totalAmount;
+    private BigDecimal totalAmount;
 
     @OneToMany(mappedBy = "commande", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CommandeItem> items = new ArrayList<>();
@@ -68,7 +69,8 @@ public class Commande {
 
     public enum OrderType {
         LIVRAISON,
-        EMPORTER
+        EMPORTER,
+        SUR_PLACE
     }
 
     public enum OrderStatus {
@@ -82,7 +84,8 @@ public class Commande {
     public enum PaymentMethod {
         WAVE,
         ORANGE_MONEY,
-        SUR_PLACE
+        SAMIR_PAY,
+        ESPECES
     }
 
     public enum PaymentStatus {

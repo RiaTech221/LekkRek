@@ -1,166 +1,325 @@
+import { API_URL } from '../../config';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-/**
- * ============================================================================
- * 📁 Fichier : Login.jsx
- * 📝 Description : Composant React gérant l'interface utilisateur pour Login.
- * 🎨 Rôle : Vue Frontend (Vite/Tailwind) pour l'expérience client/admin LekkRek.
- * 💡 Auteur : Documenté automatiquement (Standard Enterprise)
- * ============================================================================
- */
-
-import '../../index.css';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const navigate = useNavigate();
 
   const handleLogin = (e) => {
     e.preventDefault();
-    fetch('http://localhost:8080/api/v1/public/auth/login', {
+    setError('');
+    fetch(`${API_URL}/api/v1/public/auth/login`, {
       method: 'POST',
+      credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
     })
     .then(res => {
-      if (!res.ok) throw new Error("Identifiants incorrects");
+      if (!res.ok) throw new Error("Identifiants incorrects. Veuillez vérifier votre e-mail et mot de passe.");
       return res.json();
     })
     .then(data => {
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify({ email: data.email, roles: data.roles }));
-      navigate('/admin');
+      // Le token JWT est transporté automatiquement par le cookie HttpOnly
+      // (posé par le backend via Set-Cookie). Ne PAS le stocker dans localStorage
+      // car cela annulerait la protection anti-XSS du cookie.
+      localStorage.setItem('user', JSON.stringify({
+        email: data.email,
+        roles: data.roles,
+        restaurants: data.restaurants || [],
+        restaurantAssigne: data.restaurants && data.restaurants.length > 0 ? data.restaurants[0].name : null,
+        restaurantId: data.restaurants && data.restaurants.length > 0 ? data.restaurants[0].id : null,
+        doitChangerMotDePasse: Boolean(data.doitChangerMotDePasse)
+      }));
+      localStorage.setItem('lekkrek_admin_tab', 'overview');
+      const isAdmin = Array.isArray(data.roles) && data.roles.includes('ROLE_ADMIN');
+      if (Boolean(data.doitChangerMotDePasse)) {
+        navigate('/first-login', { replace: true });
+      } else {
+        navigate(isAdmin ? '/admin' : '/dashboard', { replace: true });
+      }
     })
-    .catch(err => alert(err.message));
+    .catch(err => setError(err.message));
   };
 
   return (
-    <div className="flex min-h-screen w-full bg-white absolute top-0 left-0 overflow-hidden" style={{ zIndex: 9999 }}>
-      
-      {/* --- LEFT SIDE: FORM --- */}
-      <div className="w-1/2 flex items-center justify-center p-8 lg:p-12 bg-white z-10 relative">
-        
-        {/* BOUTON RETOUR À LA VITRINE */}
-        <a href="/" className="absolute top-8 left-8 flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-red-600 transition-colors group">
-          <div className="bg-gray-100 p-2 rounded-full group-hover:bg-red-50 transition-colors">
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-          </div>
-          Retour au site public
-        </a>
+    <>
+      <style>
+        {`
+          .login-wrapper {
+            display: flex;
+            width: 100vw;
+            min-height: 100vh;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 99999;
+            background-color: white;
+            font-family: system-ui, -apple-system, sans-serif;
+            overflow: hidden; /* Prevent scrollbars from rocket overflowing screen */
+          }
+          
+          .login-left {
+            display: none; 
+            flex: 1;
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 3rem;
+            color: white;
+            position: relative; /* Essential for placing the rocket on the border */
+          }
+          
+          .login-right {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            background: #ffffff;
+            position: relative;
+            z-index: 1; /* Keep it below the overlapping rocket */
+          }
 
-        {/* Animated Background Orbs */}
-        <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-          <div className="absolute -top-[10%] -left-[10%] w-[500px] h-[500px] bg-red-100/50 rounded-full mix-blend-multiply filter blur-[80px] animate-pulse" style={{ animationDuration: '8s' }}></div>
-          <div className="absolute top-[20%] -right-[20%] w-[400px] h-[400px] bg-orange-100/50 rounded-full mix-blend-multiply filter blur-[80px] animate-pulse" style={{ animationDuration: '10s' }}></div>
-        </div>
+          @media (min-width: 768px) {
+            .login-left {
+              display: flex;
+            }
+          }
+
+          /* ROCKET ON THE BORDER */
+          .rocket-container {
+            position: absolute;
+            right: -130px; 
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 100;
+            pointer-events: none;
+            width: 300px;
+            height: 380px;
+          }
+
+          .rocket-image {
+            position: absolute;
+            top: 20px;
+            right: 0px;
+            width: 230px;
+            height: auto;
+            transform: rotate(-35deg); /* Pointe vers le haut comme sur la capture */
+            filter: drop-shadow(10px 25px 25px rgba(0,0,0,0.4));
+            z-index: 3;
+          }
+
+          /* La fameuse "mousse blanche" / nuages compositée */
+          .rocket-foam-top {
+            position: absolute;
+            bottom: 90px;
+            left: 50px;
+            width: 110px;
+            height: auto;
+            z-index: 2;
+            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.15));
+          }
+          
+          .rocket-foam-bottom {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            width: 170px;
+            height: auto;
+            z-index: 1;
+            filter: drop-shadow(0 15px 25px rgba(0,0,0,0.2));
+          }
+
+          /* CHAMPS DE SAISIE LISSES ET ARRONDIS */
+          .input-group {
+            display: flex;
+            align-items: center;
+            background: #f3f4f6; /* Soft gray background */
+            border: 2px solid transparent;
+            border-radius: 9999px; /* Coins totalement arrondis (pilule) */
+            padding: 0.25rem 1.5rem;
+            transition: all 0.3s ease;
+          }
+          .input-group:focus-within {
+            background: #ffffff;
+            border-color: #d33a30;
+            box-shadow: 0 0 0 4px rgba(211, 58, 48, 0.1);
+          }
+          .input-group input {
+            flex: 1;
+            padding: 1rem 0;
+            border: none;
+            outline: none;
+            font-size: 1rem;
+            background: transparent;
+            color: #1f2937;
+            font-weight: 600;
+          }
+          .input-icon {
+            color: #9ca3af;
+            font-size: 1.25rem;
+            margin-right: 0.75rem;
+            transition: color 0.3s ease;
+          }
+          .input-group:focus-within .input-icon {
+            color: #d33a30;
+          }
+
+          /* BOUTON ARRONDIS ET LISSE */
+          .submit-btn {
+            background: linear-gradient(135deg, #d33a30, #a8201a);
+            color: white;
+            padding: 1.15rem;
+            border: none;
+            border-radius: 9999px; /* Pilule */
+            font-weight: 800;
+            font-size: 1.1rem;
+            cursor: pointer;
+            margin-top: 1rem;
+            box-shadow: 0 10px 25px rgba(211, 58, 48, 0.3);
+            transition: all 0.2s ease;
+          }
+          .submit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(211, 58, 48, 0.4);
+          }
+          .submit-btn:active {
+            transform: translateY(1px);
+          }
+
+          .social-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 65px;
+            height: 45px;
+            border-radius: 9999px; /* Boutons sociaux arrondis aussi */
+            border: 2px solid #f3f4f6;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: white;
+          }
+          .social-btn:hover {
+            background-color: #f9fafb;
+            border-color: #e5e7eb;
+            transform: translateY(-2px);
+          }
+        `}
+      </style>
+
+      <div className="login-wrapper">
         
-        <div className="w-full max-w-md relative z-10">
-          <div className="mb-12">
-            <h1 className="text-5xl font-black tracking-tighter text-gray-900 mb-3 flex items-center gap-3">
-              <span className="text-red-600">Lekk</span>Rek
-              <span className="text-[11px] text-red-600 font-bold tracking-widest bg-red-50 border border-red-100 px-3 py-1.5 rounded-full uppercase shadow-sm">
-                Espace Interne
-              </span>
+        {/* === LEFT SIDE (COLOR BLOCK) === */}
+        <div className="login-left">
+          
+          {/* SEPARATEUR COURBE SINUSOÏDALE (Vague) */}
+          <svg 
+            viewBox="0 0 100 100" 
+            preserveAspectRatio="none" 
+            style={{ position: 'absolute', right: '-1px', top: 0, height: '100%', width: '12vw', zIndex: 1 }}
+          >
+            <path fill="#ffffff" d="M100,0 L100,100 L50,100 C -20,75 120,25 50,0 Z" />
+          </svg>
+
+          {/* L'icône Avion/Fusée sur la frontière avec la mousse ! */}
+          <div className="rocket-container">
+            {/* Rocket 3D */}
+            <img 
+              src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Rocket/3D/rocket_3d.png" 
+              alt="Rocket" 
+              className="rocket-image"
+            />
+            {/* Mousse blanche (Nuage 3D - partie haute) */}
+            <img 
+              src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Cloud/3D/cloud_3d.png" 
+              alt="Smoke foam top" 
+              className="rocket-foam-top"
+            />
+            {/* Mousse blanche (Nuage 3D - base large) */}
+            <img 
+              src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Cloud/3D/cloud_3d.png" 
+              alt="Smoke foam base" 
+              className="rocket-foam-bottom"
+            />
+          </div>
+
+          <div style={{ maxWidth: '400px', width: '100%', position: 'relative', zIndex: 10, paddingRight: '10vw' }}>
+            <h1 style={{ fontSize: '3rem', fontWeight: 900, marginBottom: '1.5rem', lineHeight: 1.1, letterSpacing: '-0.02em' }}>
+              Accès à <br/><span style={{ color: '#d33a30' }}>LEKK REK</span>
             </h1>
-            <p className="text-gray-500 mt-2 text-lg font-medium">Plateforme d'administration et de supervision.</p>
-          </div>
-          
-          <form onSubmit={handleLogin} className="space-y-6">
-            <div className="space-y-1.5">
-              <label className="block text-sm font-bold text-gray-700 ml-1">Adresse E-mail</label>
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-red-600 transition-colors">
-                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
-                  </svg>
-                </div>
-                <input 
-                  type="email" 
-                  placeholder="admin@lekkrek.com" 
-                  className="w-full bg-white border border-gray-200 shadow-sm rounded-2xl py-4 pl-12 pr-4 text-sm focus:outline-none focus:border-red-500 focus:ring-4 focus:ring-red-500/10 transition-all font-medium text-gray-900 placeholder-gray-400"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-              </div>
-            </div>
-            
-            <div className="space-y-1.5">
-              <label className="block text-sm font-bold text-gray-700 ml-1 flex justify-between items-center">
-                Mot de passe
-                <a href="#" className="text-red-500 hover:text-red-700 hover:underline font-bold text-xs transition-colors">Oublié ?</a>
-              </label>
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-red-600 transition-colors">
-                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                  </svg>
-                </div>
-                <input 
-                  type="password" 
-                  placeholder="••••••••" 
-                  className="w-full bg-white border border-gray-200 shadow-sm rounded-2xl py-4 pl-12 pr-4 text-sm focus:outline-none focus:border-red-500 focus:ring-4 focus:ring-red-500/10 transition-all font-medium text-gray-900 placeholder-gray-400"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
-              </div>
-            </div>
-
-            <button type="submit" className="group w-full bg-gray-900 text-white font-bold py-4 px-6 rounded-2xl hover:bg-black transition-all transform hover:-translate-y-1 shadow-[0_10px_20px_-10px_rgba(0,0,0,0.5)] mt-8 flex items-center justify-center gap-3">
-              Accéder à l'espace
-              <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-              </svg>
-            </button>
-            
-            <div className="mt-10 pt-6 border-t border-gray-100 flex items-center justify-center gap-2">
-              <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-              </svg>
-              <span className="text-gray-400 text-xs uppercase tracking-widest font-bold">Accès restreint au personnel autorisé</span>
-            </div>
-          </form>
-        </div>
-      </div>
-
-      {/* --- RIGHT SIDE: PREMIUM DASHBOARD SHOWCASE --- */}
-      <div className="w-1/2 bg-gray-900 relative flex flex-col justify-center items-center overflow-hidden">
-        
-        {/* Background Image of Personnel / Operator */}
-        <img 
-          src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=2000&auto=format&fit=crop" 
-          alt="Opérateur LekkRek" 
-          className="absolute inset-0 w-full h-full object-cover"
-        />
-        
-        {/* Rich dark overlay to keep the tech vibe and make white text pop */}
-        <div className="absolute inset-0 bg-gradient-to-br from-gray-900/95 via-red-900/60 to-gray-900/90 mix-blend-multiply"></div>
-        <div className="absolute inset-0 bg-black/10 backdrop-blur-[2px]"></div>
-        
-        {/* Abstract UI Elements Overlay */}
-        <div className="relative z-10 w-full flex justify-center p-8">
-          
-          {/* Ultra-clean Secure Access Card */}
-          <div className="bg-white/5 backdrop-blur-xl p-12 rounded-[2.5rem] shadow-2xl border border-white/10 text-center max-w-sm">
-            <div className="w-20 h-20 bg-gradient-to-br from-red-500/20 to-red-600/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-red-500/30 shadow-inner">
-              <svg className="w-10 h-10 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-              </svg>
-            </div>
-            <h2 className="text-3xl font-black text-white mb-4 tracking-tight">Accès Sécurisé</h2>
-            <p className="text-gray-300 font-medium text-base leading-relaxed">
-              Veuillez vous authentifier pour accéder à l'interface d'administration LekkRek.
+            <p style={{ fontSize: '1.15rem', opacity: 0.95, lineHeight: 1.6, fontWeight: 500 }}>
+              Débloquez la gestion de vos plats, le suivi de vos commandes en temps réel et analysez vos statistiques de ventes instantanément sur notre plateforme.
             </p>
           </div>
-
         </div>
-      </div>
 
-    </div>
+        {/* === RIGHT SIDE (FORM) === */}
+        <div className="login-right">
+          
+          <a href="/" style={{ position: "absolute", top: "1.5rem", right: "1.5rem", padding: "0.6rem 1.25rem", background: "#fef2f2", color: "#d33a30", border: "1px solid #fecaca", textDecoration: "none", borderRadius: "9999px", fontWeight: "bold", fontSize: "0.875rem", display: "flex", alignItems: "center", gap: "0.5rem", transition: "all 0.2s" }} onMouseEnter={(e) => { e.currentTarget.style.background = "#fee2e2"; }} onMouseLeave={(e) => { e.currentTarget.style.background = "#fef2f2"; }}>
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+            Retour au site
+          </a>
+
+          <div style={{ width: '100%', maxWidth: '380px' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
+              <img src="/logo_lekkrek.png" alt="LekkRek Logo" style={{ height: '64px', width: 'auto', objectFit: 'contain' }} />
+            </div>
+            <h2 style={{ fontSize: '2.25rem', fontWeight: 900, marginBottom: '2rem', color: '#111827', textAlign: 'center', letterSpacing: '-0.02em' }}>
+              Espace Pro
+            </h2>
+            
+            {error && (
+              <div style={{ background: '#fee2e2', color: '#b91c1c', padding: '1rem', borderRadius: '12px', marginBottom: '1.5rem', textAlign: 'center', fontSize: '0.875rem', fontWeight: 'bold' }}>
+                {error}
+              </div>
+            )}
+
+            <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+              
+              <div className="input-group">
+                <svg className="input-icon" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+                </svg>
+                <input 
+                  type="email" 
+                  placeholder="Adresse email" 
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div className="input-group">
+                <svg className="input-icon" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                <input 
+                  type="password" 
+                  placeholder="Mot de passe" 
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  required
+                />
+              </div>
+
+              <button type="submit" className="submit-btn">
+                Connexion
+              </button>
+            </form>
+          </div>
+        </div>
+
+      </div>
+    </>
   );
 }
+
+
+
+

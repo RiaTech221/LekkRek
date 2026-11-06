@@ -10,10 +10,13 @@ package com.lekkrek.entity;
  */
 
 
+import java.math.BigDecimal;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonAlias;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -38,11 +41,12 @@ public class Restaurant {
     private String image;
 
     private String operatorName; // The person managing it
+    private String telephone; // Numéro de contact direct du restaurant / gérant
 
     private boolean active = true;
 
-    @Column(nullable = false, columnDefinition = "double default 10.0")
-    private Double commissionRate = 10.0;
+    @Column(nullable = false, columnDefinition = "DECIMAL(5,2) default 10.0")
+    private BigDecimal commissionRate = new BigDecimal("10.0");
 
     private String subscriptionPlan = "Basic";
 
@@ -50,4 +54,53 @@ public class Restaurant {
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    @JsonProperty("repere")
+    @Column(length = 255)
+    private String repere;
+
+    @JsonProperty("surPlace")
+    @Column(name = "sur_place")
+    private Boolean surPlace;
+
+    @JsonProperty("aEmporter")
+    @JsonAlias({"aemporter", "a_emporter"})
+    @Column(name = "a_emporter")
+    private Boolean aEmporter;
+
+    @JsonProperty("livraison")
+    @Column(name = "livraison")
+    private Boolean livraison;
+
+    @JsonProperty("supplementLivraison")
+    @Column(name = "supplement_livraison", precision = 10, scale = 2)
+    private BigDecimal supplementLivraison;
+
+    @JsonProperty("notes")
+    @Column(length = 500)
+    private String notes;
+
+    @JsonProperty("aEmporter")
+    public Boolean getAEmporter() {
+        return this.aEmporter;
+    }
+
+    @JsonProperty("aEmporter")
+    public void setAEmporter(Boolean aEmporter) {
+        this.aEmporter = aEmporter;
+    }
+
+
+    public Restaurant(Long id, String name, String location, String image, String operatorName, boolean active, BigDecimal commissionRate, String subscriptionPlan, LocalDate subscriptionEndDate, LocalDateTime createdAt) {
+        this.id = id;
+        this.name = name;
+        this.location = location;
+        this.image = image;
+        this.operatorName = operatorName;
+        this.active = active;
+        this.commissionRate = commissionRate;
+        this.subscriptionPlan = subscriptionPlan;
+        this.subscriptionEndDate = subscriptionEndDate;
+        this.createdAt = createdAt;
+    }
 }

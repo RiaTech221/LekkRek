@@ -10,32 +10,42 @@ package com.lekkrek.controller;
  */
 
 
+import com.lekkrek.dto.PlatTodayDTO;
 import com.lekkrek.entity.Plat;
 import com.lekkrek.repository.PlatRepository;
+import com.lekkrek.service.MenuTodayService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("${api.prefix.public:/api/v1/public}/menu")
-@CrossOrigin(origins = "*")
 public class MenuController {
 
     private final PlatRepository platRepository;
+    private final MenuTodayService menuTodayService;
 
-    public MenuController(PlatRepository platRepository) {
+    public MenuController(PlatRepository platRepository, MenuTodayService menuTodayService) {
         this.platRepository = platRepository;
+        this.menuTodayService = menuTodayService;
     }
 
-    @GetMapping
+    @GetMapping("/today")
+    public List<PlatTodayDTO> getMenuToday() {
+        return menuTodayService.getMenuToday();
+    }
+
+        @GetMapping
     public List<Plat> searchPlats(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String resto,
-            @RequestParam(required = false) Double budgetMax,
+            @RequestParam(required = false) java.math.BigDecimal budgetMax,
             @RequestParam(required = false) String quartier,
             @RequestParam(required = false) String moment) {
         
-        keyword = (keyword != null && !keyword.isBlank()) ? normalizeKeyword(keyword) : null;
+        // Le dictionnaire en dur a été retiré. La recherche utilise désormais le champ "variantes" 
+        // de la base de données, permettant aux opérateurs de gérer les synonymes depuis l'interface (conformément au Cahier des Charges).
+        keyword = (keyword != null && !keyword.isBlank()) ? keyword.trim() : null;
         resto = (resto != null && !resto.isBlank()) ? resto : null;
         quartier = (quartier != null && !quartier.isBlank()) ? quartier : null;
         moment = (moment != null && !moment.isBlank()) ? moment : null;
@@ -43,21 +53,19 @@ public class MenuController {
         return platRepository.searchPlats(keyword, resto, budgetMax, quartier, moment);
     }
 
-    private String normalizeKeyword(String keyword) {
-        String lower = keyword.toLowerCase().trim();
-        // Dictionnaire de synonymes (Recherche tolérante)
-        if (lower.contains("tiep") || lower.contains("thieb") || lower.contains("thiep") || lower.contains("ceebu")) {
-            return "thieb"; // 'thieb' matchera 'Thiéboudienne'
+    @GetMapping("/recommendations")
+    public List<Plat> getRecommendations(@RequestParam(required = false) String phone) {
+        org.springframework.data.domain.Pageable top4 = org.springframework.data.domain.PageRequest.of(0, 4);
+        
+        if (phone != null && !phone.isBlank()) {
+            String cleanPhone = com.lekkrek.util.PhoneNumberUtil.normalize(phone);
+            List<Plat> recommended = platRepository.findMostOrderedByPhone(cleanPhone, top4);
+            if (!recommended.isEmpty()) {
+                return recommended;
+            }
         }
-        if (lower.contains("maffe") || lower.contains("mafé") || lower.contains("mafe")) {
-            return "mafé";
-        }
-        if (lower.contains("hamburger")) {
-            return "burger";
-        }
-        if (lower.contains("chawarma") || lower.contains("shawarma")) {
-            return "shawarma";
-        }
-        return keyword;
+        
+        // Fallback: les plats les plus populaires globalement
+        return platRepository.findPopularPlats(top4);
     }
 }

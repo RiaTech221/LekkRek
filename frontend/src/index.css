@@ -22,8 +22,42 @@ body { background-color: var(--bg-gray); color: var(--text-dark); overflow-x: hi
 .flex-col { display: flex; flex-direction: column; }
 .items-center { align-items: center; }
 .justify-between { justify-content: space-between; }
+.justify-center { justify-content: center; }
 .grid { display: grid; }
 .hidden { display: none !important; }
+
+/* Width / sizing */
+.w-full { width: 100%; }
+.h-full { height: 100%; }
+.min-h-screen { min-height: 100vh; }
+
+/* Flex utilities */
+.shrink-0 { flex-shrink: 0; }
+.flex-1 { flex: 1 1 0%; min-width: 0; }
+.ml-auto { margin-left: auto; }
+.gap-2 { gap: 8px; }
+.gap-3 { gap: 12px; }
+.gap-4 { gap: 16px; }
+.gap-6 { gap: 24px; }
+.gap-8 { gap: 32px; }
+.gap-12 { gap: 48px; }
+
+/* Overflow */
+.overflow-x-auto { overflow-x: auto; }
+.overflow-hidden { overflow: hidden; }
+.truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Min-width utilitaires pour les champs de recherche */
+.min-w-\[60px\] { min-width: 60px; }
+.min-w-\[70px\] { min-width: 70px; }
+.min-w-\[80px\] { min-width: 80px; }
+
+/* Padding / margin */
+.pb-12 { padding-bottom: 48px; }
+.pt-4 { padding-top: 16px; }
+.pb-4 { padding-bottom: 16px; }
+.mb-8 { margin-bottom: 32px; }
+.mt-auto { margin-top: auto; }
 
 .btn { padding: 12px 20px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; font-size: 15px; transition: 0.2s; text-align: left; }
 .btn-red { background-color: var(--red); color: var(--white); }
@@ -99,6 +133,54 @@ body { background-color: var(--bg-gray); color: var(--text-dark); overflow-x: hi
 
 /* Fix admin scrollbar */
 body.admin-mode { padding: 0 !important; overflow: hidden !important; }
+
+/* =============================================
+   RESPONSIVE — Grille des plats (ClientView)
+   Quand on réduit le navigateur : 2 colonnes
+   ============================================= */
+
+/* Classes grille de base (mobile first = 1 col) */
+.grid-cols-1 { grid-template-columns: repeat(1, 1fr); }
+.grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+.grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
+.grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
+.gap-3  { gap: 12px; }
+.gap-6  { gap: 24px; }
+.gap-8  { gap: 32px; }
+.gap-12 { gap: 48px; }
+.pb-12  { padding-bottom: 48px; }
+
+/* >= 768px (md) */
+@media (min-width: 768px) {
+  .md\:grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+  .md\:grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
+  .md\:grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
+  .sm\:gap-6 { gap: 24px; }
+}
+
+/* >= 1024px (lg) */
+@media (min-width: 1024px) {
+  .lg\:grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
+  .lg\:grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
+  .lg\:gap-8 { gap: 32px; }
+}
+
+/* >= 1280px (xl) */
+@media (min-width: 1280px) {
+  .xl\:grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
+  .xl\:grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
+}
+
+/* < 900px : grilles de plats client en 2 colonnes */
+@media (max-width: 899px) {
+  .xl\:grid-cols-3,
+  .xl\:grid-cols-4 {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+}
+
+
 
 
 /* Custom modern scrollbars */

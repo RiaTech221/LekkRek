@@ -3,28 +3,25 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 
 // Import des pages (Views)
 import ClientView from './pages/client/ClientView';
+import MobileClientView from './pages/client/MobileClientView';
 import PublicPage from './pages/client/PublicPage';
 import OperatorDashboard from './pages/admin/OperatorDashboard';
 import Login from './pages/admin/Login';
+import FirstLoginPasswordChange from './pages/admin/FirstLoginPasswordChange';
 
 /**
  * ============================================================================
  * 📁 Fichier : App.jsx
- * 📝 Description : Composant React gérant l'interface utilisateur pour App.
- * 🎨 Rôle : Vue Frontend (Vite/Tailwind) pour l'expérience client/admin LekkRek.
- * 💡 Auteur : Documenté automatiquement (Standard Enterprise)
+ * 📝 Description : Routeur principal de l'application LekkRek.
+ * 🎨 Rôle : Définition des routes publiques, d'authentification et d'administration.
+ * 💡 Auteur : Standard Enterprise Security
  * ============================================================================
  */
 
+import ProtectedRoute from './components/ProtectedRoute';
 
 // Style global
 import './index.css';
-
-// Composant pour protéger les routes Admin
-const PrivateRoute = ({ children }) => {
-  const token = localStorage.getItem('token');
-  return token ? children : <Navigate to="/login" replace />;
-};
 
 function App() {
   return (
@@ -32,16 +29,31 @@ function App() {
       <Routes>
         {/* Espace Client (Public) */}
         <Route path="/" element={<ClientView />} />
+        <Route path="/mobile" element={<MobileClientView />} />
         <Route path="/pages/:slug" element={<PublicPage />} />
         
-        {/* Connexion Opérateur */}
+        {/* Connexion Opérateur / Admin */}
         <Route path="/login" element={<Login />} />
+
+        {/* Page dédiée au changement de mot de passe obligatoire (1ère connexion) */}
+        <Route path="/first-login" element={
+          <ProtectedRoute allowedRoles={['ROLE_ADMIN', 'ROLE_OPERATEUR']} allowPendingPasswordChange={true}>
+            <FirstLoginPasswordChange />
+          </ProtectedRoute>
+        } />
         
-        {/* Espace Administration (Opérateur) - Protégé */}
+        {/* Espace Administration Globale - Réservé aux Administrateurs */}
         <Route path="/admin" element={
-          <PrivateRoute>
+          <ProtectedRoute allowedRoles={['ROLE_ADMIN']}>
             <OperatorDashboard />
-          </PrivateRoute>
+          </ProtectedRoute>
+        } />
+
+        {/* Espace Opérateur / Dashboard - Accessible aux Opérateurs et Administrateurs */}
+        <Route path="/dashboard" element={
+          <ProtectedRoute allowedRoles={['ROLE_ADMIN', 'ROLE_OPERATEUR']}>
+            <OperatorDashboard />
+          </ProtectedRoute>
         } />
 
         {/* Fallback : Redirection vers l'accueil si route introuvable */}
