@@ -132,8 +132,17 @@ export default function MobileClientView() {
 
   const handleLogout = () => {
     localStorage.removeItem('lekkrek_client_profile');
+    // Nettoyage de l'historique de commandes pour protéger la vie privée
+    // du client : le prochain utilisateur ne doit pas voir ses commandes.
+    localStorage.removeItem('lekkrek_recent_orders');
+    localStorage.removeItem('lekkrek_active_order');
+    localStorage.removeItem('lekkrek_pending_payment');
     setFormData(prev => ({ ...prev, clientPhone: '', clientName: '' }));
     setRecommendations([]);
+    // Réinitialisation immédiate de l'UI (sans besoin de rafraîchir la page)
+    setTrackOrderNumber('');
+    setTrackModalOpen(false);
+    setCart([]);
     setLoginOpen(false);
     showToast("Vous êtes déconnecté.", 'info');
   };
