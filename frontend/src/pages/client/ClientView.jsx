@@ -111,6 +111,38 @@ export default function ClientView() {
     return () => clearInterval(timer);
   }, []);
 
+  // Écoute du retour PayTech après paiement ou annulation
+  React.useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const paymentStatus = urlParams.get('payment');
+    const orderNum = urlParams.get('order');
+    if (paymentStatus === 'success') {
+      showToast("Paiement validé avec succès !", 'success');
+      if (orderNum) {
+        try {
+          const rawPending = localStorage.getItem('lekkrek_pending_payment');
+          const pending = rawPending ? JSON.parse(rawPending) : {};
+          const rawRecent = localStorage.getItem('lekkrek_recent_orders');
+          const recentList = rawRecent ? JSON.parse(rawRecent) : [];
+          const updatedList = [
+            { orderNumber: orderNum, restaurantName: pending.restaurantName || '', totalAmount: pending.totalAmount || 0, date: new Date().toISOString() },
+            ...recentList.filter(o => o.orderNumber !== orderNum)
+          ].slice(0, 5);
+          localStorage.setItem('lekkrek_recent_orders', JSON.stringify(updatedList));
+          localStorage.setItem('lekkrek_active_order', JSON.stringify({ orderNumber: orderNum, restaurantName: pending.restaurantName || '' }));
+          localStorage.removeItem('lekkrek_pending_payment');
+        } catch {}
+        setTrackOrderNumber(orderNum);
+        setTrackModalOpen(true);
+      }
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (paymentStatus === 'cancel') {
+      showToast("Le paiement a été annulé. Votre commande reste en attente.", 'info');
+      localStorage.removeItem('lekkrek_pending_payment');
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
+
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
   const [isLoginOpen, setLoginOpen] = useState(false);
@@ -365,32 +397,44 @@ return () => {
       return showToast("Numéro de téléphone sénégalais invalide (ex: 771234567 ou +221 77 123 45 67).", "error");
     }
     if (formData.type === 'LIVRAISON' && (!formData.clientAddress || formData.clientAddress.trim().length < 5)) {
-      return showToast("Veuillez saisir une adresse de livraison plus précise.", "error");
+      return showToast("Veuillez saisir une adresse de livraison plus précise (minimum 5 caractères).", "error");
     }
 
-    const processOrder = () => {
-      const orderRequest = {
-        ...formData,
-        clientPhone: normalizeSenegalPhone(formData.clientPhone),
-        platIds: cart.map(p => p.id || p.platId)
-      };
+    const orderRequest = {
+      ...formData,
+      clientPhone: normalizeSenegalPhone(formData.clientPhone),
+      platIds: cart.map(p => p.id || p.platId)
+    };
 
-      fetch(`${API_URL}/api/v1/public/orders`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(orderRequest)
-      })
-      .then(res => {
-        if (!res.ok) {
-          return res.json().then(err => {
-            throw new Error(err.message || "Erreur serveur lors de la commande.");
-          }).catch(() => {
-            throw new Error("Erreur serveur lors de la commande.");
-          });
+    setIsProcessingPayment(true);
+    fetch(`${API_URL}/api/v1/public/orders`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(orderRequest)
+    })
+    .then(async res => {
+      let rawText = '';
+      let data = {};
+      try {
+        rawText = await res.text();
+        data = JSON.parse(rawText);
+      } catch (e) {
+        data = { rawText };
+      }
+      if (!res.ok) {
+        let errorMsg = data.message || data.error;
+        if (data.fieldErrors) {
+          errorMsg = Object.entries(data.fieldErrors).map(([k, v]) => `${k}: ${v}`).join(' | ');
         }
-        return res.json();
-      })
-      .then(data => {
+        if (!errorMsg && rawText) {
+          errorMsg = rawText.length > 150 ? rawText.substring(0, 150) + '...' : rawText;
+        }
+        throw new Error(errorMsg || `Erreur serveur (${res.status})`);
+      }
+      return data;
+    })
+    .then(data => {
+      const finalizeOrder = (orderData) => {
         localStorage.setItem('lekkrek_client_profile', JSON.stringify({ 
           name: formData.clientName, 
           phone: formData.clientPhone, 
@@ -400,37 +444,71 @@ return () => {
           const rawRecent = localStorage.getItem('lekkrek_recent_orders');
           const recentList = rawRecent ? JSON.parse(rawRecent) : [];
           const updatedList = [
-            { orderNumber: data.orderNumber, restaurantName: data.restaurantName, totalAmount: data.totalAmount, date: new Date().toISOString() },
-            ...recentList.filter(o => o.orderNumber !== data.orderNumber)
+            { orderNumber: orderData.orderNumber, restaurantName: orderData.restaurantName, totalAmount: orderData.totalAmount, date: new Date().toISOString() },
+            ...recentList.filter(o => o.orderNumber !== orderData.orderNumber)
           ].slice(0, 5);
           localStorage.setItem('lekkrek_recent_orders', JSON.stringify(updatedList));
-          localStorage.setItem('lekkrek_active_order', JSON.stringify({ orderNumber: data.orderNumber, restaurantName: data.restaurantName }));
-        } catch {
-          // Ignorer
-        }
-        setOrderInfo(data);
-        setTrackOrderNumber(data.orderNumber);
+          localStorage.setItem('lekkrek_active_order', JSON.stringify({ orderNumber: orderData.orderNumber, restaurantName: orderData.restaurantName }));
+        } catch {}
+        setOrderInfo(orderData);
+        setTrackOrderNumber(orderData.orderNumber);
         setCart([]);
         setCheckoutOpen(false);
         setIsProcessingPayment(false);
         setSuccessOpen(true);
-      })
-      .catch(err => {
-        showToast(err.message || "Erreur lors de la commande.", "error");
-        setIsProcessingPayment(false);
-      });
-    };
+      };
 
-    // Simulation de paiement fictif
-    if (formData.paymentMethod === 'WAVE' || formData.paymentMethod === 'ORANGE_MONEY' || formData.paymentMethod === 'SAMIR_PAY') {
-      setIsProcessingPayment(true);
-      // Faux délai pour simuler l'API de paiement
-      setTimeout(() => {
-        processOrder();
-      }, 2000);
-    } else {
-      processOrder();
-    }
+      if (['WAVE', 'ORANGE_MONEY', 'SAMIR_PAY'].includes(formData.paymentMethod)) {
+        // Initiation paiement PayTech
+        fetch(`${API_URL}/api/v1/public/payments/initiate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            orderNumber: data.orderNumber,
+            successUrl: `${window.location.origin}/?payment=success&order=${data.orderNumber}`,
+            cancelUrl: `${window.location.origin}/?payment=cancel&order=${data.orderNumber}`
+          })
+        })
+        .then(async res => {
+          const payData = await res.json().catch(() => ({}));
+          if (!res.ok || !payData.success) {
+            throw new Error(payData.message || "Erreur lors de l'initiation du paiement PayTech");
+          }
+          return payData;
+        })
+        .then(payData => {
+          localStorage.setItem('lekkrek_client_profile', JSON.stringify({ 
+            name: formData.clientName, 
+            phone: formData.clientPhone, 
+            address: formData.clientAddress 
+          }));
+          localStorage.setItem('lekkrek_pending_payment', JSON.stringify({
+            orderNumber: data.orderNumber,
+            restaurantName: data.restaurantName,
+            totalAmount: data.totalAmount
+          }));
+          setCart([]);
+          setCheckoutOpen(false);
+          setIsProcessingPayment(false);
+
+          if (payData.redirectUrl) {
+            // Redirection directe vers PayTech (choix Wave, Orange Money, etc.)
+            window.location.href = payData.redirectUrl;
+          }
+        })
+        .catch(err => {
+          showToast(err.message || "Erreur lors de l'initiation du paiement.", "error");
+          setIsProcessingPayment(false);
+        });
+      } else {
+        // Paiement en espèces
+        finalizeOrder(data);
+      }
+    })
+    .catch(err => {
+      showToast(err.message || "Erreur lors de la commande. Veuillez réessayer.", "error");
+      setIsProcessingPayment(false);
+    });
   };
 
   // PARTNER REQUEST MODAL

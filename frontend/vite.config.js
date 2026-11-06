@@ -59,9 +59,18 @@ export default defineConfig({
     port: 5173,
     // Proxy dev vers Spring Boot : le front et l'API deviennent same-origin,
     // le cookie HttpOnly d'auth est alors envoyé automatiquement (zéro CORS en dev).
+    // Cible 127.0.0.1 (IPv4 direct) pour éliminer les problèmes de résolution IPv6 (::1) sous Node.js
     proxy: {
-      '/api': 'http://localhost:8080',
-      '/uploads': 'http://localhost:8080'
+      '/api': {
+        target: 'http://127.0.0.1:8080',
+        changeOrigin: true,
+        secure: false
+      },
+      '/uploads': {
+        target: 'http://127.0.0.1:8080',
+        changeOrigin: true,
+        secure: false
+      }
     }
   }
 });

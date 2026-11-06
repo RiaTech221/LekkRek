@@ -106,11 +106,7 @@ public class OrderServiceImpl implements OrderService {
         commande.setTotalAmount(total);
         commande.setStatus(Commande.OrderStatus.NOUVELLE);
         
-        if (commande.getPaymentMethod() == Commande.PaymentMethod.ESPECES) {
-            commande.setPaymentStatus(Commande.PaymentStatus.ATTENTE);
-        } else {
-            commande.setPaymentStatus(Commande.PaymentStatus.PAYE);
-        }
+        commande.setPaymentStatus(Commande.PaymentStatus.ATTENTE);
 
         Commande saved = commandeRepository.save(commande);
 

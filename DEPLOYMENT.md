@@ -78,7 +78,19 @@ nano .env
 Copiez-y ceci, en remplaçant le mot de passe par un mot de passe très sécurisé de votre choix :
 
 ```env
-DB_PASSWORD=MonMotDePasseUltraSecret2026!
+# Base de données
+DB_PASSWORD=VotreMotDePasseSecuriseProd2026!
+
+# JWT Secret : générer une clé unique sur le serveur avec `openssl rand -hex 64`
+# et coller le résultat ici. Le backend refuse de démarrer si la clé est absente,
+# trop courte ou recopiée depuis le dépôt.
+JWT_SECRET=<résultat de openssl rand -hex 64>
+
+# PayTech Production (Wave, Orange Money, etc.)
+PAYTECH_API_KEY=votre_cle_api_paytech_prod
+PAYTECH_API_SECRET=votre_cle_secrete_paytech_prod
+PAYTECH_ENV=live
+PAYTECH_IPN_URL=https://lekkrek.com/api/v1/public/payments/ipn
 
 # HTTPS (à remplir quand vous aurez le nom de domaine — voir section 8)
 # DOMAIN=lekkrek.com

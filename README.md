@@ -152,25 +152,16 @@ mysql -u lekkrek_app -plekkrek_app_password lekkrek_db < database_schema.sql
 
 ---
 
-### 3. Configuration de l'environnement
+### 3. Configuration de l'environnement (.env)
 
-#### Backend
-Les variables de configuration sont lues depuis l'environnement système. En développement local, les valeurs par défaut définies dans `application.properties` sont utilisées automatiquement — **aucune action requise**.
-
-Pour surcharger (optionnel en dev, obligatoire en production) :
+Copiez le modèle `.env.example` vers `.env` à la racine :
 ```bash
-export DB_USER=root
-export DB_PASSWORD=motdepasse
-export JWT_SECRET=une-cle-secrete-forte-de-64-caracteres-minimum
+cp .env.example .env
 ```
 
-#### Frontend
-Copier le fichier d'exemple et l'adapter si nécessaire :
-```bash
-cp frontend/.env.example frontend/.env
-```
-
-Le fichier `.env` par défaut pointe vers `http://localhost:8080`. Modifier `VITE_API_URL` si votre backend tourne sur un autre hôte ou port.
+Le fichier `.env` est **strictement ignoré par Git** pour protéger les secrets (mots de passe, clés de test/production PayTech Wave et Orange Money).
+Spring Boot le charge automatiquement au démarrage (via `spring.config.import`).
+Docker Compose et Vite le prennent également en charge.
 
 ---
 
@@ -204,15 +195,19 @@ L'interface est accessible sur `http://localhost:5173`.
 
 ## Variables d'environnement
 
-### Backend (`application.properties` / variables système)
+### Backend (`.env` / `application.properties` / variables système)
 
 | Variable | Description | Défaut (dev local) |
 |---|---|---|
 | `DB_URL` | URL JDBC de la base MySQL | `jdbc:mysql://localhost:3306/lekkrek_db` |
-| `DB_USER` | Utilisateur MySQL | `root` |
-| `DB_PASSWORD` | Mot de passe MySQL | *(vide)* |
-| `JWT_SECRET` | Clé secrète de signature des tokens JWT (min. 32 chars) | Valeur de fallback dev incluse |
-| `JWT_EXPIRATION_MS` | Durée de validité des tokens JWT en ms | `86400000` (24h) |
+| `DB_USER` | Utilisateur MySQL | `lekkrek_app` |
+| `DB_PASSWORD` | Mot de passe MySQL | `lekkrek_app_password` |
+| `JWT_SECRET` | Clé secrète de signature des tokens JWT (min. 32 chars, `openssl rand -hex 64`) | Aucune — clé aléatoire temporaire en dev, **obligatoire** en prod |
+| `JWT_EXPIRATION_MS` | Durée de validité des tokens JWT en ms | `14400000` (4h) |
+| `PAYTECH_API_KEY` | Clé API PayTech (Wave, Orange Money) | À définir dans `.env` |
+| `PAYTECH_API_SECRET` | Clé secrète PayTech | À définir dans `.env` |
+| `PAYTECH_ENV` | Environnement PayTech (`test` ou `live`) | `test` |
+| `PAYTECH_IPN_URL` | URL de callback IPN PayTech (HTTPS obligatoire) | `https://lekkrek.com/api/v1/public/payments/ipn` |
 
 > En production, toutes ces variables doivent être définies dans l'environnement système ou un gestionnaire de secrets. Ne jamais les commiter.
 
