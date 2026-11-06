@@ -29,8 +29,13 @@ export default function OrderTrackingModal({ isOpen, onClose, initialOrderNumber
     if (!isOpen) return;
 
     try {
-      const rawRecent = localStorage.getItem('lekkrek_recent_orders');
-      const rawActive = localStorage.getItem('lekkrek_active_order');
+      // Protection vie privée : ne charger l'historique local que si un profil
+      // client est actif. Sans profil, on affiche directement le champ de saisie
+      // manuelle pour éviter qu'un nouvel utilisateur voie les commandes d'un autre.
+      const hasProfile = !!localStorage.getItem('lekkrek_client_profile');
+
+      const rawRecent = hasProfile ? localStorage.getItem('lekkrek_recent_orders') : null;
+      const rawActive = hasProfile ? localStorage.getItem('lekkrek_active_order') : null;
       const parsedRecent = rawRecent ? JSON.parse(rawRecent) : [];
       setRecentOrders(parsedRecent);
 
@@ -46,6 +51,9 @@ export default function OrderTrackingModal({ isOpen, onClose, initialOrderNumber
       if (targetNumber) {
         setTrackOrderNumber(targetNumber);
         void fetchOrderDetails(targetNumber);
+      } else {
+        // Pas de commande connue : ouvrir le champ de saisie manuelle
+        setIsManualOpen(true);
       }
     } catch {
       // Ignorer l'erreur de lecture locale
@@ -158,7 +166,7 @@ export default function OrderTrackingModal({ isOpen, onClose, initialOrderNumber
                       : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
                   }`}
                 >
-                  #{ro.orderNumber}
+                  {ro.orderNumber}
                 </button>
               ))}
             </div>
@@ -172,7 +180,7 @@ export default function OrderTrackingModal({ isOpen, onClose, initialOrderNumber
               Numéro de commande
             </p>
             <p className="text-lg font-black text-red-600">
-              #{trackOrderNumber || '---'}
+              {trackOrderNumber || '---'}
             </p>
           </div>
           <div className="flex items-center gap-2">
